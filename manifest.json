@@ -1,7 +1,7 @@
 {
   "name": "Faculté Agronomique - Espace Étudiant",
   "short_name": "FAC Agro",
-  "description": "Application étudiante avec notifications en temps réel",
+  "description": "Application étudiante avec notifications en temps réel - UNILU",
   "start_url": "index.html",
   "display": "standalone",
   "theme_color": "#003366",
@@ -64,20 +64,32 @@
     {
       "name": "Communications",
       "short_name": "Comms",
+      "description": "Voir les communiqués",
       "url": "communiquer.html",
       "icons": [{ "src": "icon-96x96.png", "sizes": "96x96" }]
     },
     {
-      "name": "Paiements",
+      "name": "Mes Paiements",
       "short_name": "Paiements",
+      "description": "Voir mes transactions",
       "url": "paiement.html",
       "icons": [{ "src": "icon-96x96.png", "sizes": "96x96" }]
     },
     {
       "name": "Mon Profil",
       "short_name": "Profil",
+      "description": "Gérer mon compte",
       "url": "profil.html",
       "icons": [{ "src": "icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Bulletin",
+      "short_name": "Notes",
+      "description": "Mes notes",
+      "url": "bulletin.html",
+      "icons": [{ "src": "icon-96x96.png", "sizes": "96x96" }]
     }
-  ]
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
 }
