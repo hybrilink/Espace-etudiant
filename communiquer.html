@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,7 +22,7 @@
         body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
         
         .navbar-custom { background: var(--primary-blue); box-shadow: 0 4px 15px rgba(0,0,0,0.2); padding: 12px 0; }
-        .navbar-brand { font-weight: bold; font-size: 1.1rem; }
+        .navbar-brand { font-weight: bold; font-size: 0.95rem; color: white !important; }
         .profile-photo { width: 45px; height: 45px; border-radius: 50%; background: var(--accent-yellow); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
         .profile-photo i { font-size: 28px; color: var(--primary-blue); }
         .navbar-right { display: flex; align-items: center; gap: 15px; }
@@ -34,15 +35,15 @@
         }
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(220,53,69,0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(220,53,69,0); }
+            70% { box-shadow: 0 0 0 8px rgba(220,53,69,0); }
             100% { box-shadow: 0 0 0 0 rgba(220,53,69,0); }
         }
         
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         .btn-back { background: var(--primary-blue); color: white; border: none; padding: 8px 20px; border-radius: 25px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; cursor: pointer; text-decoration: none; }
         .btn-back:hover { background: var(--dark-blue); transform: translateY(-2px); }
-        .btn-refresh { background: var(--accent-yellow); color: var(--primary-blue); border: none; padding: 8px 15px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
-        .btn-refresh:hover { transform: scale(1.05); background: #ff9800; }
+        .btn-refresh { background: var(--accent-yellow); color: var(--primary-blue); border: none; padding: 8px 15px; border-radius: 25px; font-weight: bold; cursor: pointer; }
+        .btn-refresh:hover { background: #ff9800; }
         
         .content-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); min-height: 400px; }
         
@@ -50,14 +51,11 @@
             background: white; border-radius: 15px; padding: 20px;
             margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             border-left: 5px solid var(--primary-blue); transition: all 0.3s; cursor: pointer;
-            position: relative;
-            overflow: hidden;
         }
         .communique-card:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .communique-card:active { transform: scale(0.99); }
         .communique-card.nouveau {
             border-left-color: #ffb347; background: linear-gradient(135deg, #fffdf5, #fff);
-            animation: highlightPulse 0.5s ease-in-out;
+            animation: highlightPulse 0.5s ease;
         }
         @keyframes highlightPulse {
             0% { background: #fff3e0; }
@@ -87,36 +85,29 @@
             font-size: 11px; color: #888; display: flex;
             justify-content: space-between; flex-wrap: wrap; gap: 8px;
         }
-        .promotion-badge {
-            background: #e8f4fd; color: var(--primary-blue);
-            padding: 2px 8px; border-radius: 15px; font-size: 10px; font-weight: bold;
-        }
         
         .empty-state { text-align: center; padding: 60px 20px; }
         .empty-state i { font-size: 70px; color: var(--primary-blue); opacity: 0.3; margin-bottom: 20px; }
         
         .footer-info { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #888; }
-        .toast-notification { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; max-width: 350px; }
+        .toast-notification { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 280px; max-width: 350px; }
         @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .toast { animation: slideInRight 0.3s ease-out; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .toast { animation: slideInRight 0.3s ease-out; margin-bottom: 10px; border-radius: 12px; }
         
-        .profile-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; }
-        .profile-modal-content { background: white; border-radius: 20px; padding: 30px; max-width: 400px; width: 90%; }
-        .btn-action { background: var(--primary-blue); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 5px; }
+        .profile-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; align-items: center;
+            justify-content: center; z-index: 2000;
+        }
+        .profile-modal-content {
+            background: white; border-radius: 20px; padding: 30px;
+            max-width: 400px; width: 90%;
+        }
+        .btn-action { background: var(--primary-blue); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; width: 100%; }
         .btn-action:hover { background: var(--dark-blue); }
         
         .loading-spinner { display: inline-block; width: 40px; height: 40px; border: 3px solid var(--primary-blue); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: bold;
-        }
-        .status-active { background: #28a745; color: white; }
-        .status-expired { background: #dc3545; color: white; }
         
         @media (max-width: 768px) {
             .content-card { padding: 15px; }
@@ -129,7 +120,7 @@
 <body>
     <nav class="navbar navbar-custom">
         <div class="container">
-            <a class="navbar-brand text-white" href="etudiant.html">
+            <a class="navbar-brand" href="etudiant.html">
                 <i class="bi bi-tree-fill"></i> FACULTÉ AGRONOMIQUE - UNILU
             </a>
             <div class="navbar-right">
@@ -167,13 +158,11 @@
         </div>
         
         <div class="footer-info">
-            <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital<br>
-            <img src="t.png" width="40px" alt="HYBRILINK" onerror="this.style.display='none'">
+            <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital
         </div>
     </div>
     
-    <!-- Modal Profil -->
-    <div class="profile-modal" id="profileModal">
+    <div id="profileModal" class="profile-modal">
         <div class="profile-modal-content">
             <div class="text-center">
                 <i class="bi bi-person-circle" style="font-size:70px;color:var(--primary-blue);"></i>
@@ -191,7 +180,7 @@
     </div>
 
     <script>
-        // ==================== CONFIGURATION FIREBASE ====================
+        // ==================== FIREBASE ====================
         const firebaseConfig = {
             apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
             authDomain: "fsa-unilu.firebaseapp.com",
@@ -203,22 +192,17 @@
         
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const messaging = firebase.messaging();
         
         // ==================== VARIABLES ====================
         let currentStudent = null;
         let allCommuniques = [];
-        let unreadCount = 0;
         let snapshotUnsubscribe = null;
-        let lastNotificationSound = 0;
         
         // ==================== SESSION ====================
         function checkSession() {
             const session = localStorage.getItem('session_etudiant');
-            if (!session) {
-                window.location.href = 'login-etudiant.html';
-                return false;
-            }
-            
+            if (!session) { window.location.href = 'login-etudiant.html'; return false; }
             try {
                 const data = JSON.parse(session);
                 if (Date.now() > data.expires) {
@@ -228,41 +212,24 @@
                 }
                 currentStudent = data;
                 return true;
-            } catch(e) {
-                window.location.href = 'login-etudiant.html';
-                return false;
-            }
+            } catch(e) { window.location.href = 'login-etudiant.html'; return false; }
         }
         
-        // ==================== FONCTIONS UTILITAIRES ====================
+        // ==================== FONCTIONS ====================
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             if (!container) return;
-            
             const colors = {
                 success: { bg: '#28a745', icon: 'check-circle-fill' },
                 warning: { bg: '#ffc107', icon: 'exclamation-triangle-fill', textColor: '#333' },
                 danger: { bg: '#dc3545', icon: 'x-circle-fill' },
                 info: { bg: '#17a2b8', icon: 'info-circle-fill' }
             };
-            
             const config = colors[type] || colors.success;
             const textColor = config.textColor || 'white';
-            
-            const toastHtml = `
-                <div class="toast" style="background: ${config.bg}; color: ${textColor};">
-                    <div class="toast-body">
-                        <i class="bi bi-${config.icon} me-2"></i>
-                        ${message}
-                    </div>
-                </div>
-            `;
+            const toastHtml = `<div class="toast" style="background: ${config.bg}; color: ${textColor};"><div class="toast-body"><i class="bi bi-${config.icon} me-2"></i>${message}</div></div>`;
             container.insertAdjacentHTML('afterbegin', toastHtml);
-            
-            setTimeout(() => {
-                const toast = container.firstElementChild;
-                if (toast) toast.remove();
-            }, 4000);
+            setTimeout(() => { if (container.firstElementChild) container.firstElementChild.remove(); }, 4000);
         }
         
         function escapeHtml(text) {
@@ -277,10 +244,7 @@
             try {
                 if (date.toDate) date = date.toDate();
                 else if (date.seconds) date = new Date(date.seconds * 1000);
-                return date.toLocaleString('fr-FR', {
-                    day: '2-digit', month: '2-digit', year: 'numeric',
-                    hour: '2-digit', minute: '2-digit'
-                });
+                return date.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
             } catch(e) { return '-'; }
         }
         
@@ -293,24 +257,10 @@
             } catch(e) { return '-'; }
         }
         
-        function jouerSonNotification() {
-            const now = Date.now();
-            if (now - lastNotificationSound < 5000) return;
-            lastNotificationSound = now;
-            
-            try {
-                const audio = new Audio();
-                audio.src = 'data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==';
-                audio.volume = 0.5;
-                audio.play().catch(() => {});
-            } catch(e) {}
-        }
-        
         // ==================== GESTION DES LUS ====================
         function getReadCommuniques() {
-            try {
-                return JSON.parse(localStorage.getItem('communiques_lus') || '[]');
-            } catch(e) { return []; }
+            try { return JSON.parse(localStorage.getItem('communiques_lus') || '[]'); }
+            catch(e) { return []; }
         }
         
         function saveReadCommuniques(readIds) {
@@ -326,20 +276,11 @@
             }
         }
         
-        function isRead(communiqueId) {
-            return getReadCommuniques().includes(communiqueId);
-        }
-        
         function updateUnreadCount() {
             const readIds = getReadCommuniques();
-            unreadCount = allCommuniques.filter(c => !readIds.includes(c.id)).length;
-            
+            const unreadCount = allCommuniques.filter(c => !readIds.includes(c.id)).length;
             const dot = document.getElementById('notificationDot');
             if (dot) dot.style.display = unreadCount > 0 ? 'block' : 'none';
-            
-            if (unreadCount > 0 && document.hidden) {
-                jouerSonNotification();
-            }
         }
         
         // ==================== AFFICHAGE ====================
@@ -355,38 +296,28 @@
                         <i class="bi bi-inbox"></i>
                         <h5>Aucune communication</h5>
                         <p class="text-muted">Les communiqués apparaîtront ici en temps réel</p>
-                    </div>
-                `;
+                    </div>`;
                 updateUnreadCount();
                 return;
             }
             
             let html = '';
-            
             allCommuniques.forEach(communique => {
                 const estNonLu = !readIds.includes(communique.id);
-                const estActif = communique.estActif !== false;
-                const dateExpiration = communique.dateFin ? formatDate(communique.dateFin) : null;
-                
                 html += `
                     <div class="communique-card ${estNonLu ? 'nouveau' : ''}" data-id="${communique.id}" onclick="handleCardClick('${communique.id}')">
                         <div class="communique-title">
                             <span><i class="bi bi-megaphone-fill"></i> ${escapeHtml(communique.titre)}</span>
-                            <div>
-                                ${estNonLu ? '<span class="new-badge">NOUVEAU</span>' : ''}
-                                ${!estActif ? '<span class="status-badge status-expired ms-2">Expiré</span>' : ''}
-                            </div>
+                            ${estNonLu ? '<span class="new-badge">NOUVEAU</span>' : ''}
                         </div>
                         <div class="communique-content">${escapeHtml(communique.description).replace(/\n/g, '<br>')}</div>
                         <div class="communique-footer">
                             <span><i class="bi bi-calendar3"></i> ${formatDateTime(communique.dateCreation)}</span>
-                            ${dateExpiration ? `<span><i class="bi bi-calendar-x"></i> Jusqu'au ${dateExpiration}</span>` : ''}
+                            ${communique.dateFin ? `<span><i class="bi bi-calendar-x"></i> Jusqu'au ${formatDate(communique.dateFin)}</span>` : ''}
                             <span><i class="bi bi-person-circle"></i> ${escapeHtml(communique.createur || 'Direction')}</span>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
-            
             container.innerHTML = html;
             updateUnreadCount();
         }
@@ -401,57 +332,9 @@
             }
         };
         
-        // ==================== FILTRAGE ET TRI ====================
-        function filterAndSortCommuniques(communiques) {
-            const maintenant = new Date();
-            
-            // Filtrer par date
-            const valides = communiques.filter(c => {
-                if (c.dateDebut) {
-                    let debut;
-                    try {
-                        if (c.dateDebut.toDate) debut = c.dateDebut.toDate();
-                        else if (c.dateDebut.seconds) debut = new Date(c.dateDebut.seconds * 1000);
-                        else debut = new Date(c.dateDebut);
-                    } catch(e) { debut = new Date(0); }
-                    if (debut > maintenant) return false;
-                }
-                
-                if (c.dateFin) {
-                    let fin;
-                    try {
-                        if (c.dateFin.toDate) fin = c.dateFin.toDate();
-                        else if (c.dateFin.seconds) fin = new Date(c.dateFin.seconds * 1000);
-                        else fin = new Date(c.dateFin);
-                    } catch(e) { fin = new Date(0); }
-                    if (fin < maintenant) return false;
-                }
-                
-                return true;
-            });
-            
-            // Trier par date décroissante
-            valides.sort((a, b) => {
-                let dateA = 0, dateB = 0;
-                if (a.dateCreation) {
-                    if (a.dateCreation.toDate) dateA = a.dateCreation.toDate().getTime();
-                    else if (a.dateCreation.seconds) dateA = a.dateCreation.seconds * 1000;
-                }
-                if (b.dateCreation) {
-                    if (b.dateCreation.toDate) dateB = b.dateCreation.toDate().getTime();
-                    else if (b.dateCreation.seconds) dateB = b.dateCreation.seconds * 1000;
-                }
-                return dateB - dateA;
-            });
-            
-            return valides;
-        }
-        
         // ==================== ÉCOUTEUR TEMPS RÉEL ====================
         function setupRealtimeListener() {
-            if (snapshotUnsubscribe) {
-                snapshotUnsubscribe();
-            }
+            if (snapshotUnsubscribe) snapshotUnsubscribe();
             
             const maintenant = new Date();
             const promo = currentStudent.promotion;
@@ -465,116 +348,60 @@
                     const previousIds = new Set(allCommuniques.map(c => c.id));
                     
                     snapshot.docChanges().forEach(change => {
-                        if (change.type === 'added') {
-                            hasNew = true;
-                        }
+                        if (change.type === 'added') hasNew = true;
                     });
                     
                     snapshot.forEach(doc => {
                         const data = doc.data();
-                        
-                        // Vérifier les promotions
                         if (data.promotions && Array.isArray(data.promotions) && data.promotions.length > 0) {
                             if (!data.promotions.includes(promo)) return;
                         }
-                        
                         communiquesTemp.push({
                             id: doc.id,
                             titre: data.titre || 'Sans titre',
                             description: data.description || '',
                             dateCreation: data.dateCreation,
-                            dateDebut: data.dateDebut,
                             dateFin: data.dateFin,
-                            createur: data.createur || '',
-                            estActif: data.estActif !== false
+                            createur: data.createur || ''
                         });
                     });
                     
-                    const filtered = filterAndSortCommuniques(communiquesTemp);
-                    allCommuniques = filtered;
+                    // Trier par date décroissante
+                    communiquesTemp.sort((a, b) => {
+                        let dateA = 0, dateB = 0;
+                        if (a.dateCreation) {
+                            if (a.dateCreation.toDate) dateA = a.dateCreation.toDate().getTime();
+                            else if (a.dateCreation.seconds) dateA = a.dateCreation.seconds * 1000;
+                        }
+                        if (b.dateCreation) {
+                            if (b.dateCreation.toDate) dateB = b.dateCreation.toDate().getTime();
+                            else if (b.dateCreation.seconds) dateB = b.dateCreation.seconds * 1000;
+                        }
+                        return dateB - dateA;
+                    });
+                    
+                    allCommuniques = communiquesTemp;
                     renderCommuniques();
                     
-                    // Notification pour nouveaux communiqués
                     if (hasNew && !document.hasFocus()) {
                         const newCommuniques = communiquesTemp.filter(c => !previousIds.has(c.id));
                         if (newCommuniques.length > 0) {
                             showToast(`📢 ${newCommuniques.length} nouveau(x) communiqué(s)`, 'info');
-                            
-                            // Notification système
-                            if (Notification.permission === 'granted') {
-                                newCommuniques.forEach(c => {
-                                    new Notification(c.titre, {
-                                        body: c.description?.substring(0, 100) || '',
-                                        icon: 'icon-192x192.png',
-                                        tag: c.id
-                                    });
-                                });
-                            }
                         }
                     }
-                    
                 }, (error) => {
                     console.error('Erreur listener:', error);
-                    showToast('Erreur de connexion en temps réel', 'warning');
-                    
-                    // Fallback: charger depuis cache
-                    try {
-                        const cached = localStorage.getItem('communiques_cache');
-                        if (cached) {
-                            const data = JSON.parse(cached);
-                            if (data.communiques && data.communiques.length > 0) {
-                                allCommuniques = data.communiques;
-                                renderCommuniques();
-                            }
-                        }
-                    } catch(e) {}
+                    showToast('Erreur de connexion temps réel', 'warning');
                 });
         }
         
-        // ==================== SERVICE WORKER ====================
-        async function registerServiceWorker() {
-            if (!('serviceWorker' in navigator)) return null;
-            
-            try {
-                let registration = await navigator.serviceWorker.getRegistration();
-                
-                if (!registration) {
-                    registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-                    console.log('✅ SW enregistré');
-                }
-                
-                // Envoyer l'ID étudiant au SW
-                if (registration.active && currentStudent?.id) {
-                    registration.active.postMessage({
-                        type: 'SAVE_STUDENT_SESSION',
-                        studentId: currentStudent.id
-                    });
-                }
-                
-                // Demander permission notifications
-                if (Notification.permission === 'default') {
-                    setTimeout(async () => {
-                        const permission = await Notification.requestPermission();
-                        if (permission === 'granted') {
-                            showToast('Notifications activées', 'success');
-                        }
-                    }, 2000);
-                }
-                
-                return registration;
-            } catch(error) {
-                console.error('Erreur SW:', error);
-                return null;
-            }
-        }
-        
-        // ==================== RAFRAÎCHISSEMENT ====================
-        function refreshData() {
-            showToast('Rafraîchissement...', 'info');
-            if (snapshotUnsubscribe) {
-                snapshotUnsubscribe();
+        // ==================== FCM ====================
+        function setupFCMListener() {
+            messaging.onMessage((payload) => {
+                console.log('📨 Message FCM reçu:', payload);
+                showToast(payload.notification?.body || 'Nouveau communiqué', 'info');
                 setupRealtimeListener();
-            }
+            });
         }
         
         // ==================== PROFIL ====================
@@ -598,73 +425,65 @@
             document.getElementById('profileModal').style.display = 'flex';
         };
         
-        window.closeProfileModal = () => {
-            document.getElementById('profileModal').style.display = 'none';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmNewPassword').value = '';
-        };
-        
+        window.closeProfileModal = () => document.getElementById('profileModal').style.display = 'none';
         document.getElementById('profileModal').addEventListener('click', function(e) {
             if (e.target === this) closeProfileModal();
         });
         
         document.getElementById('logoutBtn').onclick = () => {
-            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+            if (confirm('Se déconnecter ?')) {
                 localStorage.removeItem('session_etudiant');
                 window.location.href = 'login-etudiant.html';
             }
         };
         
         document.getElementById('refreshBtn').onclick = () => {
-            refreshData();
+            showToast('Rafraîchissement...', 'info');
+            setupRealtimeListener();
         };
         
         document.getElementById('changePasswordBtn').onclick = async () => {
             const newPwd = document.getElementById('newPassword').value;
             const confirmPwd = document.getElementById('confirmNewPassword').value;
-            
-            if (!newPwd || !confirmPwd) {
-                showToast('Veuillez remplir tous les champs', 'warning');
-                return;
-            }
-            if (newPwd !== confirmPwd) {
-                showToast('Les mots de passe ne correspondent pas', 'warning');
-                return;
-            }
-            if (newPwd.length < 4) {
-                showToast('Minimum 4 caractères', 'warning');
-                return;
-            }
-            
+            if (!newPwd || !confirmPwd) { showToast('Remplissez tous les champs', 'warning'); return; }
+            if (newPwd !== confirmPwd) { showToast('Mots de passe différents', 'warning'); return; }
+            if (newPwd.length < 4) { showToast('Minimum 4 caractères', 'warning'); return; }
             try {
                 await db.collection('etudiants').doc(currentStudent.id).update({ motDePasse: newPwd });
-                showToast('✅ Mot de passe modifié avec succès', 'success');
+                showToast('✅ Mot de passe modifié', 'success');
                 closeProfileModal();
-            } catch(error) {
-                showToast('❌ Erreur: ' + error.message, 'danger');
-            }
+            } catch(error) { showToast('❌ Erreur: ' + error.message, 'danger'); }
         };
         
-        // ==================== VISIBILITY API ====================
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                refreshData();
-            }
-        });
+        // ==================== SERVICE WORKER ====================
+        async function registerServiceWorkers() {
+            if (!('serviceWorker' in navigator)) return;
+            try {
+                await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                console.log('✅ Service Workers enregistrés');
+                
+                const registration = await navigator.serviceWorker.ready;
+                if (registration.active && currentStudent?.id) {
+                    registration.active.postMessage({
+                        type: 'SAVE_STUDENT_SESSION',
+                        studentId: currentStudent.id
+                    });
+                }
+            } catch(error) { console.error('Erreur SW:', error); }
+        }
         
         // ==================== INITIALISATION ====================
         async function init() {
             if (!checkSession()) return;
             
-            console.log('🚀 Initialisation communiquer.html');
+            console.log('🚀 Communiquer - Démarrage');
             
-            // Service Worker
-            await registerServiceWorker();
-            
-            // Écouteur temps réel
+            await registerServiceWorkers();
             setupRealtimeListener();
+            setupFCMListener();
             
-            // Vérifier paramètre URL
+            // Vérifier paramètre URL pour ouvrir un communiqué spécifique
             const params = new URLSearchParams(window.location.search);
             const communiqueId = params.get('communique') || params.get('id');
             if (communiqueId) {
@@ -672,19 +491,14 @@
                     const card = document.querySelector(`.communique-card[data-id="${communiqueId}"]`);
                     if (card) {
                         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        card.style.backgroundColor = '#fff3e0';
-                        setTimeout(() => {
-                            card.style.backgroundColor = '';
-                        }, 1000);
                         handleCardClick(communiqueId);
                     }
                 }, 1000);
             }
             
-            console.log('✅ Page communiquer.html prête - Temps réel actif');
+            console.log('✅ Communiquer prêt - Temps réel actif');
         }
         
-        // Démarrer
         init();
     </script>
 </body>
