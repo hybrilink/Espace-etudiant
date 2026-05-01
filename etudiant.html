@@ -8,16 +8,15 @@
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192x192.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="icon-512x512.png">
     <link rel="icon" type="image/png" href="icon-96x96.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="FAC Agro">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -30,44 +29,22 @@
             --danger-red: #dc3545;
         }
         
-        body { 
-            background: var(--light-gray); 
-            font-family: 'Segoe UI', sans-serif;
-            padding-bottom: 20px;
-        }
+        body { background: var(--light-gray); font-family: 'Segoe UI', sans-serif; padding-bottom: 20px; }
         
         .navbar-custom { 
             background: var(--primary-blue); 
             box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
             padding: 12px 0;
         }
-        
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 1rem;
-        }
+        .navbar-brand { font-weight: bold; font-size: 0.95rem; color: white !important; }
         
         .profile-photo { 
-            width: 45px; 
-            height: 45px; 
-            border-radius: 50%; 
+            width: 45px; height: 45px; border-radius: 50%; 
             background: var(--accent-yellow); 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            transition: all 0.3s;
-            position: relative;
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; position: relative;
         }
-        
-        .profile-photo i { 
-            font-size: 28px; 
-            color: var(--primary-blue); 
-        }
-        
-        .profile-photo:hover { 
-            transform: scale(1.05); 
-        }
+        .profile-photo i { font-size: 28px; color: var(--primary-blue); }
         
         .notification-dot {
             position: absolute;
@@ -79,21 +56,16 @@
             border-radius: 50%;
             border: 2px solid white;
             display: none;
-            animation: pulse-dot 2s infinite;
+            animation: pulse 2s infinite;
         }
         
-        @keyframes pulse-dot {
-            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
-            70% { box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220,53,69,0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(220,53,69,0); }
+            100% { box-shadow: 0 0 0 0 rgba(220,53,69,0); }
         }
         
-        .navbar-right { 
-            display: flex; 
-            align-items: center; 
-            gap: 15px; 
-            flex-wrap: wrap; 
-        }
+        .navbar-right { display: flex; align-items: center; gap: 15px; }
         
         .etudiant-info-card {
             background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
@@ -105,7 +77,6 @@
             position: relative;
             overflow: hidden;
         }
-        
         .etudiant-info-card::before {
             content: '';
             position: absolute;
@@ -116,18 +87,8 @@
             background: rgba(255,255,255,0.05);
             border-radius: 50%;
         }
-        
-        .etudiant-info-card h2 {
-            font-size: 1.3rem;
-            margin-bottom: 8px;
-        }
-        
-        .etudiant-info-card p {
-            margin: 0;
-            opacity: 0.9;
-            font-size: 0.85rem;
-        }
-        
+        .etudiant-info-card h2 { font-size: 1.3rem; margin-bottom: 8px; }
+        .etudiant-info-card p { margin: 0; opacity: 0.9; font-size: 0.85rem; }
         .etudiant-info-card .badge-compte {
             background: var(--accent-yellow);
             color: var(--primary-blue);
@@ -138,7 +99,6 @@
             display: inline-block;
             margin-top: 10px;
         }
-        
         .etudiant-info-card .info-icon {
             position: absolute;
             right: 20px;
@@ -163,18 +123,10 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border: 1px solid rgba(0,0,0,0.05);
             position: relative;
         }
-        
-        .menu-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
-        }
-        
-        .menu-card:active {
-            transform: translateY(0);
-        }
+        .menu-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.12); }
+        .menu-card:active { transform: translateY(0); }
         
         .menu-card .card-notif-badge {
             position: absolute;
@@ -190,32 +142,16 @@
             justify-content: center;
             font-size: 11px;
             font-weight: bold;
-            padding: 0 5px;
             animation: bounce 0.5s ease;
         }
-        
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
         }
         
-        .menu-icon {
-            font-size: 40px;
-            color: var(--primary-blue);
-            margin-bottom: 10px;
-        }
-        
-        .menu-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--primary-blue);
-            margin-bottom: 4px;
-        }
-        
-        .menu-subtitle {
-            font-size: 10px;
-            color: #888;
-        }
+        .menu-icon { font-size: 40px; color: var(--primary-blue); margin-bottom: 10px; }
+        .menu-title { font-size: 14px; font-weight: 700; color: var(--primary-blue); margin-bottom: 4px; }
+        .menu-subtitle { font-size: 10px; color: #888; }
         
         .profile-modal {
             position: fixed;
@@ -229,7 +165,6 @@
             justify-content: center;
             z-index: 2000;
         }
-        
         .profile-modal-content {
             background: white;
             border-radius: 20px;
@@ -238,7 +173,6 @@
             width: 90%;
             animation: modalFadeIn 0.3s ease;
         }
-        
         @keyframes modalFadeIn {
             from { opacity: 0; transform: scale(0.9); }
             to { opacity: 1; transform: scale(1); }
@@ -251,15 +185,9 @@
             padding: 10px 20px;
             border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s;
             width: 100%;
-            margin-top: 5px;
         }
-        
-        .btn-action:hover {
-            background: var(--dark-blue);
-            transform: translateY(-2px);
-        }
+        .btn-action:hover { background: var(--dark-blue); transform: translateY(-2px); }
         
         .toast-notification {
             position: fixed;
@@ -269,18 +197,11 @@
             min-width: 280px;
             max-width: 350px;
         }
-        
         @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        
-        .toast { 
-            animation: slideInRight 0.3s ease-out; 
-            margin-bottom: 10px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-        }
+        .toast { animation: slideInRight 0.3s ease-out; margin-bottom: 10px; border-radius: 12px; }
         
         .footer-info {
             text-align: center;
@@ -291,109 +212,10 @@
             color: #888;
         }
         
-        .footer-info img {
-            border-radius: 20px;
-            vertical-align: middle;
-        }
-        
-        .pwa-install-banner {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(135deg, #003366, #002244);
-            color: white;
-            padding: 15px 20px;
-            z-index: 10000;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
-        }
-        
-        .pwa-install-banner.show {
-            transform: translateY(0);
-        }
-        
-        .install-banner-content {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .install-banner-icon {
-            background: #ffb347;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: #003366;
-        }
-        
-        .install-banner-text {
-            flex: 1;
-        }
-        
-        .install-banner-text strong {
-            display: block;
-            font-size: 14px;
-        }
-        
-        .install-banner-text small {
-            font-size: 11px;
-            opacity: 0.8;
-        }
-        
-        .install-btn {
-            background: #ffb347;
-            color: #003366;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .install-btn:hover {
-            transform: scale(1.05);
-            background: #ff9800;
-        }
-        
-        .close-banner {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            opacity: 0.7;
-        }
-        
-        .close-banner:hover {
-            opacity: 1;
-        }
-        
-        .welcome-badge {
-            background: rgba(255,255,255,0.2);
-            border-radius: 20px;
-            padding: 3px 10px;
-            font-size: 11px;
-            display: inline-block;
-            margin-top: 8px;
-        }
-        
         @media (max-width: 768px) {
             .menu-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
             .menu-card { padding: 15px 8px; }
             .menu-icon { font-size: 32px; }
-            .menu-title { font-size: 12px; }
-            .install-banner-content { flex-direction: column; text-align: center; }
-            .install-banner-icon { margin: 0 auto; }
             .toast-notification { right: 10px; left: 10px; min-width: auto; }
         }
     </style>
@@ -401,7 +223,7 @@
 <body>
     <nav class="navbar navbar-custom">
         <div class="container">
-            <a class="navbar-brand text-white" href="#">
+            <a class="navbar-brand" href="#">
                 <i class="bi bi-tree-fill"></i> FACULTÉ AGRONOMIQUE - UNILU
             </a>
             <div class="navbar-right">
@@ -420,14 +242,13 @@
         <div id="toastContainer" class="toast-notification"></div>
         
         <div id="homePage">
-            <div class="etudiant-info-card" id="infoCard">
+            <div class="etudiant-info-card">
                 <div>
                     <h2 id="welcomeName">Bienvenue, Étudiant</h2>
                     <p id="welcomeInfo">Faculté des Sciences Agronomiques</p>
                     <span class="badge-compte" id="compteStatus">
                         <i class="bi bi-check-circle-fill"></i> Compte Actif
                     </span>
-                    <div class="welcome-badge" id="welcomeBadge"></div>
                 </div>
                 <div class="info-icon">
                     <i class="bi bi-mortarboard-fill"></i>
@@ -519,20 +340,7 @@
     
     <div class="container">
         <div class="footer-info">
-            <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital<br>
-            <img src="t.png" width="40px" alt="HYBRILINK" onerror="this.style.display='none'">
-        </div>
-    </div>
-
-    <div id="installBanner" class="pwa-install-banner">
-        <div class="install-banner-content">
-            <div class="install-banner-icon"><i class="bi bi-download"></i></div>
-            <div class="install-banner-text">
-                <strong>Installer l'application</strong>
-                <small>Ajoutez Faculté Agronomique à votre écran d'accueil</small>
-            </div>
-            <button id="installAppBtn" class="install-btn"><i class="bi bi-plus-circle"></i> Installer</button>
-            <button id="closeInstallBanner" class="close-banner">&times;</button>
+            <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital
         </div>
     </div>
 
@@ -549,13 +357,13 @@
         
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const messaging = firebase.messaging();
         
         // ==================== VARIABLES ====================
         let currentStudent = null;
         let allPromotions = [];
-        let unreadCommuniquesCount = 0;
+        let unreadCount = 0;
         let snapshotUnsubscribe = null;
-        let notificationInterval = null;
         
         // ==================== SESSION ====================
         function checkSession() {
@@ -564,51 +372,36 @@
                 window.location.href = 'login-etudiant.html';
                 return false;
             }
-            
             try {
-                const sessionData = JSON.parse(session);
-                if (Date.now() > sessionData.expires) {
+                const data = JSON.parse(session);
+                if (Date.now() > data.expires) {
                     localStorage.removeItem('session_etudiant');
                     window.location.href = 'login-etudiant.html';
                     return false;
                 }
-                currentStudent = sessionData;
+                currentStudent = data;
                 return true;
-            } catch (error) {
-                localStorage.removeItem('session_etudiant');
+            } catch(e) {
                 window.location.href = 'login-etudiant.html';
                 return false;
             }
         }
         
-        // ==================== FONCTIONS UTILITAIRES ====================
+        // ==================== FONCTIONS ====================
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             if (!container) return;
-            
             const colors = {
                 success: { bg: '#28a745', icon: 'check-circle-fill' },
                 warning: { bg: '#ffc107', icon: 'exclamation-triangle-fill', textColor: '#333' },
                 danger: { bg: '#dc3545', icon: 'x-circle-fill' },
                 info: { bg: '#17a2b8', icon: 'info-circle-fill' }
             };
-            
             const config = colors[type] || colors.success;
             const textColor = config.textColor || 'white';
-            
-            const toastHtml = `
-                <div class="toast" style="background: ${config.bg}; color: ${textColor};">
-                    <div class="toast-body">
-                        <i class="bi bi-${config.icon} me-2"></i>
-                        ${message}
-                    </div>
-                </div>
-            `;
+            const toastHtml = `<div class="toast" style="background: ${config.bg}; color: ${textColor};"><div class="toast-body"><i class="bi bi-${config.icon} me-2"></i>${message}</div></div>`;
             container.insertAdjacentHTML('afterbegin', toastHtml);
-            
-            setTimeout(() => {
-                if (container.firstElementChild) container.firstElementChild.remove();
-            }, 4000);
+            setTimeout(() => { if (container.firstElementChild) container.firstElementChild.remove(); }, 4000);
         }
         
         function escapeHtml(text) {
@@ -618,15 +411,13 @@
             return div.innerHTML;
         }
         
-        // ==================== CHARGEMENT PROMOTIONS ====================
+        // ==================== PROMOTIONS ====================
         async function chargerPromotions() {
             try {
                 const snapshot = await db.collection('promotions').get();
                 allPromotions = [];
                 snapshot.forEach(doc => allPromotions.push({ id: doc.id, ...doc.data() }));
-            } catch (error) {
-                console.error('Erreur chargement promotions:', error);
-            }
+            } catch (error) { console.error('Erreur promotions:', error); }
         }
         
         function getPromotionNom(promotionId) {
@@ -635,48 +426,23 @@
             return promo ? promo.nom : promotionId;
         }
         
-        // ==================== AFFICHAGE INFO ÉTUDIANT ====================
         async function updateWelcomeMessage() {
             await chargerPromotions();
-            
-            const welcomeName = document.getElementById('welcomeName');
-            const welcomeInfo = document.getElementById('welcomeInfo');
-            const compteStatus = document.getElementById('compteStatus');
-            const welcomeBadge = document.getElementById('welcomeBadge');
-            
-            if (welcomeName) {
-                welcomeName.innerHTML = `Bonjour, ${escapeHtml(currentStudent.nom || 'Étudiant')}`;
-            }
-            if (welcomeInfo) {
-                const promoNom = getPromotionNom(currentStudent.promotion);
-                welcomeInfo.innerHTML = `Matricule: ${currentStudent.matricule || 'N/A'} | ${promoNom}`;
-            }
-            if (compteStatus) {
-                compteStatus.innerHTML = `<i class="bi bi-check-circle-fill"></i> Compte Actif`;
-            }
-            if (welcomeBadge) {
-                const today = new Date();
-                const academicYear = today.getFullYear() + '-' + (today.getFullYear() + 1);
-                welcomeBadge.innerHTML = `<i class="bi bi-calendar"></i> Année académique ${academicYear}`;
-            }
+            document.getElementById('welcomeName').innerHTML = `Bonjour, ${escapeHtml(currentStudent.nom || 'Étudiant')}`;
+            document.getElementById('welcomeInfo').innerHTML = `Matricule: ${currentStudent.matricule || 'N/A'} | ${getPromotionNom(currentStudent.promotion)}`;
         }
         
-        // ==================== NOTIFICATIONS TEMPS RÉEL ====================
+        // ==================== NOTIFICATIONS ====================
         function getReadCommuniques() {
-            try {
-                return JSON.parse(localStorage.getItem('communiques_lus') || '[]');
-            } catch(e) { return []; }
+            try { return JSON.parse(localStorage.getItem('communiques_lus') || '[]'); }
+            catch(e) { return []; }
         }
         
         function updateNotificationBadges(count) {
-            unreadCommuniquesCount = count;
-            
+            unreadCount = count;
             const dot = document.getElementById('notificationDot');
             const badge = document.getElementById('communiqueBadge');
-            
-            if (dot) {
-                dot.style.display = count > 0 ? 'block' : 'none';
-            }
+            if (dot) dot.style.display = count > 0 ? 'block' : 'none';
             if (badge) {
                 if (count > 0) {
                     badge.textContent = count > 99 ? '99+' : count;
@@ -688,9 +454,7 @@
         }
         
         function setupRealtimeCommuniques() {
-            if (snapshotUnsubscribe) {
-                snapshotUnsubscribe();
-            }
+            if (snapshotUnsubscribe) snapshotUnsubscribe();
             
             const maintenant = new Date();
             const promo = currentStudent.promotion;
@@ -701,24 +465,18 @@
                 .onSnapshot((snapshot) => {
                     const readIds = getReadCommuniques();
                     let newUnreadCount = 0;
-                    let hasNewCommunique = false;
-                    const previousIds = new Set();
+                    let hasNew = false;
                     
                     snapshot.docChanges().forEach(change => {
-                        if (change.type === 'added') {
-                            hasNewCommunique = true;
-                        }
+                        if (change.type === 'added') hasNew = true;
                     });
                     
                     snapshot.forEach(doc => {
                         const data = doc.data();
-                        
-                        // Vérifier les promotions
                         if (data.promotions && Array.isArray(data.promotions) && data.promotions.length > 0) {
                             if (!data.promotions.includes(promo)) return;
                         }
                         
-                        // Vérifier les dates
                         let estValide = true;
                         if (data.dateFin) {
                             let dateFin;
@@ -727,7 +485,6 @@
                                 else if (data.dateFin.seconds) dateFin = new Date(data.dateFin.seconds * 1000);
                                 else dateFin = new Date(data.dateFin);
                             } catch(e) { dateFin = new Date(); }
-                            
                             if (dateFin < maintenant) estValide = false;
                         }
                         
@@ -738,154 +495,36 @@
                                 else if (data.dateDebut.seconds) dateDebut = new Date(data.dateDebut.seconds * 1000);
                                 else dateDebut = new Date(data.dateDebut);
                             } catch(e) { dateDebut = new Date(0); }
-                            
                             if (dateDebut > maintenant) estValide = false;
                         }
                         
-                        if (estValide && !readIds.includes(doc.id)) {
-                            newUnreadCount++;
-                        }
+                        if (estValide && !readIds.includes(doc.id)) newUnreadCount++;
                     });
                     
                     updateNotificationBadges(newUnreadCount);
                     
-                    // Notification toast pour nouveau communiqué
-                    if (hasNewCommunique && newUnreadCount > 0 && !document.hasFocus()) {
+                    if (hasNew && newUnreadCount > 0 && !document.hasFocus()) {
                         showToast(`📢 ${newUnreadCount} nouveau(x) communiqué(s)`, 'info');
-                        
-                        // Notification système
-                        if (Notification.permission === 'granted') {
-                            new Notification('Nouveau communiqué', {
-                                body: `Vous avez ${newUnreadCount} communiqué(s) non lu(s)`,
-                                icon: 'icon-192x192.png',
-                                tag: 'new-communique'
-                            });
-                        }
                     }
-                    
-                }, (error) => {
-                    console.error('Erreur listener communiqués:', error);
-                });
+                }, (error) => { console.error('Erreur listener:', error); });
         }
         
-        // ==================== SERVICE WORKER ====================
-        async function registerServiceWorker() {
-            if (!('serviceWorker' in navigator)) return null;
-            
-            try {
-                let registration = await navigator.serviceWorker.getRegistration();
-                
-                if (!registration) {
-                    registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-                    console.log('✅ SW enregistré');
-                }
-                
-                if (registration.active && currentStudent?.id) {
-                    registration.active.postMessage({
-                        type: 'SAVE_STUDENT_SESSION',
-                        studentId: currentStudent.id
-                    });
-                }
-                
-                // Demander permission notifications
-                if (Notification.permission === 'default') {
-                    setTimeout(async () => {
-                        const permission = await Notification.requestPermission();
-                        if (permission === 'granted') {
-                            console.log('✅ Notifications autorisées');
-                        }
-                    }, 3000);
-                }
-                
-                return registration;
-            } catch(error) {
-                console.error('Erreur SW:', error);
-                return null;
-            }
+        // ==================== FCM MESSAGES ====================
+        function setupFCMListener() {
+            // Écouter les messages FCM (quand l'application est ouverte)
+            messaging.onMessage((payload) => {
+                console.log('📨 Message FCM reçu (app ouverte):', payload);
+                showToast(payload.notification?.body || 'Nouvelle information', 'info');
+                setupRealtimeCommuniques(); // Rafraîchir
+            });
         }
-        
-        // ==================== PWA INSTALLATION ====================
-        let deferredPrompt = null;
-        
-        function initPWAInstall() {
-            const installBanner = document.getElementById('installBanner');
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-            const isInstalled = localStorage.getItem('pwa-installed');
-            
-            if (!isStandalone && !isInstalled && installBanner) {
-                setTimeout(() => {
-                    installBanner.classList.add('show');
-                }, 3000);
-            }
-            
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                if (!isStandalone && !isInstalled && installBanner) {
-                    installBanner.classList.add('show');
-                }
-            });
-            
-            window.addEventListener('appinstalled', () => {
-                deferredPrompt = null;
-                localStorage.setItem('pwa-installed', 'true');
-                if (installBanner) installBanner.classList.remove('show');
-                showToast('✅ Application installée avec succès', 'success');
-            });
-            
-            const installBtn = document.getElementById('installAppBtn');
-            if (installBtn) {
-                installBtn.addEventListener('click', async () => {
-                    if (deferredPrompt) {
-                        deferredPrompt.prompt();
-                        const { outcome } = await deferredPrompt.userChoice;
-                        if (outcome === 'accepted') {
-                            localStorage.setItem('pwa-installed', 'true');
-                        }
-                        deferredPrompt = null;
-                        if (installBanner) installBanner.classList.remove('show');
-                    } else {
-                        showToast('Utilisez le menu du navigateur pour installer', 'info');
-                        localStorage.setItem('pwa-installed', 'true');
-                        if (installBanner) installBanner.classList.remove('show');
-                    }
-                });
-            }
-            
-            const closeBtn = document.getElementById('closeInstallBanner');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => {
-                    if (installBanner) installBanner.classList.remove('show');
-                });
-            }
-        }
-        
-        // ==================== NAVIGATION ====================
-        document.querySelectorAll('.menu-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const page = card.dataset.page;
-                if (page) {
-                    window.location.href = `${page}.html`;
-                }
-            });
-        });
         
         // ==================== PROFIL ====================
         async function loadProfileData() {
-            try {
-                const doc = await db.collection('etudiants').doc(currentStudent.id).get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    document.getElementById('profilNom').textContent = data.nom || currentStudent.nom;
-                    document.getElementById('profilMatricule').textContent = `Matricule: ${data.matricule || currentStudent.matricule}`;
-                    const promoNom = getPromotionNom(data.promotion || currentStudent.promotion);
-                    document.getElementById('profilPromotion').textContent = `Promotion: ${promoNom}`;
-                }
-            } catch(e) {
-                document.getElementById('profilNom').textContent = currentStudent.nom;
-                document.getElementById('profilMatricule').textContent = `Matricule: ${currentStudent.matricule}`;
-                document.getElementById('profilPromotion').textContent = `Promotion: ${getPromotionNom(currentStudent.promotion)}`;
-            }
+            await chargerPromotions();
+            document.getElementById('profilNom').textContent = currentStudent.nom;
+            document.getElementById('profilMatricule').textContent = `Matricule: ${currentStudent.matricule}`;
+            document.getElementById('profilPromotion').textContent = `Promotion: ${getPromotionNom(currentStudent.promotion)}`;
         }
         
         document.getElementById('profileBtn').onclick = async () => {
@@ -893,22 +532,14 @@
             document.getElementById('profileModal').style.display = 'flex';
         };
         
-        window.closeProfileModal = () => {
-            document.getElementById('profileModal').style.display = 'none';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmNewPassword').value = '';
-        };
-        
+        window.closeProfileModal = () => document.getElementById('profileModal').style.display = 'none';
         document.getElementById('profileModal').addEventListener('click', function(e) {
             if (e.target === this) closeProfileModal();
         });
         
         document.getElementById('logoutBtn').onclick = () => {
-            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
-                if (notificationInterval) clearInterval(notificationInterval);
-                if (snapshotUnsubscribe) snapshotUnsubscribe();
+            if (confirm('Voulez-vous vous déconnecter ?')) {
                 localStorage.removeItem('session_etudiant');
-                localStorage.removeItem('communiques_lus');
                 window.location.href = 'login-etudiant.html';
             }
         };
@@ -916,67 +547,59 @@
         document.getElementById('changePasswordBtn').onclick = async () => {
             const newPwd = document.getElementById('newPassword').value;
             const confirmPwd = document.getElementById('confirmNewPassword').value;
-            
-            if (!newPwd || !confirmPwd) {
-                showToast('Veuillez remplir tous les champs', 'warning');
-                return;
-            }
-            if (newPwd !== confirmPwd) {
-                showToast('Les mots de passe ne correspondent pas', 'warning');
-                return;
-            }
-            if (newPwd.length < 4) {
-                showToast('Minimum 4 caractères', 'warning');
-                return;
-            }
-            
+            if (!newPwd || !confirmPwd) { showToast('Remplissez tous les champs', 'warning'); return; }
+            if (newPwd !== confirmPwd) { showToast('Mots de passe différents', 'warning'); return; }
+            if (newPwd.length < 4) { showToast('Minimum 4 caractères', 'warning'); return; }
             try {
                 await db.collection('etudiants').doc(currentStudent.id).update({ motDePasse: newPwd });
-                showToast('✅ Mot de passe modifié avec succès', 'success');
+                showToast('✅ Mot de passe modifié', 'success');
                 closeProfileModal();
-            } catch(error) {
-                showToast('❌ Erreur: ' + error.message, 'danger');
-            }
+            } catch(error) { showToast('❌ Erreur: ' + error.message, 'danger'); }
         };
         
-        // ==================== VISIBILITY API ====================
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                setupRealtimeCommuniques();
-            }
+        // ==================== NAVIGATION ====================
+        document.querySelectorAll('.menu-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const page = card.dataset.page;
+                if (page) window.location.href = `${page}.html`;
+            });
         });
         
-        // ==================== SERVICE WORKER MESSAGES ====================
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.addEventListener('message', (event) => {
-                if (event.data && event.data.type === 'NEW_NOTIFICATIONS') {
-                    console.log('📨 Notification du SW:', event.data.count);
-                    showToast(`📢 ${event.data.count} nouveau(x) communiqué(s)`, 'info');
-                    setupRealtimeCommuniques();
+        // ==================== SERVICE WORKER ====================
+        async function registerServiceWorkers() {
+            if (!('serviceWorker' in navigator)) return;
+            try {
+                await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                console.log('✅ Service Workers enregistrés');
+                
+                const registration = await navigator.serviceWorker.ready;
+                if (registration.active && currentStudent?.id) {
+                    registration.active.postMessage({
+                        type: 'SAVE_STUDENT_SESSION',
+                        studentId: currentStudent.id
+                    });
                 }
-            });
+            } catch(error) { console.error('Erreur SW:', error); }
         }
         
         // ==================== INITIALISATION ====================
         async function init() {
             if (!checkSession()) return;
             
-            console.log('🚀 Initialisation dashboard étudiant v2');
+            console.log('🚀 Dashboard - Démarrage');
             console.log('👤 Étudiant:', currentStudent.nom);
-            console.log('📋 Promotion:', currentStudent.promotion);
             
+            await registerServiceWorkers();
             await updateWelcomeMessage();
-            await registerServiceWorker();
             setupRealtimeCommuniques();
-            initPWAInstall();
+            setupFCMListener();
             
             console.log('✅ Dashboard prêt - Notifications temps réel actives');
+            console.log('%c🔔 NOTIFICATIONS ARRIÈRE-PLAN ACTIVÉES', 'color: #ffb347; font-size: 12px; font-weight: bold;');
         }
         
-        init().catch(error => {
-            console.error('❌ Erreur initialisation:', error);
-            showToast('Erreur de chargement, veuillez rafraîchir', 'danger');
-        });
+        init();
     </script>
 </body>
 </html>
