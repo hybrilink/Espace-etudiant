@@ -11,6 +11,7 @@
     <link rel="icon" type="image/png" href="icon-96x96.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FAC Agro">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -29,22 +30,45 @@
             --danger-red: #dc3545;
         }
         
-        body { background: var(--light-gray); font-family: 'Segoe UI', sans-serif; padding-bottom: 20px; }
+        body { 
+            background: var(--light-gray); 
+            font-family: 'Segoe UI', sans-serif;
+            padding-bottom: 20px;
+        }
         
         .navbar-custom { 
             background: var(--primary-blue); 
             box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
             padding: 12px 0;
         }
-        .navbar-brand { font-weight: bold; font-size: 0.95rem; color: white !important; }
+        
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: white !important;
+        }
         
         .profile-photo { 
-            width: 45px; height: 45px; border-radius: 50%; 
+            width: 45px; 
+            height: 45px; 
+            border-radius: 50%; 
             background: var(--accent-yellow); 
-            display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; position: relative;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            transition: all 0.3s;
+            position: relative;
         }
-        .profile-photo i { font-size: 28px; color: var(--primary-blue); }
+        
+        .profile-photo i { 
+            font-size: 28px; 
+            color: var(--primary-blue); 
+        }
+        
+        .profile-photo:hover { 
+            transform: scale(1.05); 
+        }
         
         .notification-dot {
             position: absolute;
@@ -56,16 +80,21 @@
             border-radius: 50%;
             border: 2px solid white;
             display: none;
-            animation: pulse 2s infinite;
+            animation: pulse-dot 2s infinite;
         }
         
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(220,53,69,0.7); }
-            70% { box-shadow: 0 0 0 8px rgba(220,53,69,0); }
-            100% { box-shadow: 0 0 0 0 rgba(220,53,69,0); }
+        @keyframes pulse-dot {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
         }
         
-        .navbar-right { display: flex; align-items: center; gap: 15px; }
+        .navbar-right { 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            flex-wrap: wrap; 
+        }
         
         .etudiant-info-card {
             background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
@@ -77,6 +106,7 @@
             position: relative;
             overflow: hidden;
         }
+        
         .etudiant-info-card::before {
             content: '';
             position: absolute;
@@ -87,8 +117,18 @@
             background: rgba(255,255,255,0.05);
             border-radius: 50%;
         }
-        .etudiant-info-card h2 { font-size: 1.3rem; margin-bottom: 8px; }
-        .etudiant-info-card p { margin: 0; opacity: 0.9; font-size: 0.85rem; }
+        
+        .etudiant-info-card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+        
+        .etudiant-info-card p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 0.85rem;
+        }
+        
         .etudiant-info-card .badge-compte {
             background: var(--accent-yellow);
             color: var(--primary-blue);
@@ -99,6 +139,7 @@
             display: inline-block;
             margin-top: 10px;
         }
+        
         .etudiant-info-card .info-icon {
             position: absolute;
             right: 20px;
@@ -125,8 +166,15 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             position: relative;
         }
-        .menu-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.12); }
-        .menu-card:active { transform: translateY(0); }
+        
+        .menu-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12); 
+        }
+        
+        .menu-card:active { 
+            transform: translateY(0); 
+        }
         
         .menu-card .card-notif-badge {
             position: absolute;
@@ -144,14 +192,29 @@
             font-weight: bold;
             animation: bounce 0.5s ease;
         }
+        
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
         }
         
-        .menu-icon { font-size: 40px; color: var(--primary-blue); margin-bottom: 10px; }
-        .menu-title { font-size: 14px; font-weight: 700; color: var(--primary-blue); margin-bottom: 4px; }
-        .menu-subtitle { font-size: 10px; color: #888; }
+        .menu-icon { 
+            font-size: 40px; 
+            color: var(--primary-blue); 
+            margin-bottom: 10px; 
+        }
+        
+        .menu-title { 
+            font-size: 14px; 
+            font-weight: 700; 
+            color: var(--primary-blue); 
+            margin-bottom: 4px; 
+        }
+        
+        .menu-subtitle { 
+            font-size: 10px; 
+            color: #888; 
+        }
         
         .profile-modal {
             position: fixed;
@@ -165,6 +228,7 @@
             justify-content: center;
             z-index: 2000;
         }
+        
         .profile-modal-content {
             background: white;
             border-radius: 20px;
@@ -173,6 +237,7 @@
             width: 90%;
             animation: modalFadeIn 0.3s ease;
         }
+        
         @keyframes modalFadeIn {
             from { opacity: 0; transform: scale(0.9); }
             to { opacity: 1; transform: scale(1); }
@@ -186,8 +251,13 @@
             border-radius: 10px;
             cursor: pointer;
             width: 100%;
+            transition: all 0.3s;
         }
-        .btn-action:hover { background: var(--dark-blue); transform: translateY(-2px); }
+        
+        .btn-action:hover { 
+            background: var(--dark-blue); 
+            transform: translateY(-2px); 
+        }
         
         .toast-notification {
             position: fixed;
@@ -197,11 +267,18 @@
             min-width: 280px;
             max-width: 350px;
         }
+        
         @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        .toast { animation: slideInRight 0.3s ease-out; margin-bottom: 10px; border-radius: 12px; }
+        
+        .toast { 
+            animation: slideInRight 0.3s ease-out; 
+            margin-bottom: 10px; 
+            border-radius: 12px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
         
         .footer-info {
             text-align: center;
@@ -210,6 +287,25 @@
             border-top: 1px solid #e0e0e0;
             font-size: 11px;
             color: #888;
+        }
+        
+        .offline-badge {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: var(--accent-yellow);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            display: none;
+            z-index: 100;
+        }
+        
+        .offline-badge.show { 
+            display: flex; 
+            align-items: center; 
+            gap: 5px; 
         }
         
         @media (max-width: 768px) {
@@ -240,6 +336,9 @@
     
     <div class="container mt-4">
         <div id="toastContainer" class="toast-notification"></div>
+        <div class="offline-badge" id="offlineBadge">
+            <i class="bi bi-wifi-off"></i> Mode hors ligne
+        </div>
         
         <div id="homePage">
             <div class="etudiant-info-card">
@@ -340,7 +439,8 @@
     
     <div class="container">
         <div class="footer-info">
-            <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital
+            <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital<br>
+            <img src="t.png" width="40px" alt="HYBRILINK" onerror="this.style.display='none'">
         </div>
     </div>
 
@@ -505,17 +605,35 @@
                     
                     if (hasNew && newUnreadCount > 0 && !document.hasFocus()) {
                         showToast(`📢 ${newUnreadCount} nouveau(x) communiqué(s)`, 'info');
+                        
+                        // Jouer un son
+                        try {
+                            const audio = new Audio();
+                            audio.src = 'data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==';
+                            audio.volume = 0.3;
+                            audio.play().catch(() => {});
+                        } catch(e) {}
                     }
                 }, (error) => { console.error('Erreur listener:', error); });
         }
         
-        // ==================== FCM MESSAGES ====================
+        // ==================== FCM LISTENER (notifications en foreground) ====================
         function setupFCMListener() {
-            // Écouter les messages FCM (quand l'application est ouverte)
             messaging.onMessage((payload) => {
                 console.log('📨 Message FCM reçu (app ouverte):', payload);
+                
                 showToast(payload.notification?.body || 'Nouvelle information', 'info');
-                setupRealtimeCommuniques(); // Rafraîchir
+                
+                // Rafraîchir les communiqués
+                setupRealtimeCommuniques();
+                
+                // Jouer un son
+                try {
+                    const audio = new Audio();
+                    audio.src = 'data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==';
+                    audio.volume = 0.5;
+                    audio.play().catch(() => {});
+                } catch(e) {}
             });
         }
         
@@ -540,6 +658,7 @@
         document.getElementById('logoutBtn').onclick = () => {
             if (confirm('Voulez-vous vous déconnecter ?')) {
                 localStorage.removeItem('session_etudiant');
+                localStorage.removeItem('communiques_lus');
                 window.location.href = 'login-etudiant.html';
             }
         };
@@ -583,23 +702,45 @@
             } catch(error) { console.error('Erreur SW:', error); }
         }
         
+        // ==================== MODE HORS LIGNE ====================
+        function setupOfflineDetection() {
+            const offlineBadge = document.getElementById('offlineBadge');
+            function updateStatus() {
+                if (!navigator.onLine) {
+                    offlineBadge.classList.add('show');
+                    showToast('Mode hors ligne - Données en cache', 'warning');
+                } else {
+                    offlineBadge.classList.remove('show');
+                }
+            }
+            window.addEventListener('online', updateStatus);
+            window.addEventListener('offline', updateStatus);
+            updateStatus();
+        }
+        
         // ==================== INITIALISATION ====================
         async function init() {
             if (!checkSession()) return;
             
-            console.log('🚀 Dashboard - Démarrage');
+            console.log('🚀 Dashboard Étudiant - Démarrage');
             console.log('👤 Étudiant:', currentStudent.nom);
+            console.log('📋 Promotion:', currentStudent.promotion);
+            console.log('🔔 Notifications en arrière-plan activées');
             
             await registerServiceWorkers();
             await updateWelcomeMessage();
             setupRealtimeCommuniques();
             setupFCMListener();
+            setupOfflineDetection();
             
             console.log('✅ Dashboard prêt - Notifications temps réel actives');
-            console.log('%c🔔 NOTIFICATIONS ARRIÈRE-PLAN ACTIVÉES', 'color: #ffb347; font-size: 12px; font-weight: bold;');
         }
         
         init();
+        
+        // Console branding
+        console.log('%c🔔 NOTIFICATIONS ARRIÈRE-PLAN ACTIVES', 'color: #ffb347; font-size: 12px; font-weight: bold;');
+        console.log('%cVous recevrez les alertes même application fermée', 'color: #28a745; font-size: 11px;');
     </script>
 </body>
 </html>
