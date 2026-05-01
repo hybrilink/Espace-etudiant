@@ -5,45 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Connexion Étudiant - Faculté Agronomique</title>
     <meta name="theme-color" content="#003366">
-    <meta name="description" content="Connexion à l'espace étudiant de la Faculté Agronomique - UNILU">
     
-    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192x192.png">
     <link rel="icon" type="image/png" href="icon-96x96.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="FAC Agro">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary-blue: #003366; --dark-blue: #002244; --accent-yellow: #ffb347; --light-gray: #f0f2f5; }
+        :root { --primary-blue: #003366; --dark-blue: #002244; --accent-yellow: #ffb347; }
         
         body {
             background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        /* Animation de fond */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.03)" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
-            background-size: cover;
-            opacity: 0.3;
-            pointer-events: none;
         }
         
         .login-container {
@@ -52,8 +34,6 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            position: relative;
-            z-index: 1;
         }
         
         .login-card {
@@ -62,7 +42,7 @@
             padding: 40px 35px;
             max-width: 450px;
             width: 100%;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35);
             animation: fadeInUp 0.6s ease-out;
             position: relative;
         }
@@ -83,11 +63,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
+        .logo { text-align: center; margin-bottom: 30px; }
         .logo-icon {
             width: 80px;
             height: 80px;
@@ -97,24 +73,16 @@
             align-items: center;
             justify-content: center;
             margin: 0 auto 15px;
-            box-shadow: 0 10px 25px -5px rgba(0, 51, 102, 0.4);
-            animation: float 3s ease-in-out infinite;
+            box-shadow: 0 10px 25px -5px rgba(0,51,102,0.4);
         }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-        }
-        
         .logo-icon i { font-size: 45px; color: var(--accent-yellow); }
         .logo h2 { font-size: 24px; font-weight: 700; color: #1a1a2e; margin-bottom: 5px; }
-        .logo p { font-size: 14px; color: #666; margin-bottom: 0; }
+        .logo p { font-size: 14px; color: #666; }
         
         .input-group-custom {
             position: relative;
             margin-bottom: 20px;
         }
-        
         .input-group-custom i {
             position: absolute;
             left: 15px;
@@ -124,7 +92,6 @@
             font-size: 18px;
             z-index: 1;
         }
-        
         .input-group-custom input {
             width: 100%;
             padding: 14px 15px 14px 50px;
@@ -134,23 +101,11 @@
             transition: all 0.3s;
             background: #f8f9fa;
         }
-        
         .input-group-custom input:focus {
             outline: none;
             border-color: var(--primary-blue);
             background: white;
-            box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
-        }
-        
-        .input-group-custom input.error {
-            border-color: #dc3545;
-            animation: shake 0.3s ease;
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+            box-shadow: 0 0 0 3px rgba(0,51,102,0.1);
         }
         
         .btn-login {
@@ -165,35 +120,14 @@
             cursor: pointer;
             transition: all 0.3s;
             margin-top: 10px;
-            position: relative;
-            overflow: hidden;
         }
-        
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(0, 51, 102, 0.5);
+            box-shadow: 0 10px 25px -5px rgba(0,51,102,0.5);
         }
-        
         .btn-login:disabled {
             opacity: 0.7;
             cursor: not-allowed;
-            transform: none;
-        }
-        
-        .btn-login .spinner {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 2px solid white;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
         
         .switch-action {
@@ -202,18 +136,13 @@
             padding-top: 20px;
             border-top: 1px solid #e0e0e0;
         }
-        
         .switch-action a {
             color: var(--primary-blue);
             text-decoration: none;
             font-weight: 600;
             cursor: pointer;
-            transition: color 0.3s;
         }
-        
-        .switch-action a:hover {
-            color: var(--accent-yellow);
-        }
+        .switch-action a:hover { color: var(--accent-yellow); }
         
         .alert-custom {
             background: #f8d7da;
@@ -223,17 +152,10 @@
             margin-bottom: 20px;
             font-size: 14px;
             display: none;
-            animation: slideDown 0.3s ease;
         }
-        
         .alert-success-custom {
             background: #d4edda;
             color: #155724;
-        }
-        
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
         }
         
         .info-banner {
@@ -243,7 +165,6 @@
             margin-bottom: 20px;
             border-left: 4px solid var(--primary-blue);
             font-size: 13px;
-            animation: slideDown 0.3s ease;
         }
         
         .toast-notification {
@@ -254,15 +175,12 @@
             min-width: 280px;
             max-width: 350px;
         }
-        
         @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+        .toast { animation: slideInRight 0.3s ease-out; margin-bottom: 10px; border-radius: 12px; }
         
-        .toast { animation: slideInRight 0.3s ease-out; margin-bottom: 10px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        
-        /* Bannière d'installation */
         .install-banner {
             position: fixed;
             bottom: 0;
@@ -276,33 +194,16 @@
             transition: transform 0.3s ease-out;
             border-radius: 20px 20px 0 0;
         }
-        
-        .install-banner.show {
-            transform: translateY(0);
-        }
-        
+        .install-banner.show { transform: translateY(0); }
         .install-banner-content {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 10px;
         }
-        
-        .install-banner-text {
-            flex: 1;
-        }
-        
-        .install-banner-text strong {
-            font-size: 15px;
-            color: #003366;
-        }
-        
-        .install-banner-text p {
-            font-size: 12px;
-            color: #666;
-            margin: 0;
-        }
-        
+        .install-banner-text { flex: 1; }
+        .install-banner-text strong { font-size: 15px; color: #003366; }
+        .install-banner-text p { font-size: 12px; color: #666; margin: 0; }
         .btn-install {
             background: #003366;
             color: white;
@@ -311,80 +212,15 @@
             border-radius: 25px;
             font-weight: bold;
             cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.3s;
         }
-        
-        .btn-install:hover {
-            background: #002244;
-            transform: scale(1.02);
-        }
-        
         .btn-close-banner {
             background: none;
             border: none;
             color: #999;
             font-size: 20px;
             cursor: pointer;
-            padding: 5px;
         }
         
-        .btn-close-banner:hover {
-            color: #666;
-        }
-        
-        .footer-info {
-            position: fixed;
-            bottom: 15px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 10px;
-            color: rgba(255,255,255,0.5);
-            z-index: 1;
-        }
-        
-        .version-badge {
-            display: inline-block;
-            background: rgba(0,0,0,0.3);
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 9px;
-        }
-        
-        @media (max-width: 480px) {
-            .login-card { padding: 30px 25px; }
-            .logo-icon { width: 65px; height: 65px; }
-            .logo-icon i { font-size: 35px; }
-            .logo h2 { font-size: 20px; }
-            .toast-notification { right: 10px; left: 10px; min-width: auto; }
-            .install-banner-text strong { font-size: 13px; }
-            .install-banner-text p { font-size: 11px; }
-            .btn-install { padding: 6px 15px; font-size: 12px; }
-        }
-        
-        /* Mode hors ligne */
-        .offline-badge {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            color: var(--accent-yellow);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            display: none;
-            z-index: 100;
-            backdrop-filter: blur(5px);
-        }
-        
-        .offline-badge.show {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        /* Captcha visuel simple */
         .captcha-container {
             background: #f8f9fa;
             border-radius: 12px;
@@ -393,13 +229,8 @@
             display: none;
             align-items: center;
             gap: 10px;
-            font-size: 13px;
         }
-        
-        .captcha-container.show {
-            display: flex;
-        }
-        
+        .captcha-container.show { display: flex; }
         .captcha-code {
             background: var(--primary-blue);
             color: white;
@@ -409,29 +240,26 @@
             font-size: 18px;
             letter-spacing: 3px;
         }
+        .captcha-input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 8px; }
+        .captcha-refresh { background: none; border: none; cursor: pointer; color: var(--primary-blue); }
         
-        .captcha-input {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
+        .footer-info {
+            position: fixed;
+            bottom: 15px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
         }
         
-        .captcha-refresh {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--primary-blue);
-            font-size: 18px;
+        @media (max-width: 480px) {
+            .login-card { padding: 30px 25px; }
+            .toast-notification { right: 10px; left: 10px; min-width: auto; }
         }
     </style>
 </head>
 <body>
-    <div class="offline-badge" id="offlineBadge">
-        <i class="bi bi-wifi-off"></i> Hors ligne
-    </div>
-    
     <div class="login-container">
         <div class="login-card">
             <div class="logo">
@@ -448,7 +276,7 @@
             <div id="loginForm">
                 <div class="input-group-custom">
                     <i class="bi bi-person-badge"></i>
-                    <input type="text" id="matricule" placeholder="Matricule (ex: AGRO-001)" autocomplete="off">
+                    <input type="text" id="matricule" placeholder="Matricule" autocomplete="off">
                 </div>
                 <div class="input-group-custom">
                     <i class="bi bi-lock"></i>
@@ -457,7 +285,7 @@
                 
                 <div class="captcha-container" id="captchaContainer">
                     <span class="captcha-code" id="captchaCode">ABCD</span>
-                    <input type="text" id="captchaInput" class="captcha-input" placeholder="Code sécurité" maxlength="4">
+                    <input type="text" id="captchaInput" class="captcha-input" placeholder="Code" maxlength="4">
                     <button type="button" class="captcha-refresh" id="refreshCaptcha">
                         <i class="bi bi-arrow-repeat"></i>
                     </button>
@@ -474,20 +302,19 @@
             <!-- Formulaire d'activation -->
             <div id="activationForm" style="display: none;">
                 <div class="info-banner">
-                    <i class="bi bi-info-circle-fill"></i>
-                    Activez votre compte en créant votre mot de passe. Veuillez entrer votre matricule.
+                    <i class="bi bi-info-circle-fill"></i> Activez votre compte en créant votre mot de passe.
                 </div>
                 <div class="input-group-custom">
                     <i class="bi bi-person-badge"></i>
-                    <input type="text" id="activationMatricule" placeholder="Matricule" autocomplete="off">
+                    <input type="text" id="activationMatricule" placeholder="Matricule">
                 </div>
                 <div class="input-group-custom">
                     <i class="bi bi-lock"></i>
-                    <input type="password" id="newPassword" placeholder="Nouveau mot de passe (min. 4 caractères)">
+                    <input type="password" id="newPassword" placeholder="Nouveau mot de passe (min. 4)">
                 </div>
                 <div class="input-group-custom">
                     <i class="bi bi-lock"></i>
-                    <input type="password" id="confirmPassword" placeholder="Confirmer le mot de passe">
+                    <input type="password" id="confirmPassword" placeholder="Confirmer">
                 </div>
                 <button class="btn-login" id="activationBtn">
                     <i class="bi bi-check-circle"></i> Activer mon compte
@@ -500,10 +327,7 @@
     </div>
     
     <div id="toastContainer" class="toast-notification"></div>
-    
-    <div class="footer-info">
-        <span class="version-badge"><i class="bi bi-shield-check"></i> HYBRILINK-TECH v2.0</span>
-    </div>
+    <div class="footer-info">HYBRILINK-TECH</div>
     
     <div class="install-banner" id="installBanner">
         <div class="install-banner-content">
@@ -517,7 +341,7 @@
     </div>
 
     <script>
-        // ==================== CONFIGURATION FIREBASE ====================
+        // ==================== FIREBASE ====================
         const firebaseConfig = {
             apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
             authDomain: "fsa-unilu.firebaseapp.com",
@@ -527,17 +351,16 @@
             appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
         };
         
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const messaging = firebase.messaging();
         
         // ==================== VARIABLES ====================
         let deferredPrompt = null;
         let loginAttempts = 0;
         let currentCaptcha = '';
         
-        // ==================== FONCTIONS UTILITAIRES ====================
+        // ==================== FONCTIONS ====================
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             if (!container) return;
@@ -565,13 +388,9 @@
         function genererCaptcha() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
             let captcha = '';
-            for (let i = 0; i < 4; i++) {
-                captcha += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
+            for (let i = 0; i < 4; i++) captcha += chars.charAt(Math.floor(Math.random() * chars.length));
             currentCaptcha = captcha;
-            const captchaElement = document.getElementById('captchaCode');
-            if (captchaElement) captchaElement.textContent = captcha;
-            return captcha;
+            document.getElementById('captchaCode').textContent = captcha;
         }
         
         function verifierCaptcha() {
@@ -580,169 +399,123 @@
             return input.value.toUpperCase() === currentCaptcha;
         }
         
-        // ==================== SERVICE WORKER ====================
-        async function enregistrerServiceWorker() {
-            if (!('serviceWorker' in navigator)) {
-                console.log('❌ Service Worker non supporté');
-                return null;
-            }
-            
+        // ==================== NOTIFICATIONS FCM ====================
+        async function getFCMToken() {
             try {
-                let registration = await navigator.serviceWorker.getRegistration();
-                
-                if (registration) {
-                    console.log('✅ SW déjà enregistré');
-                    return registration;
+                // Demander permission
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    console.log('❌ Permission notifications refusée');
+                    return null;
                 }
                 
-                registration = await navigator.serviceWorker.register('/sw.js', {
-                    scope: '/'
+                // Obtenir le token FCM
+                const token = await messaging.getToken({
+                    vapidKey: 'BF5HAVpFcXeBzVgHROjPYpjIShMXlJaVqNkFqYmwQzQxA9TMJPJgMCpJqUqFhGnOZQpKkVXQJpGYKhJaVqNkFqY'
                 });
                 
-                console.log('✅ SW enregistré:', registration.scope);
-                return registration;
-                
+                console.log('✅ Token FCM obtenu:', token);
+                return token;
             } catch (error) {
-                console.error('❌ Erreur SW:', error);
+                console.error('❌ Erreur token FCM:', error);
                 return null;
             }
         }
         
-        // ==================== NOTIFICATIONS ====================
-        async function demanderPermissionNotifications() {
-            if (!('Notification' in window)) return false;
-            
-            if (Notification.permission === 'granted') {
-                console.log('✅ Notifications déjà autorisées');
-                return true;
-            }
-            
-            if (Notification.permission === 'denied') return false;
-            
+        async function sauvegarderTokenFCM(userId, token) {
+            if (!userId || !token) return;
             try {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    setTimeout(() => {
-                        new Notification('✅ Notifications activées', {
-                            body: 'Vous recevrez les communiqués en temps réel.',
-                            icon: 'icon-192x192.png',
-                            badge: 'icon-96x96.png',
-                            vibrate: [200, 100, 200]
-                        });
-                    }, 1000);
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                console.error('❌ Erreur permission:', error);
-                return false;
-            }
-        }
-        
-        async function sauvegarderToken(userId) {
-            if (!userId) return;
-            try {
-                await db.collection('pushSubscriptions').doc(userId).set({
+                await db.collection('fcmTokens').doc(userId).set({
+                    token: token,
                     userId: userId,
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                    userAgent: navigator.userAgent,
-                    platform: navigator.platform
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                    userAgent: navigator.userAgent
                 }, { merge: true });
-                console.log('✅ Token utilisateur sauvegardé');
+                console.log('✅ Token FCM sauvegardé dans Firestore');
             } catch (error) {
                 console.error('❌ Erreur sauvegarde token:', error);
             }
         }
         
-        // ==================== INSTALLATION PWA ====================
+        // ==================== SERVICE WORKER ====================
+        async function registerServiceWorkers() {
+            if (!('serviceWorker' in navigator)) return;
+            
+            try {
+                // Enregistrer le SW principal
+                const swRegistration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                console.log('✅ SW principal enregistré');
+                
+                // Enregistrer le SW FCM (crucial pour arrière-plan)
+                const fcmRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                console.log('✅ SW FCM enregistré pour notifications arrière-plan');
+                
+                return swRegistration;
+            } catch (error) {
+                console.error('❌ Erreur SW:', error);
+            }
+        }
+        
+        // ==================== PWA INSTALLATION ====================
         function setupPWAInstall() {
-            const installBanner = document.getElementById('installBanner');
+            const banner = document.getElementById('installBanner');
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
             const isInstalled = localStorage.getItem('pwa-installed');
             
-            if (!isStandalone && !isInstalled && installBanner) {
-                setTimeout(() => {
-                    installBanner.classList.add('show');
-                }, 3000);
+            if (!isStandalone && !isInstalled && banner) {
+                setTimeout(() => banner.classList.add('show'), 3000);
             }
             
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
-                if (!isStandalone && !isInstalled && installBanner) {
-                    installBanner.classList.add('show');
-                }
-                console.log('📱 beforeinstallprompt déclenché');
+                if (!isStandalone && !isInstalled && banner) banner.classList.add('show');
             });
             
             window.addEventListener('appinstalled', () => {
                 deferredPrompt = null;
                 localStorage.setItem('pwa-installed', 'true');
-                if (installBanner) installBanner.classList.remove('show');
-                console.log('✅ Application installée');
+                if (banner) banner.classList.remove('show');
             });
             
-            const installBtn = document.getElementById('installBtn');
-            if (installBtn) {
-                installBtn.addEventListener('click', async () => {
-                    if (deferredPrompt) {
-                        deferredPrompt.prompt();
-                        const { outcome } = await deferredPrompt.userChoice;
-                        if (outcome === 'accepted') {
-                            localStorage.setItem('pwa-installed', 'true');
-                            showToast('✅ Application installée avec succès', 'success');
-                        }
-                        deferredPrompt = null;
-                        if (installBanner) installBanner.classList.remove('show');
-                    } else {
-                        showToast('Utilisez le menu du navigateur pour installer', 'info');
-                        localStorage.setItem('pwa-installed', 'true');
-                        if (installBanner) installBanner.classList.remove('show');
-                    }
-                });
-            }
-            
-            const closeBtn = document.getElementById('closeInstallBanner');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => {
-                    if (installBanner) installBanner.classList.remove('show');
-                });
-            }
-        }
-        
-        // ==================== VÉRIFICATION CONNEXION ====================
-        function checkOnlineStatus() {
-            const offlineBadge = document.getElementById('offlineBadge');
-            function updateStatus() {
-                if (!navigator.onLine) {
-                    offlineBadge.classList.add('show');
-                    showToast('Mode hors ligne - Vérifiez votre connexion', 'warning');
+            document.getElementById('installBtn')?.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') localStorage.setItem('pwa-installed', 'true');
+                    deferredPrompt = null;
+                    if (banner) banner.classList.remove('show');
                 } else {
-                    offlineBadge.classList.remove('show');
+                    showToast('Utilisez le menu du navigateur pour installer', 'info');
                 }
-            }
-            window.addEventListener('online', updateStatus);
-            window.addEventListener('offline', updateStatus);
-            updateStatus();
+            });
+            
+            document.getElementById('closeInstallBanner')?.addEventListener('click', () => {
+                if (banner) banner.classList.remove('show');
+            });
         }
         
-        // ==================== ACTIVATION COMPTE ====================
-        async function activerCompte(matricule, newPassword) {
+        // ==================== ACTIVATION ====================
+        document.getElementById('activationBtn').onclick = async () => {
+            const matricule = document.getElementById('activationMatricule').value.trim();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!matricule) { showAlert('Matricule requis', true); return; }
+            if (!newPassword || newPassword.length < 4) { showAlert('Mot de passe (min. 4 caractères)', true); return; }
+            if (newPassword !== confirmPassword) { showAlert('Mots de passe différents', true); return; }
+            
+            const btn = document.getElementById('activationBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Activation...';
+            
             try {
-                const studentQuery = await db.collection('etudiants')
-                    .where('matricule', '==', matricule)
-                    .get();
-                
-                if (studentQuery.empty) {
-                    throw new Error('Matricule non trouvé');
-                }
+                const studentQuery = await db.collection('etudiants').where('matricule', '==', matricule).get();
+                if (studentQuery.empty) throw new Error('Matricule non trouvé');
                 
                 const studentDoc = studentQuery.docs[0];
                 const studentData = studentDoc.data();
-                
-                if (studentData.motDePasse && studentData.compteActive) {
-                    throw new Error('Compte déjà activé');
-                }
+                if (studentData.motDePasse && studentData.compteActive) throw new Error('Compte déjà activé');
                 
                 await db.collection('etudiants').doc(studentDoc.id).update({
                     motDePasse: newPassword,
@@ -750,50 +523,11 @@
                     dateActivation: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                return true;
-            } catch (error) {
-                throw error;
-            }
-        }
-        
-        document.getElementById('activationBtn').onclick = async () => {
-            const matricule = document.getElementById('activationMatricule').value.trim();
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (!matricule) {
-                showAlert('Veuillez entrer votre matricule', true);
-                return;
-            }
-            if (!newPassword) {
-                showAlert('Veuillez entrer un mot de passe', true);
-                return;
-            }
-            if (newPassword.length < 4) {
-                showAlert('Le mot de passe doit contenir au moins 4 caractères', true);
-                return;
-            }
-            if (newPassword !== confirmPassword) {
-                showAlert('Les mots de passe ne correspondent pas', true);
-                return;
-            }
-            
-            const btn = document.getElementById('activationBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span> Activation...';
-            
-            try {
-                await activerCompte(matricule, newPassword);
-                showAlert('✅ Compte activé avec succès ! Vous pouvez maintenant vous connecter.', false);
-                
-                document.getElementById('activationMatricule').value = '';
-                document.getElementById('newPassword').value = '';
-                document.getElementById('confirmPassword').value = '';
+                showAlert('✅ Compte activé ! Connectez-vous', false);
                 document.getElementById('activationForm').style.display = 'none';
                 document.getElementById('loginForm').style.display = 'block';
                 
-            } catch (error) {
-                showAlert(error.message, true);
+            } catch (error) { showAlert(error.message, true);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-check-circle"></i> Activer mon compte';
@@ -801,49 +535,23 @@
         };
         
         // ==================== CONNEXION ====================
-        async function connexionEtudiant(matricule, password) {
-            const studentQuery = await db.collection('etudiants')
-                .where('matricule', '==', matricule)
-                .get();
-            
-            if (studentQuery.empty) {
-                throw new Error('Matricule incorrect');
-            }
-            
-            const studentDoc = studentQuery.docs[0];
-            const studentData = studentDoc.data();
-            
-            if (!studentData.compteActive || !studentData.motDePasse) {
-                throw new Error('Compte non activé');
-            }
-            
-            if (studentData.motDePasse !== password) {
-                throw new Error('Mot de passe incorrect');
-            }
-            
-            return { id: studentDoc.id, data: studentData };
-        }
-        
         document.getElementById('loginBtn').onclick = async () => {
             const matricule = document.getElementById('matricule').value.trim();
             const password = document.getElementById('password').value;
             
-            if (!matricule || !password) {
-                showAlert('Veuillez entrer votre matricule et mot de passe', true);
-                return;
-            }
+            if (!matricule || !password) { showAlert('Matricule et mot de passe requis', true); return; }
             
-            // Vérification CAPTCHA après 3 tentatives
+            // CAPTCHA après 3 tentatives
             if (loginAttempts >= 3) {
                 const captchaContainer = document.getElementById('captchaContainer');
-                if (captchaContainer && !captchaContainer.classList.contains('show')) {
+                if (!captchaContainer.classList.contains('show')) {
                     captchaContainer.classList.add('show');
                     genererCaptcha();
                     showAlert('Code de sécurité requis', 'warning');
                     return;
                 }
                 if (!verifierCaptcha()) {
-                    showAlert('Code de sécurité incorrect', true);
+                    showAlert('Code incorrect', true);
                     genererCaptcha();
                     document.getElementById('captchaInput').value = '';
                     return;
@@ -852,61 +560,55 @@
             
             const btn = document.getElementById('loginBtn');
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span> Connexion...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Connexion...';
             
             try {
-                const result = await connexionEtudiant(matricule, password);
+                const studentQuery = await db.collection('etudiants').where('matricule', '==', matricule).get();
+                if (studentQuery.empty) throw new Error('Matricule incorrect');
                 
-                // Session
+                const studentDoc = studentQuery.docs[0];
+                const studentData = studentDoc.data();
+                
+                if (!studentData.compteActive || !studentData.motDePasse) throw new Error('Compte non activé');
+                if (studentData.motDePasse !== password) throw new Error('Mot de passe incorrect');
+                
+                // Créer session
                 const sessionData = {
-                    id: result.id,
-                    matricule: result.data.matricule,
-                    nom: result.data.nom,
-                    promotion: result.data.promotion,
-                    email: result.data.email || '',
+                    id: studentDoc.id,
+                    matricule: studentData.matricule,
+                    nom: studentData.nom,
+                    promotion: studentData.promotion,
+                    email: studentData.email || '',
                     loginTime: Date.now(),
                     expires: Date.now() + (24 * 60 * 60 * 1000)
                 };
                 localStorage.setItem('session_etudiant', JSON.stringify(sessionData));
                 
-                // Informer le Service Worker
-                if (navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.controller.postMessage({
-                        type: 'SAVE_STUDENT_SESSION',
-                        studentId: result.id
-                    });
-                } else {
-                    const registration = await navigator.serviceWorker.ready;
-                    if (registration.active) {
-                        registration.active.postMessage({
-                            type: 'SAVE_STUDENT_SESSION',
-                            studentId: result.id
-                        });
-                    }
+                // 🔔 OBTENIR ET SAUVEGARDER LE TOKEN FCM (CRUCIAL)
+                const fcmToken = await getFCMToken();
+                if (fcmToken) {
+                    await sauvegarderTokenFCM(studentDoc.id, fcmToken);
                 }
                 
-                // Sauvegarder le token
-                await sauvegarderToken(result.id);
+                // Informer le Service Worker
+                const registration = await navigator.serviceWorker.ready;
+                if (registration.active) {
+                    registration.active.postMessage({
+                        type: 'SAVE_STUDENT_SESSION',
+                        studentId: studentDoc.id
+                    });
+                }
                 
-                // Demander permission notifications
-                await demanderPermissionNotifications();
+                showToast('✅ Connexion réussie !', 'success');
                 
-                showToast('✅ Connexion réussie ! Redirection...', 'success');
-                
-                setTimeout(() => {
-                    window.location.href = 'etudiant.html';
-                }, 1000);
+                setTimeout(() => { window.location.href = 'etudiant.html'; }, 1000);
                 
             } catch (error) {
                 loginAttempts++;
                 showAlert(error.message, true);
-                
                 if (loginAttempts >= 3) {
-                    const captchaContainer = document.getElementById('captchaContainer');
-                    if (captchaContainer) {
-                        captchaContainer.classList.add('show');
-                        genererCaptcha();
-                    }
+                    document.getElementById('captchaContainer').classList.add('show');
+                    genererCaptcha();
                 }
             } finally {
                 btn.disabled = false;
@@ -914,7 +616,7 @@
             }
         };
         
-        // ==================== NAVIGATION FORMULAIRES ====================
+        // ==================== NAVIGATION ====================
         document.getElementById('showActivationLink').onclick = () => {
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('activationForm').style.display = 'block';
@@ -925,9 +627,6 @@
             document.getElementById('activationForm').style.display = 'none';
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('alertMessage').style.display = 'none';
-            document.getElementById('activationMatricule').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmPassword').value = '';
         };
         
         document.getElementById('refreshCaptcha').onclick = () => {
@@ -935,65 +634,37 @@
             document.getElementById('captchaInput').value = '';
         };
         
-        // ==================== RACCOURCIS CLAVIER ====================
-        document.getElementById('matricule').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('loginBtn').click();
-        });
-        document.getElementById('password').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('loginBtn').click();
-        });
-        document.getElementById('activationMatricule').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('activationBtn').click();
-        });
-        document.getElementById('newPassword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('activationBtn').click();
-        });
-        document.getElementById('confirmPassword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('activationBtn').click();
-        });
-        document.getElementById('captchaInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('loginBtn').click();
+        // ==================== RACCOURCIS ====================
+        ['matricule', 'password'].forEach(id => {
+            document.getElementById(id)?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') document.getElementById('loginBtn').click();
+            });
         });
         
         // ==================== INITIALISATION ====================
-        async function initialiser() {
-            console.log('🚀 Initialisation page de connexion v2');
-            console.log('📱 User Agent:', navigator.userAgent);
-            
-            // Enregistrer Service Worker
-            await enregistrerServiceWorker();
-            
-            // Configurer installation PWA
+        async function init() {
+            console.log('🚀 Login - Démarrage');
+            await registerServiceWorkers();
             setupPWAInstall();
-            
-            // Vérifier état connexion
-            checkOnlineStatus();
             
             // Vérifier session existante
             const session = localStorage.getItem('session_etudiant');
             if (session) {
                 try {
-                    const sessionData = JSON.parse(session);
-                    if (Date.now() < sessionData.expires) {
-                        console.log('✅ Session valide, redirection...');
+                    const data = JSON.parse(session);
+                    if (Date.now() < data.expires) {
                         window.location.href = 'etudiant.html';
                         return;
-                    } else {
-                        localStorage.removeItem('session_etudiant');
                     }
-                } catch (e) {
-                    localStorage.removeItem('session_etudiant');
-                }
+                } catch(e) {}
             }
             
-            console.log('✅ Page de connexion prête');
+            console.log('✅ Login prêt - Notifications FCM activées');
         }
         
-        initialiser();
+        init();
         
-        // Afficher console pour débogage
-        console.log('%c🔐 FACULTÉ AGRONOMIQUE - ESPACE ÉTUDIANT', 'color: #ffb347; font-size: 14px; font-weight: bold;');
-        console.log('%cVersion 2.0 | Connexion sécurisée', 'color: #003366; font-size: 12px;');
+        console.log('%c🔔 NOTIFICATIONS EN ARRIÈRE-PLAN ACTIVÉES', 'color: #ffb347; font-size: 12px; font-weight: bold;');
     </script>
 </body>
 </html>
