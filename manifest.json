@@ -1,7 +1,7 @@
 {
   "name": "Faculté Agronomique - Espace Étudiant",
-  "short_name": "FAC Agro Étudiant",
-  "description": "Application étudiante pour la Faculté Agronomique avec notifications en temps réel",
+  "short_name": "FAC Agro",
+  "description": "Application étudiante avec notifications en temps réel",
   "start_url": "index.html",
   "display": "standalone",
   "theme_color": "#003366",
@@ -9,6 +9,7 @@
   "orientation": "portrait",
   "scope": "/",
   "gcm_sender_id": "36551990738",
+  "gcm_user_visible_only": true,
   "icons": [
     {
       "src": "icon-72x72.png",
@@ -61,34 +62,22 @@
   ],
   "shortcuts": [
     {
-      "name": "Mes Communications",
-      "short_name": "Communications",
-      "description": "Voir mes communications",
+      "name": "Communications",
+      "short_name": "Comms",
       "url": "communiquer.html",
       "icons": [{ "src": "icon-96x96.png", "sizes": "96x96" }]
     },
     {
-      "name": "Mes Paiements",
+      "name": "Paiements",
       "short_name": "Paiements",
-      "description": "Voir mes paiements",
       "url": "paiement.html",
       "icons": [{ "src": "icon-96x96.png", "sizes": "96x96" }]
     },
     {
       "name": "Mon Profil",
       "short_name": "Profil",
-      "description": "Gérer mon compte",
       "url": "profil.html",
       "icons": [{ "src": "icon-96x96.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "Bulletin",
-      "short_name": "Bulletin",
-      "description": "Mes notes",
-      "url": "bulletin.html",
-      "icons": [{ "src": "icon-96x96.png", "sizes": "96x96" }]
     }
-  ],
-  "related_applications": [],
-  "prefer_related_applications": false
+  ]
 }
