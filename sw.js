@@ -1,7 +1,8 @@
-// sw.js - Service Worker principal avec cache et FCM
+// sw.js - Service Worker principal
+// Version complète avec cache et gestion des notifications
 
-const CACHE_NAME = 'fac-agro-v5';
-const STATIC_CACHE = 'fac-agro-static-v5';
+const CACHE_NAME = 'fac-agro-v8';
+const STATIC_CACHE = 'fac-agro-static-v8';
 
 const urlsToCache = [
     '/',
@@ -34,7 +35,7 @@ const urlsToCache = [
 
 // Installation
 self.addEventListener('install', event => {
-    console.log('[SW] Installation v5');
+    console.log('[SW] Installation v8');
     event.waitUntil(
         caches.open(STATIC_CACHE)
             .then(cache => cache.addAll(urlsToCache))
@@ -42,63 +43,139 @@ self.addEventListener('install', event => {
     );
 });
 
-// Activation
-self.addEventListener('activate', event => {
-    console.log('[SW] Activation v5');
-    event.waitUntil(
-        Promise.all([
-            caches.keys().then(keys => {
-                return Promise.all(
-                    keys.filter(key => key !== CACHE_NAME && key !== STATIC_CACHE)
-                        .map(key => caches.delete(key))
-                );
-            }),
-            self.clients.claim()
-        ])
+// Fetch - stratégie de cache
+self.addEventListener('fetch', event => {
+    event.respondWith(
+        caches.match(event.request)
+            .then(response => {
+                if (response) {
+                    return response;
+                }
+                return fetch(event.request)
+                    .then(response => {
+                        if (!response || response.status !== 200 || response.type !== 'basic') {
+                            return response;
+                        }
+                        const responseToCache = response.clone();
+                        caches.open(CACHE_NAME)
+                            .then(cache => {
+                                cache.put(event.request, responseToCache);
+                            });
+                        return response;
+                    })
+                    .catch(() => {
+                        if (event.request.mode === 'navigate') {
+                            return caches.match('offline.html');
+                        }
+                        return new Response('Hors ligne', { status: 503 });
+                    });
+            })
     );
 });
 
-// Stratégie de cache
-self.addEventListener('fetch', event => {
-    const url = new URL(event.request.url);
+// Activation
+self.addEventListener('activate', event => {
+    console.log('[SW] Activation v8');
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    if (cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE) {
+                        console.log('[SW] Suppression ancien cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(() => self.clients.claim())
+    );
+});
+
+// 🔔 GESTION DES MESSAGES PUSH (depuis Firebase)
+self.addEventListener('push', function(event) {
+    console.log('[SW] 📨 Push reçu:', event);
     
-    if (url.hostname.includes('firebase') || url.hostname.includes('googleapis')) {
-        event.respondWith(fetch(event.request));
-        return;
+    let data = {};
+    if (event.data) {
+        try {
+            data = event.data.json();
+        } catch(e) {
+            data = { title: 'Nouvelle notification', body: event.data.text() };
+        }
     }
     
-    event.respondWith(
-        fetch(event.request)
-            .then(response => {
-                if (response && response.status === 200) {
-                    const responseClone = response.clone();
-                    caches.open(CACHE_NAME).then(cache => {
-                        cache.put(event.request, responseClone);
-                    });
-                }
-                return response;
-            })
-            .catch(() => {
-                return caches.match(event.request).then(response => {
-                    if (response) return response;
-                    if (event.request.mode === 'navigate') {
-                        return caches.match('offline.html');
-                    }
-                    return new Response('Hors ligne', { status: 503 });
-                });
-            })
+    const options = {
+        body: data.body || 'Nouvelle information disponible',
+        icon: '/icon-192x192.png',
+        badge: '/icon-96x96.png',
+        vibrate: [200, 100, 200],
+        data: {
+            url: data.url || '/',
+            id: data.id,
+            type: data.type || 'communique'
+        },
+        requireInteraction: true,
+        actions: [
+            { action: 'open', title: '📖 Voir', icon: '/icon-96x96.png' },
+            { action: 'close', title: '✕ Fermer', icon: '/icon-96x96.png' }
+        ]
+    };
+    
+    event.waitUntil(
+        self.registration.showNotification(data.title || 'Faculté Agronomique', options)
     );
+});
+
+// 🔔 GESTION DU CLIC SUR NOTIFICATION
+self.addEventListener('notificationclick', function(event) {
+    console.log('[SW] 🔔 Clic notification:', event.notification.data);
+    
+    event.notification.close();
+    
+    const urlToOpen = event.notification.data?.url || '/';
+    const notificationId = event.notification.data?.id;
+    const notificationType = event.notification.data?.type;
+    
+    let finalUrl = urlToOpen;
+    if (notificationId && notificationType === 'communique') {
+        finalUrl = `communiquer.html?communique=${notificationId}`;
+    } else if (notificationId && notificationType === 'paiement') {
+        finalUrl = `paiement.html?id=${notificationId}`;
+    }
+    
+    if (event.action === 'open' || !event.action) {
+        event.waitUntil(
+            clients.matchAll({ type: 'window', includeUncontrolled: true })
+                .then(function(clientList) {
+                    for (let i = 0; i < clientList.length; i++) {
+                        const client = clientList[i];
+                        if (client.url.includes('/') && 'focus' in client) {
+                            client.postMessage({
+                                type: 'NOTIFICATION_CLICKED',
+                                url: finalUrl,
+                                id: notificationId
+                            });
+                            return client.focus();
+                        }
+                    }
+                    if (clients.openWindow) {
+                        return clients.openWindow(finalUrl);
+                    }
+                })
+        );
+    }
 });
 
 // Messages du client
 self.addEventListener('message', event => {
+    console.log('[SW] Message reçu:', event.data?.type);
+    
     if (event.data?.type === 'SAVE_STUDENT_SESSION') {
-        console.log('[SW] Session sauvegardée:', event.data.studentId);
-        // Stocker l'ID pour usage futur
+        console.log('[SW] Session étudiant sauvegardée:', event.data.studentId);
+        // Stocker dans cache pour usage ultérieur
         caches.open('session-cache').then(cache => {
             cache.put('last-student-id', new Response(event.data.studentId));
         });
     }
 });
 
-console.log('[SW] ✅ Service Worker principal actif');
+console.log('[SW] ✅ Service Worker principal v8 actif');
