@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mes Paiements - Faculté Agronomique</title>
+    <meta name="theme-color" content="#003366">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { 
+            --primary-blue: #003366; 
+            --dark-blue: #002244; 
+            --accent-yellow: #ffb347; 
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+            --warning-orange: #fd7e14;
+        }
+        
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        
+        .navbar-custom { 
+            background: var(--primary-blue); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            padding: 12px 0;
+        }
+        
+        .navbar-brand { font-weight: bold; font-size: 1rem; }
+        
+        .profile-photo { 
+            width: 45px; height: 45px; border-radius: 50%; 
+            background: var(--accent-yellow); 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; 
+            position: relative;
+        }
+        .profile-photo i { font-size: 28px; color: var(--primary-blue); }
+        
+        .navbar-right { display: flex; align-items: center; gap: 15px; }
+        
+        .notification-dot {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            background: var(--danger-red);
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220,53,69,0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(220,53,69,0); }
+            100% { box-shadow: 0 0 0 0 rgba(220,53,69,0); }
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .btn-back {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        .btn-back:hover { background: var(--dark-blue); transform: translateY(-2px); color: white; }
+        
+        .btn-refresh {
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-refresh:hover { background: #ff9800; transform: scale(1.02); }
+        
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .statut-paye { color: var(--success-green); font-weight: bold; }
+        .statut-attente { color: var(--warning-orange); font-weight: bold; }
+        
+        .paiements-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .paiements-table th {
+            background: var(--primary-blue);
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 13px;
+        }
+        
+        .paiements-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+        
+        .paiements-table tr:hover { background: #f8f9fa; }
+        
+        .payment-status-card {
+            background: #e8f4fd;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-blue);
+        }
+        
+        .total-card {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .total-card .total-amount { font-size: 28px; font-weight: bold; }
+        
+        .fiche-badge {
+            display: inline-block;
+            background: #ffe8e8;
+            color: var(--danger-red);
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin: 2px;
+            font-size: 11px;
+            border: 1px solid var(--danger-red);
+        }
+        
+        .fiche-badge::before {
+            content: "📄 ";
+            font-weight: normal;
+        }
+        
+        .nouveau-paiement {
+            animation: highlightPulse 0.5s ease-in-out;
+        }
+        
+        @keyframes highlightPulse {
+            0% { background: #fff3e0; }
+            100% { background: white; }
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .empty-state i { font-size: 70px; color: var(--primary-blue); opacity: 0.3; margin-bottom: 20px; }
+        
+        .footer-info {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 280px;
+            max-width: 350px;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .toast { animation: slideInRight 0.3s ease-out; margin-bottom: 10px; border-radius: 12px; }
+        
+        .profile-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .profile-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .btn-action {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .btn-action:hover { background: var(--dark-blue); }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--primary-blue);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .total-paye-card {
+            background: linear-gradient(135deg, var(--success-green), #1e7e34);
+            border-radius: 15px;
+            padding: 15px 20px;
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .total-paye-card .label { font-size: 13px; opacity: 0.9; }
+        .total-paye-card .amount { font-size: 32px; font-weight: bold; }
+        
+        @media (max-width: 768px) {
+            .content-card { padding: 15px; overflow-x: auto; }
+            .paiements-table { font-size: 11px; }
+            .paiements-table th, .paiements-table td { padding: 8px 10px; }
+            .toast-notification { right: 10px; left: 10px; min-width: auto; }
+            .total-paye-card .amount { font-size: 24px; }
+        }
+        
+        @media print {
+            .navbar-custom, .page-header, .footer-info, .btn-refresh, .btn-back, .profile-photo, #logoutBtn, .toast-notification { display: none; }
+            .content-card { padding: 0; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-custom">
+        <div class="container">
+            <a class="navbar-brand text-white" href="etudiant.html">
+                <i class="bi bi-tree-fill"></i> FACULTÉ AGRONOMIQUE - UNILU
+            </a>
+            <div class="navbar-right">
+                <div class="profile-photo" id="profileBtn">
+                    <i class="bi bi-person-circle"></i>
+                    <span class="notification-dot" id="notificationDot"></span>
+                </div>
+                <button class="btn btn-outline-light btn-sm" id="logoutBtn">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+        <div id="toastContainer" class="toast-notification"></div>
+        
+        <div class="page-header">
+            <h4><i class="bi bi-credit-card-fill me-2" style="color: var(--primary-blue);"></i>Mes Paiements</h4>
+            <div>
+                <button class="btn-refresh me-2" id="refreshBtn">
+                    <i class="bi bi-arrow-repeat"></i> Actualiser
+                </button>
+                <a href="etudiant.html" class="btn-back">
+                    <i class="bi bi-house-door-fill"></i> Accueil
+                </a>
+            </div>
+        </div>
+        
+        <div class="content-card">
+            <div id="paiementsContainer">
+                <div class="text-center py-5">
+                    <div class="loading-spinner"></div>
+                    <p class="mt-3 text-muted">Chargement de vos paiements...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-info">
+            <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital<br>
+            <img src="t.png" width="40px" alt="HYBRILINK" onerror="this.style.display='none'">
+        </div>
+    </div>
+    
+    <div id="profileModal" class="profile-modal">
+        <div class="profile-modal-content">
+            <div class="text-center">
+                <i class="bi bi-person-circle" style="font-size:70px;color:var(--primary-blue);"></i>
+                <h4 id="profilNom"></h4>
+                <p id="profilMatricule"></p>
+                <p id="profilPromotion"></p>
+                <hr>
+                <h6>Changer mot de passe</h6>
+                <input type="password" class="form-control mb-2" id="newPassword" placeholder="Nouveau mot de passe">
+                <input type="password" class="form-control mb-2" id="confirmNewPassword" placeholder="Confirmer">
+                <button class="btn-action" id="changePasswordBtn">Modifier</button>
+                <button class="btn btn-secondary w-100 mt-2" onclick="closeProfileModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== FIREBASE ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
+            authDomain: "fsa-unilu.firebaseapp.com",
+            projectId: "fsa-unilu",
+            storageBucket: "fsa-unilu.firebasestorage.app",
+            messagingSenderId: "36551990738",
+            appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+        };
+        
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // ==================== VARIABLES ====================
+        let currentStudent = null;
+        let allPromotions = [];
+        let allAnnees = [];
+        let allTransactions = [];
+        let lastTransactionCount = 0;
+        let snapshotUnsubscribe = null;
+        let lastNotifTime = 0;
+        
+        // ==================== SESSION ====================
+        function checkSession() {
+            const session = localStorage.getItem('session_etudiant');
+            if (!session) {
+                window.location.href = 'login-etudiant.html';
+                return false;
+            }
+            
+            try {
+                const sessionData = JSON.parse(session);
+                if (Date.now() > sessionData.expires) {
+                    localStorage.removeItem('session_etudiant');
+                    window.location.href = 'login-etudiant.html';
+                    return false;
+                }
+                currentStudent = sessionData;
+                return true;
+            } catch(e) {
+                window.location.href = 'login-etudiant.html';
+                return false;
+            }
+        }
+        
+        // ==================== FONCTIONS UTILITAIRES ====================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            
+            const colors = {
+                success: { bg: '#28a745', icon: 'check-circle-fill' },
+                warning: { bg: '#ffc107', icon: 'exclamation-triangle-fill', textColor: '#333' },
+                danger: { bg: '#dc3545', icon: 'x-circle-fill' },
+                info: { bg: '#17a2b8', icon: 'info-circle-fill' }
+            };
+            
+            const config = colors[type] || colors.success;
+            const textColor = config.textColor || 'white';
+            
+            const toastHtml = `
+                <div class="toast" style="background: ${config.bg}; color: ${textColor};">
+                    <div class="toast-body">
+                        <i class="bi bi-${config.icon} me-2"></i>
+                        ${message}
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('afterbegin', toastHtml);
+            
+            setTimeout(() => {
+                if (container.firstElementChild) container.firstElementChild.remove();
+            }, 4000);
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatDate(date) {
+            if (!date) return '-';
+            try {
+                if (date && typeof date.toDate === 'function') date = date.toDate();
+                else if (date && typeof date.seconds === 'number') date = new Date(date.seconds * 1000);
+                if (!(date instanceof Date) || isNaN(date.getTime())) return '-';
+                return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch(e) { return '-'; }
+        }
+        
+        function formatDateTime(date) {
+            if (!date) return '-';
+            try {
+                if (date && typeof date.toDate === 'function') date = date.toDate();
+                else if (date && typeof date.seconds === 'number') date = new Date(date.seconds * 1000);
+                if (!(date instanceof Date) || isNaN(date.getTime())) return '-';
+                return date.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            } catch(e) { return '-'; }
+        }
+        
+        // ==================== CHARGEMENT DONNÉES ====================
+        async function chargerPromotions() {
+            try {
+                const snapshot = await db.collection('promotions').get();
+                allPromotions = [];
+                snapshot.forEach(doc => allPromotions.push({ id: doc.id, ...doc.data() }));
+            } catch (error) { console.error('Erreur promotions:', error); }
+        }
+        
+        async function chargerAnnees() {
+            try {
+                const snapshot = await db.collection('anneesAcademiques').get();
+                allAnnees = [];
+                snapshot.forEach(doc => allAnnees.push({ id: doc.id, ...doc.data() }));
+            } catch (error) { console.error('Erreur années:', error); }
+        }
+        
+        function getPromotionNom(promotionId) {
+            if (!promotionId) return 'Non définie';
+            const promo = allPromotions.find(p => p.id === promotionId);
+            return promo ? promo.nom : promotionId;
+        }
+        
+        function getAnneeNom(anneeId) {
+            if (!anneeId) return '-';
+            const annee = allAnnees.find(a => a.id === anneeId);
+            return annee ? (annee.annee || annee.nom || anneeId) : anneeId;
+        }
+        
+        // ==================== NOTIFICATION SYSTÈME ====================
+        async function sendSystemNotification(title, body, tag) {
+            if (Notification.permission !== 'granted') return;
+            
+            const now = Date.now();
+            if (now - lastNotifTime < 5000) return;
+            lastNotifTime = now;
+            
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                await registration.showNotification(title, {
+                    body: body,
+                    icon: 'icon-192x192.png',
+                    badge: 'icon-96x96.png',
+                    vibrate: [200, 100, 200],
+                    tag: tag,
+                    data: { url: 'paiement.html' },
+                    actions: [{ action: 'open', title: 'Voir', icon: 'icon-96x96.png' }]
+                });
+            } catch(e) { console.log('Notification error:', e); }
+        }
+        
+        function updateNotificationDot(hasNew) {
+            const dot = document.getElementById('notificationDot');
+            if (dot) dot.style.display = hasNew ? 'block' : 'none';
+        }
+        
+        // ==================== AFFICHAGE PAIEMENTS ====================
+        function afficherPaiements(transactions, isRealtime = false) {
+            const container = document.getElementById('paiementsContainer');
+            if (!container) return;
+            
+            const promoNom = getPromotionNom(currentStudent.promotion);
+            
+            if (!transactions || transactions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-receipt"></i>
+                        <h5>Aucun paiement trouvé</h5>
+                        <p class="text-muted">Vous n'avez effectué aucun paiement pour le moment.</p>
+                        <hr>
+                        <small class="text-muted">Matricule: ${escapeHtml(currentStudent.matricule)}</small>
+                    </div>
+                `;
+                updateNotificationDot(false);
+                return;
+            }
+            
+            let totalGeneral = 0;
+            const transactionsParAnnee = {};
+            
+            transactions.forEach(transaction => {
+                let montant = transaction.montantTotal || transaction.montant || 0;
+                if (transaction.isDuplicata) montant = transaction.dernierFraisDuplicata || transaction.duplicataFrais || montant;
+                totalGeneral += montant;
+                
+                const anneeId = transaction.anneeAcademiqueId || transaction.anneeAcademique || 'default';
+                if (!transactionsParAnnee[anneeId]) {
+                    transactionsParAnnee[anneeId] = { total: 0, transactions: [] };
+                }
+                transactionsParAnnee[anneeId].transactions.push(transaction);
+                transactionsParAnnee[anneeId].total += montant;
+            });
+            
+            let html = `
+                <div class="total-paye-card">
+                    <div class="label"><i class="bi bi-wallet2"></i> TOTAL GÉNÉRAL PAYÉ</div>
+                    <div class="amount">${totalGeneral.toLocaleString()} FC</div>
+                    <small>Toutes années confondues</small>
+                </div>
+                
+                <div class="payment-status-card">
+                    <h6><i class="bi bi-person-badge"></i> Informations étudiant</h6>
+                    <p class="mb-0"><strong>${escapeHtml(currentStudent.nom)}</strong><br>
+                    Matricule: ${escapeHtml(currentStudent.matricule)}<br>
+                    Promotion: ${escapeHtml(promoNom)}</p>
+                    <hr class="my-2">
+                    <small><i class="bi bi-check-circle"></i> ${transactions.length} paiement(s) trouvé(s)</small>
+                </div>
+            `;
+            
+            const anneeKeys = Object.keys(transactionsParAnnee);
+            for (const anneeId of anneeKeys) {
+                const data = transactionsParAnnee[anneeId];
+                const anneeNom = getAnneeNom(anneeId);
+                
+                html += `
+                    <div class="payment-status-card" style="margin-top: 20px;">
+                        <h6><i class="bi bi-calendar-week"></i> Année académique : ${escapeHtml(anneeNom)}</h6>
+                        <div class="table-responsive">
+                            <table class="paiements-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>N° Reçu</th>
+                                        <th>Fiches payées</th>
+                                        <th>Montant</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+                
+                for (const transaction of data.transactions) {
+                    const dateTransaction = formatDateTime(transaction.date);
+                    let montant = transaction.montantTotal || transaction.montant || 0;
+                    let statut = transaction.statut || 'payé';
+                    let typeLabel = 'Original';
+                    
+                    if (transaction.isDuplicata) {
+                        montant = transaction.dernierFraisDuplicata || transaction.duplicataFrais || montant;
+                        typeLabel = 'Duplicata';
+                    }
+                    
+                    let fichesHtml = '';
+                    if (transaction.fiches && transaction.fiches.length > 0) {
+                        fichesHtml = transaction.fiches.map(f => 
+                            `<span class="fiche-badge">${escapeHtml(f.nom || 'Fiche')} (${(f.prix || f.montant || 0).toLocaleString()} FC)</span>`
+                        ).join('');
+                    } else if (transaction.description) {
+                        fichesHtml = `<span class="fiche-badge">${escapeHtml(transaction.description.substring(0, 30))}</span>`;
+                    } else {
+                        fichesHtml = '<span style="color:#999;">-</span>';
+                    }
+                    
+                    const statutClass = statut === 'payé' || statut === 'paye' ? 'statut-paye' : 'statut-attente';
+                    const statutIcon = statut === 'payé' || statut === 'paye' ? 'check-circle' : 'clock-history';
+                    
+                    html += `
+                        <tr class="${isRealtime ? 'nouveau-paiement' : ''}">
+                            <td>${dateTransaction}</td>
+                            <td><strong>${escapeHtml(transaction.numeroRecu || transaction.id.substring(0, 8))}</strong><br><small class="text-muted">${typeLabel}</small></td>
+                            <td>${fichesHtml}</td>
+                            <td class="${statutClass}">${montant.toLocaleString()} FC</td>
+                            <td><i class="bi bi-${statutIcon}"></i> ${statut === 'payé' || statut === 'paye' ? 'Payé' : 'En attente'}</td>
+                        </tr>
+                    `;
+                }
+                
+                html += `
+                                </tbody>
+                                <tfoot>
+                                    <tr style="background:#e8f4fd;">
+                                        <td colspan="3" style="text-align:right;"><strong>Total :</strong></td>
+                                        <td colspan="2"><strong>${data.total.toLocaleString()} FC</strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        // ==================== ÉCOUTEUR TEMPS RÉEL ====================
+        function setupRealtimeListener() {
+            if (snapshotUnsubscribe) {
+                snapshotUnsubscribe();
+            }
+            
+            const matricule = currentStudent.matricule;
+            const studentId = currentStudent.id;
+            
+            snapshotUnsubscribe = db.collection('transactions')
+                .limit(2000)
+                .onSnapshot((snapshot) => {
+                    const transactions = [];
+                    let newTransactionsCount = 0;
+                    
+                    snapshot.docChanges().forEach(change => {
+                        const data = change.doc.data();
+                        const estConcerne = (data.etudiantId === matricule || 
+                                           data.etudiantMatricule === matricule ||
+                                           data.etudiantId === studentId);
+                        
+                        if (estConcerne && change.type === 'added') {
+                            newTransactionsCount++;
+                        }
+                    });
+                    
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (data.etudiantId === matricule || 
+                            data.etudiantMatricule === matricule ||
+                            data.etudiantId === studentId) {
+                            transactions.push({ id: doc.id, ...data });
+                        }
+                    });
+                    
+                    transactions.sort((a, b) => {
+                        let dateA = 0, dateB = 0;
+                        if (a.date) {
+                            if (a.date.toDate) dateA = a.date.toDate().getTime();
+                            else if (a.date.seconds) dateA = a.date.seconds * 1000;
+                        }
+                        if (b.date) {
+                            if (b.date.toDate) dateB = b.date.toDate().getTime();
+                            else if (b.date.seconds) dateB = b.date.seconds * 1000;
+                        }
+                        return dateB - dateA;
+                    });
+                    
+                    allTransactions = transactions;
+                    afficherPaiements(transactions, newTransactionsCount > 0);
+                    
+                    // Notification pour nouveau paiement
+                    if (newTransactionsCount > 0 && !document.hasFocus()) {
+                        const newMontant = transactions[0]?.montantTotal || 0;
+                        showToast(`💳 Nouveau paiement de ${newMontant.toLocaleString()} FC enregistré !`, 'success');
+                        sendSystemNotification(
+                            'Nouveau paiement',
+                            `Un paiement de ${newMontant.toLocaleString()} FC a été enregistré.`,
+                            'new-payment'
+                        );
+                    }
+                    
+                    updateNotificationDot(newTransactionsCount > 0);
+                    
+                }, (error) => {
+                    console.error('Erreur écouteur paiements:', error);
+                    
+                    // Fallback cache
+                    const cached = localStorage.getItem(`paiements_${studentId}`);
+                    if (cached) {
+                        try {
+                            const data = JSON.parse(cached);
+                            if (data.transactions && data.transactions.length > 0) {
+                                afficherPaiements(data.transactions, false);
+                                showToast('Mode hors ligne - données en cache', 'warning');
+                            }
+                        } catch(e) {}
+                    }
+                });
+        }
+        
+        function saveTransactionsToCache(transactions) {
+            try {
+                localStorage.setItem(`paiements_${currentStudent.id}`, JSON.stringify({
+                    transactions: transactions,
+                    timestamp: Date.now()
+                }));
+            } catch(e) {}
+        }
+        
+        // ==================== SERVICE WORKER ====================
+        async function registerServiceWorker() {
+            if (!('serviceWorker' in navigator)) return null;
+            
+            try {
+                let registration = await navigator.serviceWorker.getRegistration();
+                
+                if (!registration) {
+                    registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                    console.log('✅ SW enregistré');
+                }
+                
+                if (registration.active && currentStudent?.id) {
+                    registration.active.postMessage({
+                        type: 'SAVE_STUDENT_SESSION',
+                        studentId: currentStudent.id
+                    });
+                }
+                
+                if (Notification.permission === 'default') {
+                    setTimeout(async () => {
+                        const permission = await Notification.requestPermission();
+                        if (permission === 'granted') {
+                            console.log('✅ Notifications autorisées');
+                        }
+                    }, 3000);
+                }
+                
+                return registration;
+            } catch(error) {
+                console.error('Erreur SW:', error);
+                return null;
+            }
+        }
+        
+        // ==================== PROFIL ====================
+        async function loadProfileData() {
+            await chargerPromotions();
+            const promoNom = getPromotionNom(currentStudent.promotion);
+            document.getElementById('profilNom').textContent = currentStudent.nom;
+            document.getElementById('profilMatricule').textContent = `Matricule: ${currentStudent.matricule}`;
+            document.getElementById('profilPromotion').textContent = `Promotion: ${promoNom}`;
+        }
+        
+        document.getElementById('profileBtn').onclick = async () => {
+            await loadProfileData();
+            document.getElementById('profileModal').style.display = 'flex';
+        };
+        
+        window.closeProfileModal = () => {
+            document.getElementById('profileModal').style.display = 'none';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+        };
+        
+        document.getElementById('profileModal').addEventListener('click', function(e) {
+            if (e.target === this) closeProfileModal();
+        });
+        
+        document.getElementById('logoutBtn').onclick = () => {
+            if (confirm('Voulez-vous vous déconnecter ?')) {
+                localStorage.removeItem('session_etudiant');
+                window.location.href = 'login-etudiant.html';
+            }
+        };
+        
+        document.getElementById('refreshBtn').onclick = () => {
+            showToast('Actualisation...', 'info');
+            setupRealtimeListener();
+        };
+        
+        document.getElementById('changePasswordBtn').onclick = async () => {
+            const newPwd = document.getElementById('newPassword').value;
+            const confirmPwd = document.getElementById('confirmNewPassword').value;
+            
+            if (!newPwd || !confirmPwd) {
+                showToast('Veuillez remplir tous les champs', 'warning');
+                return;
+            }
+            if (newPwd !== confirmPwd) {
+                showToast('Les mots de passe ne correspondent pas', 'warning');
+                return;
+            }
+            if (newPwd.length < 4) {
+                showToast('Minimum 4 caractères', 'warning');
+                return;
+            }
+            
+            try {
+                await db.collection('etudiants').doc(currentStudent.id).update({ motDePasse: newPwd });
+                showToast('✅ Mot de passe modifié', 'success');
+                closeProfileModal();
+            } catch(error) {
+                showToast('❌ Erreur: ' + error.message, 'danger');
+            }
+        };
+        
+        // ==================== SERVICE WORKER MESSAGES ====================
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'NEW_PAYMENT') {
+                    showToast('💳 Nouveau paiement détecté', 'success');
+                    setupRealtimeListener();
+                }
+            });
+        }
+        
+        // ==================== VISIBILITY API ====================
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                setupRealtimeListener();
+            }
+        });
+        
+        // ==================== INITIALISATION ====================
+        async function init() {
+            if (!checkSession()) return;
+            
+            console.log('🚀 Initialisation page paiements v2');
+            console.log('👤 Étudiant:', currentStudent.nom);
+            
+            await chargerPromotions();
+            await chargerAnnees();
+            await registerServiceWorker();
+            setupRealtimeListener();
+            
+            console.log('✅ Paiements prêt - Notifications temps réel actives');
+        }
+        
+        init().catch(error => {
+            console.error('Erreur initialisation:', error);
+            showToast('Erreur de chargement', 'danger');
+        });
+    </script>
+</body>
+</html>

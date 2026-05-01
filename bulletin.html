@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOM_PAGE - Faculté Agronomique</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary-blue: #003366; --dark-blue: #002244; --accent-yellow: #ffb347; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        
+        .navbar-custom { background: var(--primary-blue); box-shadow: 0 4px 15px rgba(0,0,0,0.2); padding: 12px 0; }
+        .profile-photo { width: 45px; height: 45px; border-radius: 50%; background: var(--accent-yellow); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .profile-photo i { font-size: 28px; color: var(--primary-blue); }
+        .navbar-right { display: flex; align-items: center; gap: 15px; }
+        
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
+        .btn-back { background: var(--primary-blue); color: white; border: none; padding: 8px 20px; border-radius: 25px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-back:hover { background: var(--dark-blue); transform: translateY(-2px); }
+        
+        .content-card { background: white; border-radius: 20px; padding: 40px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .coming-soon-icon { font-size: 80px; color: var(--primary-blue); opacity: 0.5; margin-bottom: 20px; }
+        .footer-info { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #888; }
+        .toast-notification { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast { animation: slideInRight 0.3s ease-out; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-custom">
+        <div class="container">
+            <a class="navbar-brand text-white" href="etudiant.html"><i class="bi bi-tree-fill"></i> FACULTÉ AGRONOMIQUE - UNILU</a>
+            <div class="navbar-right">
+                <div class="profile-photo" id="profileBtn"><i class="bi bi-person-circle"></i></div>
+                <button class="btn btn-outline-light btn-sm" id="logoutBtn"><i class="bi bi-box-arrow-right"></i></button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+        <div class="page-header">
+            <h4><i class="bi bi-INFO_ICON me-2" style="color: var(--primary-blue);"></i>TITRE_PAGE</h4>
+            <button class="btn-back" onclick="window.location.href='etudiant.html'"><i class="bi bi-house-door-fill"></i> Accueil</button>
+        </div>
+        
+        <div class="content-card">
+            <div class="coming-soon-icon"><i class="bi bi-clock-history"></i></div>
+            <h3>Fonctionnalité en développement</h3>
+            <p class="text-muted">Cette section sera bientôt disponible.<br>Merci de votre compréhension.</p>
+        </div>
+        
+        <div class="footer-info">
+            <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital<br>
+            <img src="t.png" width="40px" alt="HYBRILINK" onerror="this.style.display='none'">
+        </div>
+    </div>
+
+    <script>
+        const session = localStorage.getItem('session_etudiant');
+        if (!session) window.location.href = 'login-etudiant.html';
+        
+        document.getElementById('logoutBtn').onclick = () => {
+            localStorage.removeItem('session_etudiant');
+            window.location.href = 'login-etudiant.html';
+        };
+        
+        document.getElementById('profileBtn').onclick = () => {
+            const sessionData = JSON.parse(session);
+            alert(`Profil\nNom: ${sessionData.nom}\nMatricule: ${sessionData.matricule}`);
+        };
+    </script>
+
+<script>
+// Script d'installation PWA
+(function() {
+  'use strict';
+  
+  let deferredPrompt;
+  const installBanner = document.createElement('div');
+  installBanner.className = 'pwa-install-banner';
+  installBanner.innerHTML = `
+    <div class="install-banner-content">
+      <div class="install-banner-icon">
+        <i class="bi bi-download"></i>
+      </div>
+      <div class="install-banner-text">
+        <strong>Installer l'application</strong>
+        <small>Ajoutez Faculté Agronomique à votre écran d'accueil</small>
+      </div>
+      <button class="install-btn" id="installAppBtn">Installer</button>
+      <button class="close-banner" id="closeInstallBanner">&times;</button>
+    </div>
+  `;
+  
+  // Styles pour la bannière d'installation
+  const style = document.createElement('style');
+  style.textContent = `
+    .pwa-install-banner {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(135deg, #003366, #002244);
+      color: white;
+      padding: 15px 20px;
+      z-index: 10000;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+    }
+    .pwa-install-banner.show {
+      transform: translateY(0);
+    }
+    .install-banner-content {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .install-banner-icon {
+      background: #ffb347;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #003366;
+    }
+    .install-banner-text {
+      flex: 1;
+    }
+    .install-banner-text strong {
+      display: block;
+      font-size: 16px;
+    }
+    .install-banner-text small {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    .install-btn {
+      background: #ffb347;
+      color: #003366;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .install-btn:hover {
+      transform: scale(1.05);
+      background: #ff9800;
+    }
+    .close-banner {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0 5px;
+      opacity: 0.7;
+    }
+    .close-banner:hover {
+      opacity: 1;
+    }
+    @media (max-width: 768px) {
+      .install-banner-content {
+        flex-direction: column;
+        text-align: center;
+      }
+      .install-banner-icon {
+        margin: 0 auto;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Vérifier si l'application est déjà installée
+  const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches;
+  const isInstalled = localStorage.getItem('pwa-installed');
+  
+  if (!isAppInstalled && !isInstalled) {
+    setTimeout(() => {
+      document.body.appendChild(installBanner);
+      setTimeout(() => installBanner.classList.add('show'), 100);
+    }, 2000);
+  }
+  
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (!isAppInstalled && !isInstalled) {
+      if (!document.body.contains(installBanner)) {
+        document.body.appendChild(installBanner);
+      }
+      setTimeout(() => installBanner.classList.add('show'), 100);
+    }
+  });
+  
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    localStorage.setItem('pwa-installed', 'true');
+    if (installBanner) installBanner.classList.remove('show');
+    console.log('✅ Application installée avec succès');
+  });
+  
+  document.getElementById('installAppBtn')?.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('✅ Utilisateur a accepté l\'installation');
+        localStorage.setItem('pwa-installed', 'true');
+      }
+      deferredPrompt = null;
+      installBanner.classList.remove('show');
+    } else {
+      // Instructions manuelles
+      alert('Pour installer l\'application:\n\n• Sur Android: Menu > "Ajouter à l\'écran d\'accueil"\n• Sur iOS: Partager > "Sur l\'écran d\'accueil"');
+      localStorage.setItem('pwa-installed', 'true');
+      installBanner.classList.remove('show');
+    }
+  });
+  
+  document.getElementById('closeInstallBanner')?.addEventListener('click', () => {
+    installBanner.classList.remove('show');
+    setTimeout(() => installBanner.remove(), 300);
+  });
+  
+  // Enregistrement du Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => {
+        console.log('✅ Service Worker enregistré:', reg);
+        
+        // Vérifier les mises à jour
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('🔄 Nouvelle version disponible');
+              showToast('Une nouvelle version est disponible. Rafraîchissez la page.', 'info');
+            }
+          });
+        });
+      })
+      .catch(err => console.log('❌ Erreur Service Worker:', err));
+  }
+  
+  // Initialiser les notifications
+  async function initNotifications() {
+    const notifPermission = localStorage.getItem('notif-permission');
+    if (notifPermission !== 'granted' && notifPermission !== 'denied') {
+      setTimeout(async () => {
+        const result = await notificationManager?.requestPermission();
+        if (result) {
+          await notificationManager?.subscribeUser();
+          localStorage.setItem('notif-permission', 'granted');
+        } else {
+          localStorage.setItem('notif-permission', 'denied');
+        }
+      }, 5000);
+    }
+  }
+  
+  // Charger notificationManager si disponible
+  if (typeof notificationManager !== 'undefined') {
+    notificationManager.init().then(() => initNotifications());
+  }
+})();</script>
+</body>
+</html>

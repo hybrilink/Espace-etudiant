@@ -1,0 +1,94 @@
+{
+  "name": "Faculté Agronomique - Espace Étudiant",
+  "short_name": "FAC Agro Étudiant",
+  "description": "Application étudiante pour la Faculté Agronomique avec notifications en temps réel",
+  "start_url": "index.html",
+  "display": "standalone",
+  "theme_color": "#003366",
+  "background_color": "#003366",
+  "orientation": "portrait",
+  "scope": "/",
+  "gcm_sender_id": "36551990738",
+  "icons": [
+    {
+      "src": "icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mes Communications",
+      "short_name": "Communications",
+      "description": "Voir mes communications",
+      "url": "communiquer.html",
+      "icons": [{ "src": "icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Mes Paiements",
+      "short_name": "Paiements",
+      "description": "Voir mes paiements",
+      "url": "paiement.html",
+      "icons": [{ "src": "icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Mon Profil",
+      "short_name": "Profil",
+      "description": "Gérer mon compte",
+      "url": "profil.html",
+      "icons": [{ "src": "icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Bulletin",
+      "short_name": "Bulletin",
+      "description": "Mes notes",
+      "url": "bulletin.html",
+      "icons": [{ "src": "icon-96x96.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mes Cartes d'Accès - Faculté Agronomique</title>
+    <meta name="theme-color" content="#003366">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { 
+            --primary-blue: #003366; 
+            --dark-blue: #002244; 
+            --accent-yellow: #ffb347; 
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+        }
+        
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        
+        .navbar-custom { 
+            background: var(--primary-blue); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            padding: 12px 0;
+        }
+        
+        .navbar-brand { font-weight: bold; font-size: 0.95rem; }
+        
+        .profile-photo { 
+            width: 45px; height: 45px; border-radius: 50%; 
+            background: var(--accent-yellow); 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; 
+            position: relative;
+        }
+        .profile-photo i { font-size: 28px; color: var(--primary-blue); }
+        
+        .navbar-right { display: flex; align-items: center; gap: 15px; }
+        
+        .notification-dot {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            background: var(--danger-red);
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220,53,69,0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(220,53,69,0); }
+            100% { box-shadow: 0 0 0 0 rgba(220,53,69,0); }
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .btn-back, .btn-home {
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .btn-back:hover, .btn-home:hover { background: #ff9800; transform: translateY(-2px); color: var(--primary-blue); }
+        
+        .btn-refresh {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-refresh:hover { background: var(--dark-blue); transform: scale(1.02); }
+        
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .carte-acces {
+            background: linear-gradient(135deg, #fff9e6, #fff);
+            border: 2px solid var(--primary-blue);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .carte-acces:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+        
+        .carte-acces::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-yellow), var(--success-green));
+        }
+        
+        .carte-header { text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px dashed var(--accent-yellow); }
+        .carte-header h3 { color: var(--primary-blue); font-weight: bold; margin-bottom: 5px; font-size: 1.3rem; }
+        .carte-badge { background: var(--primary-blue); color: white; padding: 8px 20px; border-radius: 30px; font-weight: bold; display: inline-block; margin: 10px 0; font-size: 0.85rem; }
+        .carte-code { background: #f8f9fa; padding: 10px; border-radius: 10px; font-family: monospace; font-size: 18px; text-align: center; letter-spacing: 2px; margin: 15px 0; }
+        .carte-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+        .info-item { text-align: center; }
+        .info-label { font-size: 11px; color: #888; text-transform: uppercase; }
+        .info-value { font-size: 15px; font-weight: bold; color: var(--primary-blue); }
+        .carte-footer { margin-top: 20px; padding-top: 15px; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .status-valid { background: var(--success-green); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; }
+        .status-expired { background: var(--danger-red); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; }
+        .btn-print { background: var(--accent-yellow); color: var(--primary-blue); border: none; padding: 8px 20px; border-radius: 25px; cursor: pointer; transition: all 0.3s; font-weight: bold; }
+        .btn-print:hover { background: #ff9800; transform: translateY(-2px); }
+        
+        .empty-state { text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 15px; }
+        .empty-state i { font-size: 70px; color: var(--primary-blue); opacity: 0.3; margin-bottom: 20px; }
+        .empty-state h4 { color: var(--primary-blue); margin-bottom: 10px; }
+        
+        .footer-info { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #888; }
+        
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 280px;
+            max-width: 350px;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .toast { animation: slideInRight 0.3s ease-out; margin-bottom: 10px; border-radius: 12px; }
+        
+        .profile-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .profile-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .btn-action {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-action:hover { background: var(--dark-blue); }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--primary-blue);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .info-banner {
+            background: #e8f4fd;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-blue);
+            font-size: 13px;
+        }
+        
+        .nouvelle-carte {
+            animation: cartePulse 0.5s ease-in-out;
+        }
+        
+        @keyframes cartePulse {
+            0% { transform: scale(0.98); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            .content-card { padding: 15px; }
+            .carte-acces { padding: 18px; }
+            .carte-header h3 { font-size: 1.1rem; }
+            .carte-code { font-size: 14px; }
+            .carte-info { grid-template-columns: 1fr; gap: 8px; }
+            .toast-notification { right: 10px; left: 10px; min-width: auto; }
+        }
+        
+        @media print {
+            .navbar-custom, .page-header, .footer-info, .btn-print, .btn-back, .btn-home, .profile-photo, #logoutBtn, .action-bar, .btn-refresh, .toast-notification, .info-banner { display: none !important; }
+            .carte-acces { break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; }
+            body { background: white; }
+            .content-card { padding: 0; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-custom">
+        <div class="container">
+            <a class="navbar-brand text-white" href="etudiant.html">
+                <i class="bi bi-tree-fill"></i> FACULTÉ AGRONOMIQUE - UNILU
+            </a>
+            <div class="navbar-right">
+                <div class="profile-photo" id="profileBtn">
+                    <i class="bi bi-person-circle"></i>
+                    <span class="notification-dot" id="notificationDot"></span>
+                </div>
+                <button class="btn btn-outline-light btn-sm" id="logoutBtn">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+        <div id="toastContainer" class="toast-notification"></div>
+        
+        <div class="action-bar">
+            <h4><i class="bi bi-card-list me-2" style="color: var(--primary-blue);"></i>Mes Cartes d'Accès aux Examens</h4>
+            <div>
+                <button class="btn-refresh me-2" id="refreshBtn">
+                    <i class="bi bi-arrow-repeat"></i> Rafraîchir
+                </button>
+                <a href="etudiant.html" class="btn-home">
+                    <i class="bi bi-house-door-fill"></i> Accueil
+                </a>
+            </div>
+        </div>
+        
+        <div class="content-card">
+            <div class="info-banner">
+                <i class="bi bi-info-circle-fill me-2" style="color: var(--primary-blue);"></i>
+                Ces cartes d'accès vous permettent de vous présenter aux examens. Présentez votre carte (imprimée ou sur mobile) avec votre pièce d'identité.
+                <strong>Les cartes sont automatiquement générées après validation de vos paiements.</strong>
+            </div>
+            
+            <div id="cartesContainer">
+                <div class="text-center py-5">
+                    <div class="loading-spinner"></div>
+                    <p class="mt-3 text-muted">Chargement de vos cartes d'accès...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-info">
+            <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital<br>
+            <img src="t.png" width="40px" alt="HYBRILINK" onerror="this.style.display='none'">
+        </div>
+    </div>
+    
+    <div id="profileModal" class="profile-modal">
+        <div class="profile-modal-content">
+            <div class="text-center">
+                <i class="bi bi-person-circle" style="font-size:70px;color:var(--primary-blue);"></i>
+                <h4 id="profilNom"></h4>
+                <p id="profilMatricule"></p>
+                <p id="profilPromotion"></p>
+                <hr>
+                <h6>Changer mot de passe</h6>
+                <input type="password" class="form-control mb-2" id="newPassword" placeholder="Nouveau mot de passe">
+                <input type="password" class="form-control mb-2" id="confirmNewPassword" placeholder="Confirmer">
+                <button class="btn-action" id="changePasswordBtn">Modifier</button>
+                <button class="btn btn-secondary w-100 mt-2" onclick="closeProfileModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== FIREBASE ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
+            authDomain: "fsa-unilu.firebaseapp.com",
+            projectId: "fsa-unilu",
+            storageBucket: "fsa-unilu.firebasestorage.app",
+            messagingSenderId: "36551990738",
+            appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+        };
+        
+        let db = null;
+        let currentStudent = null;
+        let allPromotions = [];
+        let allCartes = [];
+        let snapshotUnsubscribe = null;
+        let lastNotifTime = 0;
+        
+        try {
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+        } catch (error) {
+            console.error('Firebase init error:', error);
+        }
+        
+        // ==================== SESSION ====================
+        function checkSession() {
+            const session = localStorage.getItem('session_etudiant');
+            if (!session) {
+                window.location.href = 'login-etudiant.html';
+                return false;
+            }
+            
+            try {
+                const sessionData = JSON.parse(session);
+                if (Date.now() > sessionData.expires) {
+                    localStorage.removeItem('session_etudiant');
+                    window.location.href = 'login-etudiant.html';
+                    return false;
+                }
+                currentStudent = sessionData;
+                return true;
+            } catch(error) {
+                window.location.href = 'login-etudiant.html';
+                return false;
+            }
+        }
+        
+        // ==================== FONCTIONS UTILITAIRES ====================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            
+            const colors = {
+                success: { bg: '#28a745', icon: 'check-circle-fill' },
+                warning: { bg: '#ffc107', icon: 'exclamation-triangle-fill', textColor: '#333' },
+                danger: { bg: '#dc3545', icon: 'x-circle-fill' },
+                info: { bg: '#17a2b8', icon: 'info-circle-fill' }
+            };
+            
+            const config = colors[type] || colors.success;
+            const textColor = config.textColor || 'white';
+            
+            const toastHtml = `
+                <div class="toast" style="background: ${config.bg}; color: ${textColor};">
+                    <div class="toast-body">
+                        <i class="bi bi-${config.icon} me-2"></i>
+                        ${message}
+                    </div>
+                </div>
+            `;
+            document.getElementById('toastContainer').insertAdjacentHTML('afterbegin', toastHtml);
+            
+            setTimeout(() => {
+                const container = document.getElementById('toastContainer');
+                if (container && container.firstElementChild) container.firstElementChild.remove();
+            }, 4000);
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatDate(date) {
+            if (!date) return '-';
+            try {
+                if (date && typeof date.toDate === 'function') date = date.toDate();
+                else if (date && typeof date.seconds === 'number') date = new Date(date.seconds * 1000);
+                if (!(date instanceof Date) || isNaN(date.getTime())) return '-';
+                return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch(e) { return '-'; }
+        }
+        
+        // ==================== NOTIFICATION SYSTÈME ====================
+        async function sendSystemNotification(title, body, tag) {
+            if (Notification.permission !== 'granted') return;
+            
+            const now = Date.now();
+            if (now - lastNotifTime < 5000) return;
+            lastNotifTime = now;
+            
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                await registration.showNotification(title, {
+                    body: body,
+                    icon: 'icon-192x192.png',
+                    badge: 'icon-96x96.png',
+                    vibrate: [200, 100, 200],
+                    tag: tag,
+                    data: { url: 'mes-recus.html' }
+                });
+            } catch(e) { console.log('Notification error:', e); }
+        }
+        
+        function updateNotificationDot(hasNew) {
+            const dot = document.getElementById('notificationDot');
+            if (dot) dot.style.display = hasNew ? 'block' : 'none';
+        }
+        
+        // ==================== CHARGEMENT PROMOTIONS ====================
+        async function chargerPromotions() {
+            try {
+                const snapshot = await db.collection('promotions').get();
+                allPromotions = [];
+                snapshot.forEach(doc => allPromotions.push({ id: doc.id, ...doc.data() }));
+            } catch (error) { console.error('Erreur promotions:', error); }
+        }
+        
+        function getPromotionNom(promotionId) {
+            if (!promotionId) return 'Non définie';
+            const promo = allPromotions.find(p => p.id === promotionId);
+            return promo ? promo.nom : promotionId;
+        }
+        
+        // ==================== GÉNÉRATION CODE ACCÈS ====================
+        function genererCodeAcces(matricule, semestre) {
+            const suffixe = semestre === 'premier' ? 'P1' : 'P2';
+            const chiffres = (matricule || '').slice(-4) || Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            return `ACC-${chiffres}-${suffixe}`;
+        }
+        
+        // ==================== RÉCUPÉRATION CARTES ====================
+        async function recupererCartes() {
+            if (!db) return [];
+            
+            try {
+                // Essayer d'abord la collection cartesAcces
+                const cartesQuery = await db.collection('cartesAcces')
+                    .where('etudiantId', '==', currentStudent.id)
+                    .get();
+                
+                const cartes = [];
+                cartesQuery.forEach(doc => {
+                    const data = doc.data();
+                    cartes.push({
+                        id: doc.id,
+                        etudiantId: data.etudiantId,
+                        etudiantNom: data.etudiantNom,
+                        matricule: data.matricule,
+                        promotionId: data.promotionId,
+                        promotionNom: data.promotionNom,
+                        semestre: data.semestre || 'premier',
+                        semestreNom: data.semestre === 'premier' ? 'Premier Semestre' : 'Deuxième Semestre',
+                        fichesValidees: data.fichesValidees || [],
+                        dateGeneration: formatDate(data.dateGeneration),
+                        dateExpiration: data.dateExpirationStr || formatDate(data.dateExpiration),
+                        dateExpirationObj: data.dateExpiration,
+                        codeAcces: data.codeAcces,
+                        actif: data.actif !== false
+                    });
+                });
+                
+                // Si aucune carte, vérifier les paiements pour générer automatiquement
+                if (cartes.length === 0) {
+                    const paiementsQuery = await db.collection('transactions')
+                        .where('etudiantId', '==', currentStudent.matricule)
+                        .get();
+                    
+                    const semestresTrouves = new Set();
+                    paiementsQuery.forEach(doc => {
+                        const data = doc.data();
+                        if (data.semestre) semestresTrouves.add(data.semestre);
+                        if (data.fiches && data.fiches.length > 0 && data.semestre) {
+                            semestresTrouves.add(data.semestre);
+                        }
+                    });
+                    
+                    for (const semestre of semestresTrouves) {
+                        cartes.push({
+                            id: `auto_${semestre}_${Date.now()}`,
+                            etudiantId: currentStudent.id,
+                            etudiantNom: currentStudent.nom,
+                            matricule: currentStudent.matricule,
+                            promotionId: currentStudent.promotion,
+                            promotionNom: getPromotionNom(currentStudent.promotion),
+                            semestre: semestre,
+                            semestreNom: semestre === 'premier' ? 'Premier Semestre' : 'Deuxième Semestre',
+                            fichesValidees: [],
+                            dateGeneration: formatDate(new Date()),
+                            dateExpiration: formatDate(new Date(new Date().setMonth(new Date().getMonth() + 6))),
+                            dateExpirationObj: new Date(new Date().setMonth(new Date().getMonth() + 6)),
+                            codeAcces: genererCodeAcces(currentStudent.matricule, semestre),
+                            actif: true
+                        });
+                    }
+                }
+                
+                return cartes;
+            } catch(error) {
+                console.error('Erreur récupération cartes:', error);
+                return [];
+            }
+        }
+        
+        function sauvegarderCartesCache(cartes) {
+            try {
+                localStorage.setItem(`cartes_cache_${currentStudent.id}`, JSON.stringify({
+                    cartes: cartes,
+                    timestamp: Date.now()
+                }));
+            } catch(e) {}
+        }
+        
+        function chargerCartesCache() {
+            try {
+                const cached = localStorage.getItem(`cartes_cache_${currentStudent.id}`);
+                if (cached) {
+                    const data = JSON.parse(cached);
+                    if (Date.now() - data.timestamp < 86400000) {
+                        return data.cartes;
+                    }
+                }
+            } catch(e) {}
+            return null;
+        }
+        
+        function estCarteExpiree(dateExpiration) {
+            if (!dateExpiration) return false;
+            try {
+                let expDate;
+                if (dateExpiration && typeof dateExpiration.toDate === 'function') {
+                    expDate = dateExpiration.toDate();
+                } else if (typeof dateExpiration === 'string') {
+                    expDate = new Date(dateExpiration);
+                } else if (dateExpiration instanceof Date) {
+                    expDate = dateExpiration;
+                } else {
+                    return false;
+                }
+                return expDate < new Date();
+            } catch(e) { return false; }
+        }
+        
+        // ==================== AFFICHAGE CARTES ====================
+        function afficherCartes(cartes, isRealtime = false) {
+            const container = document.getElementById('cartesContainer');
+            if (!container) return;
+            
+            if (!cartes || cartes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-card-list"></i>
+                        <h4>Aucune carte d'accès</h4>
+                        <p class="text-muted">Vous n'avez pas encore de carte d'accès aux examens.</p>
+                        <p>Assurez-vous d'être en ordre de paiement pour obtenir votre carte.</p>
+                        <div class="mt-4">
+                            <a href="paiement.html" class="btn-action text-decoration-none" style="display: inline-block; padding: 10px 25px;">
+                                <i class="bi bi-credit-card"></i> Vérifier mes paiements
+                            </a>
+                        </div>
+                    </div>
+                `;
+                updateNotificationDot(false);
+                return;
+            }
+            
+            let html = '';
+            let nouvellesCartes = 0;
+            
+            cartes.forEach((carte, index) => {
+                const estExpiree = estCarteExpiree(carte.dateExpirationObj || carte.dateExpiration);
+                const promotionNom = carte.promotionNom || getPromotionNom(carte.promotionId);
+                const fichesHtml = carte.fichesValidees && carte.fichesValidees.length > 0 ?
+                    `<div class="info-item">
+                        <div class="info-label">Fiches payées</div>
+                        <div class="info-value"><small>${carte.fichesValidees.map(f => f.nom).join(', ')}</small></div>
+                    </div>` : '';
+                
+                const estNouvelle = isRealtime && carte.estNouvelle;
+                if (estNouvelle) nouvellesCartes++;
+                
+                html += `
+                    <div class="carte-acces ${estNouvelle ? 'nouvelle-carte' : ''}" data-carte-id="${carte.id}">
+                        <div class="carte-header">
+                            <h3><i class="bi bi-ticket-perforated"></i> Carte d'Accès aux Examens</h3>
+                            <div class="carte-badge">${escapeHtml(carte.semestreNom)}</div>
+                        </div>
+                        
+                        <div class="carte-code">
+                            <i class="bi bi-upc-scan"></i> Code: <strong>${escapeHtml(carte.codeAcces)}</strong>
+                        </div>
+                        
+                        <div class="carte-info">
+                            <div class="info-item">
+                                <div class="info-label">Étudiant</div>
+                                <div class="info-value">${escapeHtml(carte.etudiantNom || currentStudent.nom)}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Matricule</div>
+                                <div class="info-value">${escapeHtml(carte.matricule || currentStudent.matricule)}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Promotion</div>
+                                <div class="info-value">${escapeHtml(promotionNom)}</div>
+                            </div>
+                            ${fichesHtml}
+                        </div>
+                        
+                        <div class="carte-footer">
+                            <div>
+                                <small><i class="bi bi-calendar-plus"></i> Générée: ${carte.dateGeneration || '-'}</small><br>
+                                <small><i class="bi bi-calendar-x"></i> Valable: ${carte.dateExpiration || '-'}</small>
+                            </div>
+                            <div>
+                                <span class="${estExpiree ? 'status-expired' : 'status-valid'}">
+                                    <i class="bi bi-${estExpiree ? 'x-circle' : 'check-circle'}"></i>
+                                    ${estExpiree ? 'Expirée' : 'Valide'}
+                                </span>
+                                <button class="btn-print ms-2" onclick="imprimerCarte(${index})">
+                                    <i class="bi bi-printer"></i> Imprimer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            allCartes = cartes;
+            updateNotificationDot(nouvellesCartes > 0);
+            
+            if (nouvellesCartes > 0 && !document.hasFocus()) {
+                showToast(`📇 ${nouvellesCartes} nouvelle(s) carte(s) d'accès disponible(s)`, 'success');
+                sendSystemNotification(
+                    'Nouvelles cartes d\'examen',
+                    `Vous avez ${nouvellesCartes} nouvelle(s) carte(s) d'accès disponible(s).`,
+                    'new-carte'
+                );
+            }
+            
+            // Bouton impression globale
+            let printAllContainer = document.getElementById('printAllBtnContainer');
+            if (!printAllContainer && cartes.length > 1) {
+                printAllContainer = document.createElement('div');
+                printAllContainer.id = 'printAllBtnContainer';
+                printAllContainer.className = 'text-center mt-4';
+                printAllContainer.innerHTML = `
+                    <button class="btn-action" id="printAllBtn" style="background: var(--accent-yellow); color: var(--primary-blue);">
+                        <i class="bi bi-printer"></i> Imprimer toutes mes cartes
+                    </button>
+                `;
+                container.parentNode.insertBefore(printAllContainer, container.nextSibling);
+                document.getElementById('printAllBtn')?.addEventListener('click', () => imprimerToutesCartes());
+            } else if (printAllContainer && cartes.length <= 1) {
+                printAllContainer.remove();
+            }
+        }
+        
+        // ==================== IMPRESSION ====================
+        window.imprimerCarte = function(index) {
+            if (!allCartes[index]) return;
+            const carte = allCartes[index];
+            const promotionNom = carte.promotionNom || getPromotionNom(carte.promotionId);
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Carte d'Accès - ${escapeHtml(carte.etudiantNom || currentStudent.nom)}</title>
+                    <meta charset="UTF-8">
+                    <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { font-family: 'Segoe UI', Arial, sans-serif; background: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                        .carte { background: linear-gradient(135deg, #fff9e6, #fff); border: 2px solid #003366; border-radius: 20px; padding: 25px; max-width: 500px; margin: 20px auto; text-align: center; }
+                        .carte h3 { color: #003366; margin-bottom: 15px; }
+                        .badge { background: #003366; color: white; padding: 10px 20px; border-radius: 30px; display: inline-block; margin: 10px 0; }
+                        .code { background: #f8f9fa; padding: 10px; border-radius: 10px; font-family: monospace; font-size: 18px; letter-spacing: 2px; margin: 15px 0; }
+                        .info { margin: 20px 0; }
+                        .info-item { margin: 10px 0; }
+                        .label { font-size: 11px; color: #888; }
+                        .value { font-size: 16px; font-weight: bold; color: #003366; }
+                        @media print { body { margin: 0; padding: 0; } }
+                    </style>
+                </head>
+                <body>
+                <div class="carte">
+                    <h3><i class="bi bi-card-list"></i> Carte d'Accès à l'Examen</h3>
+                    <div class="badge"><i class="bi bi-upc-scan"></i> ${carte.codeAcces}</div>
+                    <div class="info">
+                        <div class="info-item"><div class="label">Étudiant</div><div class="value">${escapeHtml(carte.etudiantNom || currentStudent.nom)}</div></div>
+                        <div class="info-item"><div class="label">Matricule</div><div class="value">${escapeHtml(carte.matricule || currentStudent.matricule)}</div></div>
+                        <div class="info-item"><div class="label">Promotion</div><div class="value">${escapeHtml(promotionNom)}</div></div>
+                        <div class="info-item"><div class="label">Semestre</div><div class="value">${carte.semestreNom}</div></div>
+                    </div>
+                    <div class="code"><i class="bi bi-upc-scan"></i> ${carte.codeAcces}</div>
+                    <div class="info-item"><div class="label">Valable jusqu'au</div><div class="value">${carte.dateExpiration || '-'}</div></div>
+                </div>
+                <script>window.print(); setTimeout(() => window.close(), 500);<\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        };
+        
+        function imprimerToutesCartes() {
+            if (!allCartes.length) return;
+            
+            let cartesHtml = '';
+            allCartes.forEach(carte => {
+                const promotionNom = carte.promotionNom || getPromotionNom(carte.promotionId);
+                cartesHtml += `
+                <div style="margin-bottom: 30px; page-break-after: always;">
+                    <div class="carte-acces" style="border: 2px solid #003366; border-radius: 20px; padding: 25px; max-width: 500px; margin: 20px auto; text-align: center;">
+                        <h3 style="color: #003366;">Carte d'Accès à l'Examen</h3>
+                        <div style="background: #003366; color: white; padding: 10px 20px; border-radius: 30px; display: inline-block; margin: 10px 0;">${carte.codeAcces}</div>
+                        <div style="margin: 20px 0;">
+                            <div><div style="font-size: 11px; color: #888;">Étudiant</div><div style="font-size: 16px; font-weight: bold; color: #003366;">${escapeHtml(carte.etudiantNom || currentStudent.nom)}</div></div>
+                            <div style="margin-top: 10px;"><div style="font-size: 11px; color: #888;">Matricule</div><div style="font-size: 16px; font-weight: bold; color: #003366;">${escapeHtml(carte.matricule || currentStudent.matricule)}</div></div>
+                            <div style="margin-top: 10px;"><div style="font-size: 11px; color: #888;">Promotion</div><div style="font-size: 16px; font-weight: bold; color: #003366;">${escapeHtml(promotionNom)}</div></div>
+                            <div style="margin-top: 10px;"><div style="font-size: 11px; color: #888;">Semestre</div><div style="font-size: 16px; font-weight: bold; color: #003366;">${carte.semestreNom}</div></div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 10px; border-radius: 10px; font-family: monospace; font-size: 18px; letter-spacing: 2px;">${carte.codeAcces}</div>
+                        <div style="margin-top: 15px;"><div style="font-size: 11px; color: #888;">Valable jusqu'au</div><div style="font-size: 14px; font-weight: bold;">${carte.dateExpiration || '-'}</div></div>
+                    </div>
+                </div>`;
+            });
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head><title>Toutes mes cartes d'accès</title><meta charset="UTF-8">
+                <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Segoe UI',sans-serif;background:white;padding:20px;}@media print{.carte-acces{page-break-after:always;}}</style>
+                </head>
+                <body>${cartesHtml}
+                <script>window.print(); setTimeout(() => window.close(), 500);<\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+        
+        // ==================== ÉCOUTEUR TEMPS RÉEL ====================
+        function setupRealtimeListener() {
+            if (!db) return;
+            
+            if (snapshotUnsubscribe) {
+                snapshotUnsubscribe();
+            }
+            
+            // Écouter les changements dans transactions pour mettre à jour les cartes
+            snapshotUnsubscribe = db.collection('transactions')
+                .where('etudiantId', '==', currentStudent.matricule)
+                .onSnapshot(async (snapshot) => {
+                    let hasNewTransaction = false;
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') hasNewTransaction = true;
+                    });
+                    
+                    if (hasNewTransaction) {
+                        console.log('🔄 Nouvelle transaction détectée, mise à jour des cartes');
+                        const freshCartes = await recupererCartes();
+                        if (freshCartes.length > 0) {
+                            sauvegarderCartesCache(freshCartes);
+                            afficherCartes(freshCartes, true);
+                        }
+                    }
+                }, (error) => {
+                    console.error('Erreur listener:', error);
+                });
+        }
+        
+        // ==================== SERVICE WORKER ====================
+        async function registerServiceWorker() {
+            if (!('serviceWorker' in navigator)) return null;
+            
+            try {
+                let registration = await navigator.serviceWorker.getRegistration();
+                
+                if (!registration) {
+                    registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                    console.log('✅ SW enregistré');
+                }
+                
+                if (registration.active && currentStudent?.id) {
+                    registration.active.postMessage({
+                        type: 'SAVE_STUDENT_SESSION',
+                        studentId: currentStudent.id
+                    });
+                }
+                
+                if (Notification.permission === 'default') {
+                    setTimeout(async () => {
+                        const permission = await Notification.requestPermission();
+                        if (permission === 'granted') console.log('✅ Notifications autorisées');
+                    }, 3000);
+                }
+                
+                return registration;
+            } catch(error) {
+                console.error('Erreur SW:', error);
+                return null;
+            }
+        }
+        
+        // ==================== PROFIL ====================
+        async function loadProfileData() {
+            await chargerPromotions();
+            const promoNom = getPromotionNom(currentStudent.promotion);
+            document.getElementById('profilNom').textContent = currentStudent.nom;
+            document.getElementById('profilMatricule').textContent = `Matricule: ${currentStudent.matricule}`;
+            document.getElementById('profilPromotion').textContent = `Promotion: ${promoNom}`;
+        }
+        
+        document.getElementById('profileBtn').onclick = async () => {
+            await loadProfileData();
+            document.getElementById('profileModal').style.display = 'flex';
+        };
+        
+        window.closeProfileModal = () => document.getElementById('profileModal').style.display = 'none';
+        
+        document.getElementById('profileModal').addEventListener('click', function(e) {
+            if (e.target === this) closeProfileModal();
+        });
+        
+        document.getElementById('logoutBtn').onclick = () => {
+            if (confirm('Voulez-vous vous déconnecter ?')) {
+                localStorage.removeItem('session_etudiant');
+                window.location.href = 'login-etudiant.html';
+            }
+        };
+        
+        document.getElementById('refreshBtn').onclick = async () => {
+            showToast('Rafraîchissement...', 'info');
+            const freshCartes = await recupererCartes();
+            sauvegarderCartesCache(freshCartes);
+            afficherCartes(freshCartes, false);
+            showToast(`${freshCartes.length} carte(s) chargée(s)`, 'success');
+        };
+        
+        document.getElementById('changePasswordBtn').onclick = async () => {
+            const newPwd = document.getElementById('newPassword').value;
+            const confirmPwd = document.getElementById('confirmNewPassword').value;
+            
+            if (!newPwd || !confirmPwd) {
+                showToast('Veuillez remplir tous les champs', 'warning');
+                return;
+            }
+            if (newPwd !== confirmPwd) {
+                showToast('Les mots de passe ne correspondent pas', 'warning');
+                return;
+            }
+            if (newPwd.length < 4) {
+                showToast('Minimum 4 caractères', 'warning');
+                return;
+            }
+            
+            try {
+                await db.collection('etudiants').doc(currentStudent.id).update({ motDePasse: newPwd });
+                showToast('✅ Mot de passe modifié', 'success');
+                closeProfileModal();
+            } catch(error) {
+                showToast('❌ Erreur: ' + error.message, 'danger');
+            }
+        };
+        
+        // ==================== VISIBILITY API ====================
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                setupRealtimeListener();
+            }
+        });
+        
+        // ==================== INITIALISATION ====================
+        async function init() {
+            if (!checkSession()) return;
+            
+            console.log('🚀 Initialisation cartes d\'examen v2');
+            console.log('👤 Étudiant:', currentStudent.nom);
+            
+            await chargerPromotions();
+            await registerServiceWorker();
+            
+            // Charger depuis cache d'abord
+            const cachedCartes = chargerCartesCache();
+            if (cachedCartes && cachedCartes.length > 0) {
+                afficherCartes(cachedCartes, false);
+            }
+            
+            // Puis charger depuis Firestore
+            const freshCartes = await recupererCartes();
+            if (freshCartes.length > 0) {
+                sauvegarderCartesCache(freshCartes);
+                afficherCartes(freshCartes, false);
+            } else if (!cachedCartes || cachedCartes.length === 0) {
+                afficherCartes([], false);
+            }
+            
+            setupRealtimeListener();
+            
+            console.log('✅ Cartes examen prêtes - Temps réel actif');
+        }
+        
+        init().catch(error => {
+            console.error('Erreur initialisation:', error);
+            showToast('Erreur de chargement', 'danger');
+        });
+    </script>
+</body>
+</html>

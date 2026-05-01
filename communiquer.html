@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mes Communications - Faculté Agronomique</title>
+    <meta name="theme-color" content="#003366">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary-blue: #003366; --dark-blue: #002244; --accent-yellow: #ffb347; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        
+        .navbar-custom { background: var(--primary-blue); box-shadow: 0 4px 15px rgba(0,0,0,0.2); padding: 12px 0; }
+        .navbar-brand { font-weight: bold; font-size: 1.1rem; }
+        .profile-photo { width: 45px; height: 45px; border-radius: 50%; background: var(--accent-yellow); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+        .profile-photo i { font-size: 28px; color: var(--primary-blue); }
+        .navbar-right { display: flex; align-items: center; gap: 15px; }
+        
+        .notification-dot {
+            position: absolute; top: -5px; right: -5px;
+            width: 18px; height: 18px; background: #dc3545;
+            border-radius: 50%; border: 2px solid white; display: none;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220,53,69,0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(220,53,69,0); }
+            100% { box-shadow: 0 0 0 0 rgba(220,53,69,0); }
+        }
+        
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .btn-back { background: var(--primary-blue); color: white; border: none; padding: 8px 20px; border-radius: 25px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; cursor: pointer; text-decoration: none; }
+        .btn-back:hover { background: var(--dark-blue); transform: translateY(-2px); }
+        .btn-refresh { background: var(--accent-yellow); color: var(--primary-blue); border: none; padding: 8px 15px; border-radius: 25px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .btn-refresh:hover { transform: scale(1.05); background: #ff9800; }
+        
+        .content-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); min-height: 400px; }
+        
+        .communique-card {
+            background: white; border-radius: 15px; padding: 20px;
+            margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--primary-blue); transition: all 0.3s; cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .communique-card:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .communique-card:active { transform: scale(0.99); }
+        .communique-card.nouveau {
+            border-left-color: #ffb347; background: linear-gradient(135deg, #fffdf5, #fff);
+            animation: highlightPulse 0.5s ease-in-out;
+        }
+        @keyframes highlightPulse {
+            0% { background: #fff3e0; }
+            100% { background: white; }
+        }
+        
+        .communique-title {
+            font-size: 18px; font-weight: bold; color: var(--primary-blue);
+            margin-bottom: 10px; padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-yellow);
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 8px;
+        }
+        .new-badge {
+            background: #dc3545; color: white; padding: 2px 10px;
+            border-radius: 12px; font-size: 10px; font-weight: bold;
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink { 0%,100% { opacity:1 } 50% { opacity:0.5 } }
+        
+        .communique-content {
+            font-size: 15px; color: #333; line-height: 1.6; margin-bottom: 10px;
+            white-space: pre-wrap; word-wrap: break-word;
+        }
+        .communique-footer {
+            margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e0e0e0;
+            font-size: 11px; color: #888; display: flex;
+            justify-content: space-between; flex-wrap: wrap; gap: 8px;
+        }
+        .promotion-badge {
+            background: #e8f4fd; color: var(--primary-blue);
+            padding: 2px 8px; border-radius: 15px; font-size: 10px; font-weight: bold;
+        }
+        
+        .empty-state { text-align: center; padding: 60px 20px; }
+        .empty-state i { font-size: 70px; color: var(--primary-blue); opacity: 0.3; margin-bottom: 20px; }
+        
+        .footer-info { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #888; }
+        .toast-notification { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; max-width: 350px; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast { animation: slideInRight 0.3s ease-out; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        
+        .profile-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .profile-modal-content { background: white; border-radius: 20px; padding: 30px; max-width: 400px; width: 90%; }
+        .btn-action { background: var(--primary-blue); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 5px; }
+        .btn-action:hover { background: var(--dark-blue); }
+        
+        .loading-spinner { display: inline-block; width: 40px; height: 40px; border: 3px solid var(--primary-blue); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .status-active { background: #28a745; color: white; }
+        .status-expired { background: #dc3545; color: white; }
+        
+        @media (max-width: 768px) {
+            .content-card { padding: 15px; }
+            .communique-card { padding: 15px; }
+            .communique-title { font-size: 16px; }
+            .toast-notification { right: 10px; left: 10px; min-width: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-custom">
+        <div class="container">
+            <a class="navbar-brand text-white" href="etudiant.html">
+                <i class="bi bi-tree-fill"></i> FACULTÉ AGRONOMIQUE - UNILU
+            </a>
+            <div class="navbar-right">
+                <div class="profile-photo" id="profileBtn">
+                    <i class="bi bi-person-circle"></i>
+                    <span class="notification-dot" id="notificationDot"></span>
+                </div>
+                <button class="btn btn-outline-light btn-sm" id="logoutBtn">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+        <div id="toastContainer" class="toast-notification"></div>
+        
+        <div class="page-header">
+            <h4><i class="bi bi-megaphone-fill me-2" style="color: var(--primary-blue);"></i>Communications</h4>
+            <div>
+                <button class="btn-refresh me-2" id="refreshBtn">
+                    <i class="bi bi-arrow-repeat"></i> Rafraîchir
+                </button>
+                <a href="etudiant.html" class="btn-back">
+                    <i class="bi bi-house-door-fill"></i> Accueil
+                </a>
+            </div>
+        </div>
+        
+        <div class="content-card" id="contentCard">
+            <div class="text-center py-5">
+                <div class="loading-spinner"></div>
+                <p class="mt-3 text-muted">Chargement des communications...</p>
+            </div>
+        </div>
+        
+        <div class="footer-info">
+            <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital<br>
+            <img src="t.png" width="40px" alt="HYBRILINK" onerror="this.style.display='none'">
+        </div>
+    </div>
+    
+    <!-- Modal Profil -->
+    <div class="profile-modal" id="profileModal">
+        <div class="profile-modal-content">
+            <div class="text-center">
+                <i class="bi bi-person-circle" style="font-size:70px;color:var(--primary-blue);"></i>
+                <h4 id="profilNom"></h4>
+                <p id="profilMatricule"></p>
+                <p id="profilPromotion"></p>
+                <hr>
+                <h6>Changer mot de passe</h6>
+                <input type="password" class="form-control mb-2" id="newPassword" placeholder="Nouveau mot de passe">
+                <input type="password" class="form-control mb-2" id="confirmNewPassword" placeholder="Confirmer">
+                <button class="btn-action" id="changePasswordBtn">Modifier</button>
+                <button class="btn btn-secondary w-100 mt-2" onclick="closeProfileModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONFIGURATION FIREBASE ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
+            authDomain: "fsa-unilu.firebaseapp.com",
+            projectId: "fsa-unilu",
+            storageBucket: "fsa-unilu.firebasestorage.app",
+            messagingSenderId: "36551990738",
+            appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+        };
+        
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // ==================== VARIABLES ====================
+        let currentStudent = null;
+        let allCommuniques = [];
+        let unreadCount = 0;
+        let snapshotUnsubscribe = null;
+        let lastNotificationSound = 0;
+        
+        // ==================== SESSION ====================
+        function checkSession() {
+            const session = localStorage.getItem('session_etudiant');
+            if (!session) {
+                window.location.href = 'login-etudiant.html';
+                return false;
+            }
+            
+            try {
+                const data = JSON.parse(session);
+                if (Date.now() > data.expires) {
+                    localStorage.removeItem('session_etudiant');
+                    window.location.href = 'login-etudiant.html';
+                    return false;
+                }
+                currentStudent = data;
+                return true;
+            } catch(e) {
+                window.location.href = 'login-etudiant.html';
+                return false;
+            }
+        }
+        
+        // ==================== FONCTIONS UTILITAIRES ====================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            
+            const colors = {
+                success: { bg: '#28a745', icon: 'check-circle-fill' },
+                warning: { bg: '#ffc107', icon: 'exclamation-triangle-fill', textColor: '#333' },
+                danger: { bg: '#dc3545', icon: 'x-circle-fill' },
+                info: { bg: '#17a2b8', icon: 'info-circle-fill' }
+            };
+            
+            const config = colors[type] || colors.success;
+            const textColor = config.textColor || 'white';
+            
+            const toastHtml = `
+                <div class="toast" style="background: ${config.bg}; color: ${textColor};">
+                    <div class="toast-body">
+                        <i class="bi bi-${config.icon} me-2"></i>
+                        ${message}
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('afterbegin', toastHtml);
+            
+            setTimeout(() => {
+                const toast = container.firstElementChild;
+                if (toast) toast.remove();
+            }, 4000);
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatDateTime(date) {
+            if (!date) return '-';
+            try {
+                if (date.toDate) date = date.toDate();
+                else if (date.seconds) date = new Date(date.seconds * 1000);
+                return date.toLocaleString('fr-FR', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            } catch(e) { return '-'; }
+        }
+        
+        function formatDate(date) {
+            if (!date) return '-';
+            try {
+                if (date.toDate) date = date.toDate();
+                else if (date.seconds) date = new Date(date.seconds * 1000);
+                return date.toLocaleDateString('fr-FR');
+            } catch(e) { return '-'; }
+        }
+        
+        function jouerSonNotification() {
+            const now = Date.now();
+            if (now - lastNotificationSound < 5000) return;
+            lastNotificationSound = now;
+            
+            try {
+                const audio = new Audio();
+                audio.src = 'data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==';
+                audio.volume = 0.5;
+                audio.play().catch(() => {});
+            } catch(e) {}
+        }
+        
+        // ==================== GESTION DES LUS ====================
+        function getReadCommuniques() {
+            try {
+                return JSON.parse(localStorage.getItem('communiques_lus') || '[]');
+            } catch(e) { return []; }
+        }
+        
+        function saveReadCommuniques(readIds) {
+            localStorage.setItem('communiques_lus', JSON.stringify(readIds));
+        }
+        
+        function markAsRead(communiqueId) {
+            const readIds = getReadCommuniques();
+            if (!readIds.includes(communiqueId)) {
+                readIds.push(communiqueId);
+                saveReadCommuniques(readIds);
+                updateUnreadCount();
+            }
+        }
+        
+        function isRead(communiqueId) {
+            return getReadCommuniques().includes(communiqueId);
+        }
+        
+        function updateUnreadCount() {
+            const readIds = getReadCommuniques();
+            unreadCount = allCommuniques.filter(c => !readIds.includes(c.id)).length;
+            
+            const dot = document.getElementById('notificationDot');
+            if (dot) dot.style.display = unreadCount > 0 ? 'block' : 'none';
+            
+            if (unreadCount > 0 && document.hidden) {
+                jouerSonNotification();
+            }
+        }
+        
+        // ==================== AFFICHAGE ====================
+        function renderCommuniques() {
+            const container = document.getElementById('contentCard');
+            if (!container) return;
+            
+            const readIds = getReadCommuniques();
+            
+            if (!allCommuniques || allCommuniques.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <h5>Aucune communication</h5>
+                        <p class="text-muted">Les communiqués apparaîtront ici en temps réel</p>
+                    </div>
+                `;
+                updateUnreadCount();
+                return;
+            }
+            
+            let html = '';
+            
+            allCommuniques.forEach(communique => {
+                const estNonLu = !readIds.includes(communique.id);
+                const estActif = communique.estActif !== false;
+                const dateExpiration = communique.dateFin ? formatDate(communique.dateFin) : null;
+                
+                html += `
+                    <div class="communique-card ${estNonLu ? 'nouveau' : ''}" data-id="${communique.id}" onclick="handleCardClick('${communique.id}')">
+                        <div class="communique-title">
+                            <span><i class="bi bi-megaphone-fill"></i> ${escapeHtml(communique.titre)}</span>
+                            <div>
+                                ${estNonLu ? '<span class="new-badge">NOUVEAU</span>' : ''}
+                                ${!estActif ? '<span class="status-badge status-expired ms-2">Expiré</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="communique-content">${escapeHtml(communique.description).replace(/\n/g, '<br>')}</div>
+                        <div class="communique-footer">
+                            <span><i class="bi bi-calendar3"></i> ${formatDateTime(communique.dateCreation)}</span>
+                            ${dateExpiration ? `<span><i class="bi bi-calendar-x"></i> Jusqu'au ${dateExpiration}</span>` : ''}
+                            <span><i class="bi bi-person-circle"></i> ${escapeHtml(communique.createur || 'Direction')}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            updateUnreadCount();
+        }
+        
+        window.handleCardClick = function(communiqueId) {
+            markAsRead(communiqueId);
+            const card = document.querySelector(`.communique-card[data-id="${communiqueId}"]`);
+            if (card) {
+                card.classList.remove('nouveau');
+                const badge = card.querySelector('.new-badge');
+                if (badge) badge.remove();
+            }
+        };
+        
+        // ==================== FILTRAGE ET TRI ====================
+        function filterAndSortCommuniques(communiques) {
+            const maintenant = new Date();
+            
+            // Filtrer par date
+            const valides = communiques.filter(c => {
+                if (c.dateDebut) {
+                    let debut;
+                    try {
+                        if (c.dateDebut.toDate) debut = c.dateDebut.toDate();
+                        else if (c.dateDebut.seconds) debut = new Date(c.dateDebut.seconds * 1000);
+                        else debut = new Date(c.dateDebut);
+                    } catch(e) { debut = new Date(0); }
+                    if (debut > maintenant) return false;
+                }
+                
+                if (c.dateFin) {
+                    let fin;
+                    try {
+                        if (c.dateFin.toDate) fin = c.dateFin.toDate();
+                        else if (c.dateFin.seconds) fin = new Date(c.dateFin.seconds * 1000);
+                        else fin = new Date(c.dateFin);
+                    } catch(e) { fin = new Date(0); }
+                    if (fin < maintenant) return false;
+                }
+                
+                return true;
+            });
+            
+            // Trier par date décroissante
+            valides.sort((a, b) => {
+                let dateA = 0, dateB = 0;
+                if (a.dateCreation) {
+                    if (a.dateCreation.toDate) dateA = a.dateCreation.toDate().getTime();
+                    else if (a.dateCreation.seconds) dateA = a.dateCreation.seconds * 1000;
+                }
+                if (b.dateCreation) {
+                    if (b.dateCreation.toDate) dateB = b.dateCreation.toDate().getTime();
+                    else if (b.dateCreation.seconds) dateB = b.dateCreation.seconds * 1000;
+                }
+                return dateB - dateA;
+            });
+            
+            return valides;
+        }
+        
+        // ==================== ÉCOUTEUR TEMPS RÉEL ====================
+        function setupRealtimeListener() {
+            if (snapshotUnsubscribe) {
+                snapshotUnsubscribe();
+            }
+            
+            const maintenant = new Date();
+            const promo = currentStudent.promotion;
+            
+            snapshotUnsubscribe = db.collection('communiques')
+                .where('dateFin', '>=', firebase.firestore.Timestamp.fromDate(new Date(maintenant.getTime() - 86400000)))
+                .orderBy('dateFin', 'asc')
+                .onSnapshot((snapshot) => {
+                    const communiquesTemp = [];
+                    let hasNew = false;
+                    const previousIds = new Set(allCommuniques.map(c => c.id));
+                    
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            hasNew = true;
+                        }
+                    });
+                    
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        
+                        // Vérifier les promotions
+                        if (data.promotions && Array.isArray(data.promotions) && data.promotions.length > 0) {
+                            if (!data.promotions.includes(promo)) return;
+                        }
+                        
+                        communiquesTemp.push({
+                            id: doc.id,
+                            titre: data.titre || 'Sans titre',
+                            description: data.description || '',
+                            dateCreation: data.dateCreation,
+                            dateDebut: data.dateDebut,
+                            dateFin: data.dateFin,
+                            createur: data.createur || '',
+                            estActif: data.estActif !== false
+                        });
+                    });
+                    
+                    const filtered = filterAndSortCommuniques(communiquesTemp);
+                    allCommuniques = filtered;
+                    renderCommuniques();
+                    
+                    // Notification pour nouveaux communiqués
+                    if (hasNew && !document.hasFocus()) {
+                        const newCommuniques = communiquesTemp.filter(c => !previousIds.has(c.id));
+                        if (newCommuniques.length > 0) {
+                            showToast(`📢 ${newCommuniques.length} nouveau(x) communiqué(s)`, 'info');
+                            
+                            // Notification système
+                            if (Notification.permission === 'granted') {
+                                newCommuniques.forEach(c => {
+                                    new Notification(c.titre, {
+                                        body: c.description?.substring(0, 100) || '',
+                                        icon: 'icon-192x192.png',
+                                        tag: c.id
+                                    });
+                                });
+                            }
+                        }
+                    }
+                    
+                }, (error) => {
+                    console.error('Erreur listener:', error);
+                    showToast('Erreur de connexion en temps réel', 'warning');
+                    
+                    // Fallback: charger depuis cache
+                    try {
+                        const cached = localStorage.getItem('communiques_cache');
+                        if (cached) {
+                            const data = JSON.parse(cached);
+                            if (data.communiques && data.communiques.length > 0) {
+                                allCommuniques = data.communiques;
+                                renderCommuniques();
+                            }
+                        }
+                    } catch(e) {}
+                });
+        }
+        
+        // ==================== SERVICE WORKER ====================
+        async function registerServiceWorker() {
+            if (!('serviceWorker' in navigator)) return null;
+            
+            try {
+                let registration = await navigator.serviceWorker.getRegistration();
+                
+                if (!registration) {
+                    registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                    console.log('✅ SW enregistré');
+                }
+                
+                // Envoyer l'ID étudiant au SW
+                if (registration.active && currentStudent?.id) {
+                    registration.active.postMessage({
+                        type: 'SAVE_STUDENT_SESSION',
+                        studentId: currentStudent.id
+                    });
+                }
+                
+                // Demander permission notifications
+                if (Notification.permission === 'default') {
+                    setTimeout(async () => {
+                        const permission = await Notification.requestPermission();
+                        if (permission === 'granted') {
+                            showToast('Notifications activées', 'success');
+                        }
+                    }, 2000);
+                }
+                
+                return registration;
+            } catch(error) {
+                console.error('Erreur SW:', error);
+                return null;
+            }
+        }
+        
+        // ==================== RAFRAÎCHISSEMENT ====================
+        function refreshData() {
+            showToast('Rafraîchissement...', 'info');
+            if (snapshotUnsubscribe) {
+                snapshotUnsubscribe();
+                setupRealtimeListener();
+            }
+        }
+        
+        // ==================== PROFIL ====================
+        async function loadProfileData() {
+            try {
+                const doc = await db.collection('etudiants').doc(currentStudent.id).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('profilNom').textContent = data.nom || currentStudent.nom;
+                    document.getElementById('profilMatricule').textContent = `Matricule: ${data.matricule || currentStudent.matricule}`;
+                    document.getElementById('profilPromotion').textContent = `Promotion: ${data.promotion || 'Non définie'}`;
+                }
+            } catch(e) {
+                document.getElementById('profilNom').textContent = currentStudent.nom;
+                document.getElementById('profilMatricule').textContent = `Matricule: ${currentStudent.matricule}`;
+            }
+        }
+        
+        document.getElementById('profileBtn').onclick = async () => {
+            await loadProfileData();
+            document.getElementById('profileModal').style.display = 'flex';
+        };
+        
+        window.closeProfileModal = () => {
+            document.getElementById('profileModal').style.display = 'none';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+        };
+        
+        document.getElementById('profileModal').addEventListener('click', function(e) {
+            if (e.target === this) closeProfileModal();
+        });
+        
+        document.getElementById('logoutBtn').onclick = () => {
+            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                localStorage.removeItem('session_etudiant');
+                window.location.href = 'login-etudiant.html';
+            }
+        };
+        
+        document.getElementById('refreshBtn').onclick = () => {
+            refreshData();
+        };
+        
+        document.getElementById('changePasswordBtn').onclick = async () => {
+            const newPwd = document.getElementById('newPassword').value;
+            const confirmPwd = document.getElementById('confirmNewPassword').value;
+            
+            if (!newPwd || !confirmPwd) {
+                showToast('Veuillez remplir tous les champs', 'warning');
+                return;
+            }
+            if (newPwd !== confirmPwd) {
+                showToast('Les mots de passe ne correspondent pas', 'warning');
+                return;
+            }
+            if (newPwd.length < 4) {
+                showToast('Minimum 4 caractères', 'warning');
+                return;
+            }
+            
+            try {
+                await db.collection('etudiants').doc(currentStudent.id).update({ motDePasse: newPwd });
+                showToast('✅ Mot de passe modifié avec succès', 'success');
+                closeProfileModal();
+            } catch(error) {
+                showToast('❌ Erreur: ' + error.message, 'danger');
+            }
+        };
+        
+        // ==================== VISIBILITY API ====================
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                refreshData();
+            }
+        });
+        
+        // ==================== INITIALISATION ====================
+        async function init() {
+            if (!checkSession()) return;
+            
+            console.log('🚀 Initialisation communiquer.html');
+            
+            // Service Worker
+            await registerServiceWorker();
+            
+            // Écouteur temps réel
+            setupRealtimeListener();
+            
+            // Vérifier paramètre URL
+            const params = new URLSearchParams(window.location.search);
+            const communiqueId = params.get('communique') || params.get('id');
+            if (communiqueId) {
+                setTimeout(() => {
+                    const card = document.querySelector(`.communique-card[data-id="${communiqueId}"]`);
+                    if (card) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        card.style.backgroundColor = '#fff3e0';
+                        setTimeout(() => {
+                            card.style.backgroundColor = '';
+                        }, 1000);
+                        handleCardClick(communiqueId);
+                    }
+                }, 1000);
+            }
+            
+            console.log('✅ Page communiquer.html prête - Temps réel actif');
+        }
+        
+        // Démarrer
+        init();
+    </script>
+</body>
+</html>
