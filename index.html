@@ -5,210 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Espace Étudiant - Faculté Agronomique</title>
     <meta name="theme-color" content="#003366">
-    <meta name="description" content="Application étudiante de la Faculté Agronomique - UNILU">
-    <meta name="keywords" content="étudiant, faculté agronomique, unilu, notes, paiements">
-    <meta name="author" content="HYBRILINK-TECH">
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192x192.png">
     <link rel="icon" type="image/png" href="icon-96x96.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="FAC Agro">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { 
-            --primary-blue: #003366; 
-            --dark-blue: #002244; 
-            --accent-yellow: #ffb347; 
-            --light-blue: #4a90e2;
-        }
+        :root { --primary-blue: #003366; --dark-blue: #002244; --accent-yellow: #ffb347; }
         
         body {
             background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        /* Animation de fond */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.03)" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
-            background-size: cover;
-            opacity: 0.5;
-            pointer-events: none;
         }
         
         .splash-container {
             text-align: center;
             padding: 30px 20px;
             animation: fadeInUp 0.8s ease-out;
-            position: relative;
-            z-index: 1;
-            max-width: 500px;
+            max-width: 400px;
             width: 100%;
         }
         
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .logo {
-            margin-bottom: 40px;
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .logo-icon {
-            width: 110px;
-            height: 110px;
-            background: linear-gradient(135deg, white, #f8f9fa);
-            border-radius: 35px;
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 20px;
-            box-shadow: 0 25px 45px -12px rgba(0,0,0,0.4);
-            animation: float 3s ease-in-out infinite;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);
         }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .logo-icon i {
-            font-size: 65px;
-            color: var(--primary-blue);
-        }
+        .logo-icon i { font-size: 60px; color: var(--primary-blue); }
         
         .logo h1 {
             color: white;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
-            margin-bottom: 8px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            margin-bottom: 5px;
         }
         
         .logo p {
-            color: rgba(255,255,255,0.85);
-            font-size: 14px;
-            letter-spacing: 1px;
-        }
-        
-        .loader-wrapper {
-            background: rgba(255,255,255,0.1);
-            border-radius: 60px;
-            padding: 5px;
-            margin: 30px auto;
-            max-width: 280px;
-            backdrop-filter: blur(10px);
+            color: rgba(255,255,255,0.8);
+            font-size: 13px;
         }
         
         .loader {
-            width: 100%;
-            height: 6px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .loader-progress {
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, var(--accent-yellow), #ff9800);
-            border-radius: 10px;
-            animation: loading 2s ease-in-out infinite;
-        }
-        
-        @keyframes loading {
-            0% { width: 0%; left: 0; }
-            50% { width: 70%; left: 0; }
-            100% { width: 100%; left: 0; }
-        }
-        
-        .loading-text {
-            color: rgba(255,255,255,0.8);
-            font-size: 13px;
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .loading-text i {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid var(--accent-yellow);
+            border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin: 30px auto;
         }
         
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
         
-        .steps {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-        
-        .step {
-            text-align: center;
-            opacity: 0.6;
-            transition: opacity 0.3s;
-        }
-        
-        .step.active {
-            opacity: 1;
-        }
-        
-        .step-icon {
-            width: 35px;
-            height: 35px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 8px;
-        }
-        
-        .step-icon i {
-            color: white;
-            font-size: 18px;
-        }
-        
-        .step-text {
-            font-size: 10px;
+        .loading-text {
             color: rgba(255,255,255,0.7);
-        }
-        
-        .step.active .step-text {
-            color: var(--accent-yellow);
+            font-size: 13px;
+            margin-top: 15px;
         }
         
         .footer {
@@ -217,143 +91,12 @@
             left: 0;
             right: 0;
             text-align: center;
-            font-size: 11px;
-            color: rgba(255,255,255,0.5);
-            z-index: 1;
-        }
-        
-        .footer img {
-            width: 25px;
-            border-radius: 12px;
-            vertical-align: middle;
-            margin-left: 5px;
-        }
-        
-        .version-info {
             font-size: 10px;
-            margin-top: 5px;
-            opacity: 0.6;
-        }
-        
-        /* Bannière d'installation */
-        .install-prompt {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: white;
-            border-radius: 16px;
-            padding: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            z-index: 1000;
-            transform: translateY(100px);
-            transition: transform 0.3s ease;
-            display: none;
-        }
-        
-        .install-prompt.show {
-            transform: translateY(0);
-            display: block;
-        }
-        
-        .install-prompt-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .install-prompt-icon {
-            width: 45px;
-            height: 45px;
-            background: var(--primary-blue);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .install-prompt-icon i {
-            font-size: 24px;
-            color: var(--accent-yellow);
-        }
-        
-        .install-prompt-text {
-            flex: 1;
-        }
-        
-        .install-prompt-text strong {
-            display: block;
-            font-size: 14px;
-            color: var(--primary-blue);
-        }
-        
-        .install-prompt-text small {
-            font-size: 11px;
-            color: #666;
-        }
-        
-        .install-prompt-btn {
-            background: var(--primary-blue);
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .install-prompt-btn:hover {
-            background: var(--dark-blue);
-            transform: scale(1.02);
-        }
-        
-        .install-prompt-close {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: #999;
-            padding: 0 5px;
-        }
-        
-        @media (max-width: 480px) {
-            .logo-icon { width: 85px; height: 85px; }
-            .logo-icon i { font-size: 50px; }
-            .logo h1 { font-size: 22px; }
-            .steps { gap: 15px; }
-        }
-        
-        /* Mode hors ligne */
-        .offline-badge {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            color: var(--accent-yellow);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            display: none;
-            z-index: 100;
-            backdrop-filter: blur(5px);
-        }
-        
-        .offline-badge i {
-            margin-right: 5px;
-        }
-        
-        .offline-badge.show {
-            display: flex;
-            align-items: center;
+            color: rgba(255,255,255,0.4);
         }
     </style>
 </head>
 <body>
-    <div class="offline-badge" id="offlineBadge">
-        <i class="bi bi-wifi-off"></i> Mode hors ligne
-    </div>
-    
     <div class="splash-container">
         <div class="logo">
             <div class="logo-icon">
@@ -363,371 +106,46 @@
             <p>Espace Étudiant - UNILU</p>
         </div>
         
-        <div class="loader-wrapper">
-            <div class="loader">
-                <div class="loader-progress"></div>
-            </div>
-        </div>
-        
-        <div class="loading-text" id="loadingText">
-            <i class="bi bi-arrow-repeat"></i> Initialisation...
-        </div>
-        
-        <div class="steps">
-            <div class="step" id="step1">
-                <div class="step-icon"><i class="bi bi-check-lg"></i></div>
-                <div class="step-text">Connexion</div>
-            </div>
-            <div class="step" id="step2">
-                <div class="step-icon"><i class="bi bi-arrow-repeat"></i></div>
-                <div class="step-text">Chargement</div>
-            </div>
-            <div class="step" id="step3">
-                <div class="step-icon"><i class="bi bi-house-door"></i></div>
-                <div class="step-text">Dashboard</div>
-            </div>
+        <div class="loader"></div>
+        <div class="loading-text">
+            <i class="bi bi-arrow-repeat"></i> Chargement...
         </div>
         
         <div class="footer">
-            <i class="bi bi-shield-check"></i> HYBRILINK-TECH<br>
-            <img src="t.png" alt="HYBRILINK" onerror="this.style.display='none'">
-            <div class="version-info">Version 2.0 | Temps réel</div>
-        </div>
-    </div>
-    
-    <div class="install-prompt" id="installPrompt">
-        <div class="install-prompt-content">
-            <div class="install-prompt-icon">
-                <i class="bi bi-download"></i>
-            </div>
-            <div class="install-prompt-text">
-                <strong>Installer l'application</strong>
-                <small>Ajoutez FAC Agro à votre écran d'accueil</small>
-            </div>
-            <button class="install-prompt-btn" id="installBtn">Installer</button>
-            <button class="install-prompt-close" id="closeInstallPrompt">&times;</button>
+            <i class="bi bi-shield-check"></i> HYBRILINK-TECH
         </div>
     </div>
 
     <script>
-        // ==================== VARIABLES ====================
-        let deferredPrompt = null;
-        let redirectTimeout = null;
-        let currentStep = 1;
-        
-        // ==================== FONCTIONS UTILITAIRES ====================
-        function updateStep(step) {
-            currentStep = step;
-            for (let i = 1; i <= 3; i++) {
-                const stepEl = document.getElementById(`step${i}`);
-                if (stepEl) {
-                    if (i < step) {
-                        stepEl.classList.add('active');
-                        const icon = stepEl.querySelector('i');
-                        if (icon) icon.className = 'bi bi-check-lg';
-                    } else if (i === step) {
-                        stepEl.classList.add('active');
-                        const icon = stepEl.querySelector('i');
-                        if (icon) icon.className = 'bi bi-arrow-repeat spin';
-                    } else {
-                        stepEl.classList.remove('active');
-                    }
-                }
-            }
-        }
-        
-        function updateLoadingText(text) {
-            const loadingText = document.getElementById('loadingText');
-            if (loadingText) {
-                loadingText.innerHTML = `<i class="bi bi-arrow-repeat"></i> ${text}`;
-            }
-        }
-        
-        // ==================== VÉRIFICATION SESSION ====================
-        function checkSession() {
+        (function() {
+            console.log('🚀 INDEX - Démarrage');
+            
+            // Vérifier la session
+            let sessionValide = false;
             try {
                 const session = localStorage.getItem('session_etudiant');
                 if (session) {
-                    const sessionData = JSON.parse(session);
-                    if (Date.now() < sessionData.expires) {
-                        console.log('✅ Session valide trouvée');
-                        return sessionData;
+                    const data = JSON.parse(session);
+                    if (Date.now() < data.expires) {
+                        sessionValide = true;
+                        console.log('✅ Session valide');
                     } else {
-                        console.log('⏰ Session expirée');
                         localStorage.removeItem('session_etudiant');
                     }
                 }
             } catch(e) {
                 console.error('Erreur session:', e);
-                localStorage.removeItem('session_etudiant');
-            }
-            return null;
-        }
-        
-        // ==================== SERVICE WORKER ====================
-        async function registerServiceWorker() {
-            if (!('serviceWorker' in navigator)) {
-                console.log('❌ Service Worker non supporté');
-                return null;
             }
             
-            try {
-                updateLoadingText('Enregistrement du Service Worker...');
-                updateStep(2);
-                
-                const registration = await navigator.serviceWorker.register('/sw.js', {
-                    scope: '/'
-                });
-                
-                console.log('✅ Service Worker enregistré:', registration.scope);
-                
-                // Attendre l'activation
-                if (registration.installing) {
-                    console.log('📦 Installation en cours...');
-                }
-                
-                return registration;
-            } catch (error) {
-                console.error('❌ Erreur Service Worker:', error);
-                return null;
-            }
-        }
-        
-        // ==================== VÉRIFICATION NOTIFICATIONS ====================
-        async function checkNotificationPermission() {
-            if (!('Notification' in window)) return false;
-            
-            const permission = await navigator.permissions.query({ name: 'notifications' });
-            console.log('🔔 Permission notifications:', permission.state);
-            
-            if (permission.state === 'granted') {
-                console.log('✅ Notifications déjà autorisées');
-                return true;
-            } else if (permission.state === 'default') {
-                // Demander discrètement après la redirection
-                setTimeout(async () => {
-                    const result = await Notification.requestPermission();
-                    console.log('🔔 Demande permission:', result);
-                }, 5000);
-            }
-            
-            return false;
-        }
-        
-        // ==================== VÉRIFICATION CONNEXION ====================
-        function checkOnlineStatus() {
-            const offlineBadge = document.getElementById('offlineBadge');
-            
-            function updateStatus() {
-                if (!navigator.onLine) {
-                    offlineBadge.classList.add('show');
-                    console.log('📡 Mode hors ligne détecté');
-                } else {
-                    offlineBadge.classList.remove('show');
-                }
-            }
-            
-            window.addEventListener('online', updateStatus);
-            window.addEventListener('offline', updateStatus);
-            updateStatus();
-        }
-        
-        // ==================== PWA INSTALLATION ====================
-        function setupPWAInstall() {
-            const installPrompt = document.getElementById('installPrompt');
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-            const isInstalled = localStorage.getItem('pwa-installed');
-            
-            if (!isStandalone && !isInstalled) {
-                setTimeout(() => {
-                    installPrompt.classList.add('show');
-                }, 3000);
-            }
-            
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                if (!isStandalone && !isInstalled) {
-                    installPrompt.classList.add('show');
-                }
-                console.log('📱 beforeinstallprompt déclenché');
-            });
-            
-            window.addEventListener('appinstalled', () => {
-                deferredPrompt = null;
-                localStorage.setItem('pwa-installed', 'true');
-                installPrompt.classList.remove('show');
-                console.log('✅ Application installée');
-            });
-            
-            const installBtn = document.getElementById('installBtn');
-            if (installBtn) {
-                installBtn.addEventListener('click', async () => {
-                    if (deferredPrompt) {
-                        deferredPrompt.prompt();
-                        const { outcome } = await deferredPrompt.userChoice;
-                        if (outcome === 'accepted') {
-                            localStorage.setItem('pwa-installed', 'true');
-                            console.log('✅ Installation acceptée');
-                        }
-                        deferredPrompt = null;
-                        installPrompt.classList.remove('show');
-                    } else {
-                        // Fallback - instructions manuelles
-                        alert('Pour installer l\'application:\n\n• Android: Menu > "Ajouter à l\'écran d\'accueil"\n• iOS: Partager > "Sur l\'écran d\'accueil"');
-                        localStorage.setItem('pwa-installed', 'true');
-                        installPrompt.classList.remove('show');
-                    }
-                });
-            }
-            
-            const closeBtn = document.getElementById('closeInstallPrompt');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => {
-                    installPrompt.classList.remove('show');
-                    localStorage.setItem('pwa-installed', 'true');
-                });
-            }
-        }
-        
-        // ==================== PRÉCHARGEMENT ====================
-        function preloadResources() {
-            // Précharger les pages importantes pour une navigation plus rapide
-            const pagesToPreload = [
-                'etudiant.html',
-                'communiquer.html',
-                'paiement.html'
-            ];
-            
-            if ('requestIdleCallback' in window) {
-                requestIdleCallback(() => {
-                    pagesToPreload.forEach(page => {
-                        const link = document.createElement('link');
-                        link.rel = 'prefetch';
-                        link.href = page;
-                        document.head.appendChild(link);
-                    });
-                    console.log('📦 Préchargement des ressources');
-                });
-            }
-        }
-        
-        // ==================== REDIRECTION ====================
-        function redirectToTarget(sessionData) {
-            updateLoadingText('Redirection...');
-            updateStep(3);
-            
-            // Délai pour l'animation
+            // Redirection
             setTimeout(() => {
-                if (sessionData) {
-                    console.log('🚀 Redirection vers etudiant.html');
+                if (sessionValide) {
                     window.location.href = 'etudiant.html';
                 } else {
-                    console.log('🚀 Redirection vers login-etudiant.html');
                     window.location.href = 'login-etudiant.html';
                 }
             }, 800);
-        }
-        
-        // ==================== ANALYTIQUE SIMPLE ====================
-        function logStartup() {
-            const startTime = localStorage.getItem('app_start_time');
-            const now = Date.now();
-            
-            if (startTime) {
-                const loadTime = now - parseInt(startTime);
-                console.log(`⏱️ Temps de chargement: ${loadTime}ms`);
-            }
-            
-            localStorage.setItem('app_start_time', now.toString());
-            localStorage.setItem('last_visit', new Date().toISOString());
-            
-            // Compter les visites
-            let visitCount = parseInt(localStorage.getItem('visit_count') || '0');
-            visitCount++;
-            localStorage.setItem('visit_count', visitCount);
-            console.log(`📊 Visite #${visitCount}`);
-        }
-        
-        // ==================== INITIALISATION ====================
-        async function init() {
-            console.log('🚀 Démarrage de l\'application...');
-            console.log('📱 User Agent:', navigator.userAgent);
-            
-            logStartup();
-            
-            // Étape 1: Vérification de la session
-            updateLoadingText('Vérification de la session...');
-            updateStep(1);
-            
-            const sessionData = checkSession();
-            
-            // Vérifier l'état de la connexion
-            checkOnlineStatus();
-            
-            // Configurer l'installation PWA
-            setupPWAInstall();
-            
-            // Précharger les ressources
-            preloadResources();
-            
-            // Étape 2: Enregistrement Service Worker
-            updateLoadingText('Activation des notifications...');
-            updateStep(2);
-            
-            // Enregistrer le SW (ne bloque pas la redirection)
-            const swRegistration = await registerServiceWorker();
-            
-            // Vérifier les permissions (non bloquant)
-            checkNotificationPermission();
-            
-            // Envoyer l'ID étudiant au SW si session valide
-            if (sessionData && swRegistration && swRegistration.active) {
-                swRegistration.active.postMessage({
-                    type: 'SAVE_STUDENT_SESSION',
-                    studentId: sessionData.id
-                });
-                console.log('📨 ID étudiant envoyé au SW');
-            }
-            
-            // Étape 3: Redirection
-            redirectToTarget(sessionData);
-        }
-        
-        // Gestionnaire d'erreur global
-        window.addEventListener('error', (event) => {
-            console.error('❌ Erreur globale:', event.error);
-            // Continuer quand même la redirection
-            if (!redirectTimeout) {
-                redirectTimeout = setTimeout(() => {
-                    const sessionData = checkSession();
-                    if (sessionData) {
-                        window.location.href = 'etudiant.html';
-                    } else {
-                        window.location.href = 'login-etudiant.html';
-                    }
-                }, 2000);
-            }
-        });
-        
-        // Démarrer l'application
-        init().catch(error => {
-            console.error('❌ Erreur fatale:', error);
-            // Fallback redirection
-            setTimeout(() => {
-                const sessionData = checkSession();
-                if (sessionData) {
-                    window.location.href = 'etudiant.html';
-                } else {
-                    window.location.href = 'login-etudiant.html';
-                }
-            }, 2000);
-        });
-        
-        // Afficher la console pour le débogage
-        console.log('%c🚀 FACULTÉ AGRONOMIQUE - ESPACE ÉTUDIANT', 'color: #ffb347; font-size: 14px; font-weight: bold;');
-        console.log('%cVersion 2.0 | Notifications temps réel activées', 'color: #003366; font-size: 12px;');
-        console.log('%c© HYBRILINK-TECH', 'color: #666; font-size: 11px;');
+        })();
     </script>
 </body>
 </html>
