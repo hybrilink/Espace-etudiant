@@ -15,7 +15,7 @@ const FSA_APP_SCOPE = '/Espace-etudiant/';
 const FSA_VAPID_KEY =
     'BNDQ5l-Vf4yBzUl6wAZ0gBurHoJQG78zf173r-jsOderVcWBor0LjEsqzr11FegBTpRH-O-pb7xXzSTO00xMRP0';
 
-// ✅ CORRECTION : Chemin relatif pour que le SW soit trouvé
+// ✅ Chemin absolu pour le SW
 const FSA_SW_PATH = '/Espace-etudiant/sw.js';
 
 const FSA_FCM_TOKEN_KEY = 'fsa_fcm_token';
@@ -71,26 +71,12 @@ class NotificationManager {
             console.log('[FSA-NOTIF] 📁 Chemin SW:', FSA_SW_PATH);
             console.log('[FSA-NOTIF] 📁 Scope:', FSA_APP_SCOPE);
 
-            /*
-             * Nettoyer d'abord les anciens SW.
-             */
-
             await this.nettoyerAnciensServiceWorkers();
-
-            /*
-             * Chercher d'abord une registration
-             * appartenant exactement à notre application.
-             */
 
             let registration =
                 await navigator.serviceWorker.getRegistration(
                     FSA_APP_SCOPE
                 );
-
-            /*
-             * Si elle existe déjà, vérifier que c'est
-             * bien notre sw.js.
-             */
 
             if (registration) {
 
@@ -101,11 +87,6 @@ class NotificationManager {
                     '';
 
                 console.log('[FSA-NOTIF] 📋 SW existant trouvé:', scriptURL);
-
-                /*
-                 * Si un ancien firebase-messaging-sw.js
-                 * contrôle encore cette portée, on le retire.
-                 */
 
                 if (
                     scriptURL &&
@@ -123,10 +104,6 @@ class NotificationManager {
                     registration = null;
                 }
 
-                /*
-                 * Si ce n'est pas notre sw.js, on le remplace.
-                 */
-
                 if (registration && scriptURL && !scriptURL.includes('/sw.js')) {
 
                     console.log(
@@ -138,10 +115,6 @@ class NotificationManager {
                     registration = null;
                 }
             }
-
-            /*
-             * Enregistrer notre Service Worker principal.
-             */
 
             if (!registration) {
 
@@ -160,10 +133,6 @@ class NotificationManager {
                     registration.scope
                 );
             }
-
-            /*
-             * Attendre que le SW soit prêt.
-             */
 
             await navigator.serviceWorker.ready;
 
@@ -217,10 +186,6 @@ class NotificationManager {
                 const scope =
                     registration.scope || '';
 
-                /*
-                 * Ancien firebase-messaging-sw.js
-                 */
-
                 if (
                     scriptURL.includes(
                         'firebase-messaging-sw.js'
@@ -236,10 +201,6 @@ class NotificationManager {
                     continue;
                 }
 
-                /*
-                 * Ancienne portée FCM dédiée.
-                 */
-
                 if (
                     scope.includes(
                         'firebase-cloud-messaging-push-scope'
@@ -254,14 +215,6 @@ class NotificationManager {
 
                     continue;
                 }
-
-                /*
-                 * Ancienne version du sw.js installée
-                 * à la racine du domaine.
-                 *
-                 * On ne la supprime que si elle correspond
-                 * bien au Service Worker de cette application.
-                 */
 
                 if (
                     scriptURL.endsWith('/sw.js') &&
@@ -306,11 +259,6 @@ class NotificationManager {
                 return null;
             }
 
-            /*
-             * firebase.messaging() peut être appelé
-             * après firebase.initializeApp().
-             */
-
             this.messaging =
                 firebase.messaging();
 
@@ -339,10 +287,6 @@ class NotificationManager {
         promotion = ''
     ) {
 
-        /*
-         * L'identifiant étudiant est obligatoire.
-         */
-
         if (!etudiantId) {
 
             console.warn(
@@ -363,15 +307,7 @@ class NotificationManager {
 
         console.log('[FSA-NOTIF] 🔔 Initialisation pour:', this.etudiantId);
 
-        /*
-         * Nettoyer les anciennes registrations.
-         */
-
         await this.nettoyerAnciensServiceWorkers();
-
-        /*
-         * Installer / récupérer le SW principal.
-         */
 
         const registration =
             await this.getServiceWorkerRegistration();
@@ -381,10 +317,6 @@ class NotificationManager {
             console.error('[FSA-NOTIF] ❌ Impossible d\'obtenir le SW');
             return null;
         }
-
-        /*
-         * Si Firebase Messaging n'est pas encore initialisé.
-         */
 
         if (!this.messaging) {
 
@@ -396,14 +328,6 @@ class NotificationManager {
             console.error('[FSA-NOTIF] ❌ Firebase Messaging non disponible');
             return null;
         }
-
-        /*
-         * Ne jamais demander automatiquement
-         * la permission si l'utilisateur ne l'a pas encore donnée.
-         *
-         * Si elle est déjà accordée, on peut enregistrer
-         * automatiquement le token.
-         */
 
         if (
             typeof Notification !== 'undefined' &&
@@ -418,10 +342,6 @@ class NotificationManager {
             );
         }
 
-        /*
-         * Permission refusée.
-         */
-
         if (
             typeof Notification !== 'undefined' &&
             Notification.permission === 'denied'
@@ -435,11 +355,6 @@ class NotificationManager {
 
             return null;
         }
-
-        /*
-         * Permission par défaut :
-         * on n'affiche pas automatiquement la demande.
-         */
 
         this.isInitialized = true;
 
@@ -478,10 +393,6 @@ class NotificationManager {
 
         console.log('[FSA-NOTIF] 🔔 Demande de permission pour:', this.etudiantId);
 
-        /*
-         * Vérification de la compatibilité.
-         */
-
         if (
             typeof Notification === 'undefined'
         ) {
@@ -506,10 +417,6 @@ class NotificationManager {
 
         try {
 
-            /*
-             * Installer d'abord le SW.
-             */
-
             await this.nettoyerAnciensServiceWorkers();
 
             const registration =
@@ -521,10 +428,6 @@ class NotificationManager {
                 return null;
             }
 
-            /*
-             * Initialiser Firebase Messaging.
-             */
-
             if (!this.messaging) {
                 this.initialiserMessaging();
             }
@@ -534,10 +437,6 @@ class NotificationManager {
                 console.error('[FSA-NOTIF] ❌ Firebase Messaging non disponible');
                 return null;
             }
-
-            /*
-             * Demander la permission.
-             */
 
             let permission =
                 Notification.permission;
@@ -556,10 +455,6 @@ class NotificationManager {
                 console.log('[FSA-NOTIF] 📋 Nouvelle permission:', permission);
             }
 
-            /*
-             * Refus.
-             */
-
             if (
                 permission !== 'granted'
             ) {
@@ -573,10 +468,6 @@ class NotificationManager {
 
                 return null;
             }
-
-            /*
-             * Permission accordée.
-             */
 
             console.log('[FSA-NOTIF] ✅ Permission accordée, enregistrement...');
 
@@ -631,10 +522,6 @@ class NotificationManager {
 
             console.log('[FSA-NOTIF] 📝 Enregistrement du token pour:', this.etudiantId);
 
-            /*
-             * Vérifier Notification API.
-             */
-
             if (
                 typeof Notification === 'undefined'
             ) {
@@ -645,10 +532,6 @@ class NotificationManager {
 
                 return null;
             }
-
-            /*
-             * Permission.
-             */
 
             let permission =
                 Notification.permission;
@@ -672,10 +555,6 @@ class NotificationManager {
                 return null;
             }
 
-            /*
-             * Récupérer le SW principal.
-             */
-
             const registration =
                 await this.getServiceWorkerRegistration();
 
@@ -684,10 +563,6 @@ class NotificationManager {
                 console.error('[FSA-NOTIF] ❌ SW non disponible');
                 return null;
             }
-
-            /*
-             * Initialiser Messaging.
-             */
 
             if (!this.messaging) {
 
@@ -699,13 +574,6 @@ class NotificationManager {
                 console.error('[FSA-NOTIF] ❌ Firebase Messaging non disponible');
                 return null;
             }
-
-            /*
-             * Récupérer le token FCM.
-             *
-             * IMPORTANT :
-             * On fournit explicitement notre SW principal.
-             */
 
             console.log('[FSA-NOTIF] 🔑 Demande du token FCM...');
 
@@ -729,10 +597,6 @@ class NotificationManager {
 
             console.log('[FSA-NOTIF] ✅ Token FCM obtenu:', token.substring(0, 20) + '...');
 
-            /*
-             * Sauvegarder localement.
-             */
-
             localStorage.setItem(
                 FSA_FCM_TOKEN_KEY,
                 token
@@ -748,20 +612,11 @@ class NotificationManager {
                 'true'
             );
 
-            /*
-             * Sauvegarder dans Firestore.
-             */
-
             await this.saveTokenToFirestore(
                 token,
                 etudiantNom,
                 promotion
             );
-
-            /*
-             * Installer le listener foreground
-             * une seule fois.
-             */
 
             this.setupForegroundListener();
 
@@ -803,11 +658,6 @@ class NotificationManager {
 
         try {
 
-            /*
-             * Utiliser db global déjà initialisé
-             * par la page HTML.
-             */
-
             if (
                 typeof db === 'undefined' ||
                 !db
@@ -825,16 +675,6 @@ class NotificationManager {
             const tokenRef =
                 db.collection('fcmTokens')
                   .doc(this.etudiantId);
-
-            /*
-             * Le backend actuel utilise :
-             *
-             * fcmTokens/{studentId}
-             *
-             * avec le champ :
-             *
-             * token
-             */
 
             await tokenRef.set(
                 {
@@ -893,10 +733,6 @@ class NotificationManager {
 
     setupForegroundListener() {
 
-        /*
-         * Éviter plusieurs listeners.
-         */
-
         if (
             this.foregroundListenerAttached
         ) {
@@ -939,30 +775,13 @@ class NotificationManager {
                         notification.body ||
                         'Nouvelle information disponible';
 
-                    /*
-                     * Lorsque l'application est ouverte,
-                     * le navigateur n'affiche pas forcément
-                     * une notification système.
-                     *
-                     * On affiche donc un toast local.
-                     */
-
                     this.showForegroundNotification(
                         title,
                         body,
                         data
                     );
 
-                    /*
-                     * Petit signal sonore si possible.
-                     */
-
                     this.playNotificationSound();
-
-                    /*
-                     * Événement personnalisé pour les pages
-                     * qui veulent réagir à la notification.
-                     */
 
                     try {
 
@@ -1021,11 +840,6 @@ class NotificationManager {
         data = {}
     ) {
 
-        /*
-         * Si la page possède déjà sa propre fonction
-         * showToast(), on l'utilise.
-         */
-
         try {
 
             if (
@@ -1044,10 +858,6 @@ class NotificationManager {
         } catch (error) {
             // Continuer avec notre propre toast.
         }
-
-        /*
-         * Sinon créer un toast indépendant.
-         */
 
         this.createFallbackToast(
             title,
@@ -1186,11 +996,6 @@ class NotificationManager {
 
         try {
 
-            /*
-             * Ne pas générer de son si le navigateur
-             * bloque l'audio automatique.
-             */
-
             const AudioContext =
                 window.AudioContext ||
                 window.webkitAudioContext;
@@ -1255,10 +1060,6 @@ class NotificationManager {
             );
 
         } catch (error) {
-
-            /*
-             * L'audio est facultatif.
-             */
 
             console.log(
                 '[FSA-NOTIF] Audio non disponible'
@@ -1511,23 +1312,6 @@ class NotificationManager {
 
     async envoyerNotification() {
 
-        /*
-         * IMPORTANT :
-         *
-         * Cette fonction n'envoie plus de notification
-         * depuis le navigateur.
-         *
-         * Les notifications doivent maintenant être envoyées
-         * uniquement par Cloud Functions → FCM.
-         *
-         * Cela évite :
-         *
-         * - les doublons ;
-         * - l'exposition de l'URL HTTP d'envoi ;
-         * - les notifications envoyées plusieurs fois ;
-         * - les problèmes lorsque plusieurs pages sont ouvertes.
-         */
-
         console.warn(
             '[FSA-NOTIF] envoyerNotification() est désactivée. Utiliser Cloud Functions.'
         );
@@ -1615,13 +1399,6 @@ window.getStudentNotificationStatus =
 document.addEventListener(
     'DOMContentLoaded',
     () => {
-
-        /*
-         * Le gestionnaire est disponible dès que
-         * notification-utils.js est chargé.
-         *
-         * On ne demande aucune permission automatiquement.
-         */
 
         console.log(
             '[FSA-NOTIF] Gestionnaire de notifications prêt'
