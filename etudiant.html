@@ -1511,7 +1511,7 @@ function escapeHtml(text) {
 
 
 /* ================================================================
-   NOTIFICATIONS
+   NOTIFICATIONS - VERSION CORRIGÉE
 ================================================================ */
 
 /*
@@ -1535,20 +1535,45 @@ async function enregistrerTokenFCM(
 
     try {
 
-        if (
-            !window.notificationManager
-        ) {
+        console.log('[FCM] 🔔 Tentative d\'activation des notifications...');
+        console.log('[FCM] 📋 Étudiant:', etudiantId);
+        console.log('[FCM] 📋 Demander permission:', demanderPermission);
 
-            console.error(
-                '[FCM] NotificationManager introuvable'
-            );
+        /*
+         * Vérifier que NotificationManager existe.
+         * Si ce n'est pas le cas, on tente de le recharger.
+         */
+        if (!window.notificationManager) {
 
-            return null;
+            console.warn('[FCM] ⚠️ NotificationManager introuvable');
+
+            // Tentative de rechargement du script
+            try {
+                console.log('[FCM] 🔄 Tentative de rechargement de notification-utils.js...');
+                const script = document.createElement('script');
+                script.src = 'notification-utils.js';
+                await new Promise((resolve, reject) => {
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+                await new Promise(resolve => setTimeout(resolve, 500));
+                console.log('[FCM] ✅ Script rechargé');
+            } catch (error) {
+                console.error('[FCM] ❌ Échec rechargement:', error);
+            }
+
+            if (!window.notificationManager) {
+                console.error('[FCM] ❌ NotificationManager toujours introuvable');
+                showToast(
+                    '❌ Gestionnaire de notifications indisponible. Veuillez rafraîchir la page.',
+                    'danger'
+                );
+                return null;
+            }
         }
 
-        if (
-            !etudiantId
-        ) {
+        if (!etudiantId) {
 
             console.error(
                 '[FCM] ID étudiant manquant'
@@ -1564,6 +1589,8 @@ async function enregistrerTokenFCM(
          */
         if (demanderPermission) {
 
+            console.log('[FCM] 🔔 Demande de permission utilisateur...');
+
             token =
                 await window.notificationManager
                     .requestPermissionAndRegister(
@@ -1578,6 +1605,8 @@ async function enregistrerTokenFCM(
              * Au démarrage, on ne demande jamais
              * automatiquement l'autorisation.
              */
+            console.log('[FCM] 🔔 Initialisation silencieuse...');
+
             token =
                 await window.notificationManager
                     .init(
@@ -1616,6 +1645,17 @@ async function enregistrerTokenFCM(
                 '[FCM] ⚠️ Token non disponible'
             );
 
+            // Vérifier si la permission a été refusée
+            if ('Notification' in window && Notification.permission === 'denied') {
+                showToast(
+                    '⚠️ Les notifications sont bloquées dans les paramètres du navigateur.',
+                    'warning'
+                );
+            } else if ('Notification' in window && Notification.permission === 'default') {
+                // La permission n'a pas été demandée ou a été ignorée
+                console.log('[FCM] Permission par défaut, en attente d\'action utilisateur');
+            }
+
             checkNotificationStatus();
         }
 
@@ -1626,6 +1666,14 @@ async function enregistrerTokenFCM(
         console.error(
             '[FCM] ❌ Erreur:',
             error
+        );
+
+        console.error('  - Message:', error.message);
+        console.error('  - Stack:', error.stack);
+
+        showToast(
+            `❌ Erreur: ${error.message || 'Impossible d\'activer les notifications'}`,
+            'danger'
         );
 
         checkNotificationStatus();
@@ -1699,7 +1747,7 @@ function checkNotificationStatus() {
 
 
 /* ================================================================
-   BOUTON ACTIVATION NOTIFICATIONS
+   BOUTON ACTIVATION NOTIFICATIONS - VERSION CORRIGÉE
 ================================================================ */
 
 document
@@ -1737,6 +1785,9 @@ document
 
             try {
 
+                console.log('[FCM] 🔔 Bouton "Activer" cliqué');
+                console.log('[FCM] 📋 Étudiant:', currentStudent.id);
+
                 const token =
                     await enregistrerTokenFCM(
                         currentStudent.id,
@@ -1760,14 +1811,14 @@ document
                     ) {
 
                         showToast(
-                            'Les notifications sont bloquées dans les réglages du navigateur.',
+                            '⚠️ Les notifications sont bloquées dans les réglages du navigateur.',
                             'warning'
                         );
 
                     } else {
 
                         showToast(
-                            'Impossible d’activer les notifications.',
+                            '⚠️ Impossible d\'activer les notifications. Vérifiez la console pour plus de détails.',
                             'warning'
                         );
                     }
@@ -1776,12 +1827,12 @@ document
             } catch (error) {
 
                 console.error(
-                    '[FCM] Activation:',
+                    '[FCM] ❌ Activation:',
                     error
                 );
 
                 showToast(
-                    'Erreur lors de l’activation des notifications.',
+                    '❌ Erreur lors de l\'activation des notifications.',
                     'danger'
                 );
 
@@ -2981,7 +3032,7 @@ function setupOfflineDetection() {
 
 
 /* ================================================================
-   SERVICE WORKER
+   SERVICE WORKER - VERSION CORRIGÉE
 ================================================================ */
 
 /*
@@ -3013,6 +3064,8 @@ async function registerServiceWorker() {
 
     try {
 
+        console.log('[SW] 🔄 Enregistrement du Service Worker...');
+
         /*
          * Utilise le gestionnaire centralisé.
          */
@@ -3020,6 +3073,8 @@ async function registerServiceWorker() {
             typeof window.registerAppServiceWorker ===
             'function'
         ) {
+
+            console.log('[SW] 📋 Utilisation du gestionnaire centralisé');
 
             const registration =
                 await window.registerAppServiceWorker();
@@ -3029,6 +3084,9 @@ async function registerServiceWorker() {
                 console.log(
                     '[SW] ✅ Service Worker principal enregistré'
                 );
+            } else {
+
+                console.warn('[SW] ⚠️ Échec enregistrement via gestionnaire');
             }
 
             return registration;
@@ -3038,9 +3096,11 @@ async function registerServiceWorker() {
          * Fallback si notification-utils.js
          * n'est pas disponible.
          */
+        console.log('[SW] 📋 Fallback: enregistrement direct');
+
         const registration =
             await navigator.serviceWorker.register(
-                '/sw.js',
+                '/Espace-etudiant/sw.js',
                 {
                     scope:
                         '/Espace-etudiant/'
@@ -3058,6 +3118,15 @@ async function registerServiceWorker() {
         console.error(
             '[SW] ❌ Erreur:',
             error
+        );
+
+        console.error('  - Message:', error.message);
+        console.error('  - Stack:', error.stack);
+
+        // Afficher un message à l'utilisateur
+        showToast(
+            '⚠️ Service Worker indisponible. Les notifications pourraient ne pas fonctionner.',
+            'warning'
         );
 
         return null;
@@ -3116,10 +3185,12 @@ window.addEventListener(
 
 
 /* ================================================================
-   INITIALISATION
+   INITIALISATION - VERSION CORRIGÉE
 ================================================================ */
 
 async function init() {
+
+    console.log('🚀 Dashboard Étudiant - Démarrage');
 
     /*
      * 1. Vérification session.
@@ -3127,10 +3198,6 @@ async function init() {
     if (!checkSession()) {
         return;
     }
-
-    console.log(
-        '🚀 Dashboard Étudiant'
-    );
 
     console.log(
         '👤 Étudiant:',
@@ -3178,6 +3245,8 @@ async function init() {
      *
      * Le bouton "Activer" s'en charge.
      */
+    console.log('[FCM] 🔔 Initialisation des notifications...');
+    
     await enregistrerTokenFCM(
         currentStudent.id,
         currentStudent.nom ||
@@ -3208,6 +3277,11 @@ async function init() {
             '🔔 NotificationManager actif:',
             window.notificationManager.isActive()
         );
+
+        const token = window.notificationManager.getToken();
+        if (token) {
+            console.log('🔑 Token FCM:', token.substring(0, 20) + '...');
+        }
 
     } else {
 
