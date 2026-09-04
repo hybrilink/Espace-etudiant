@@ -39,11 +39,11 @@ try {
 }
 
 // ================================================================
-// CONFIGURATION FIREBASE
+// CONFIGURATION FIREBASE - CLÉ API CORRECTE
 // ================================================================
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBb82N2-5ns7qKjBAj5UvDW87s2PZ27F0",
+    apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",  // ✅ Clé corrigée
     authDomain: "fsa-unilu.firebaseapp.com",
     projectId: "fsa-unilu",
     storageBucket: "fsa-unilu.firebasestorage.app",
@@ -131,12 +131,6 @@ self.addEventListener('install', event => {
 
                 const cache = await caches.open(CACHE_NAME);
 
-                /*
-                 * On ajoute les fichiers un par un.
-                 * Ainsi, si un fichier n'existe pas encore,
-                 * toute l'installation ne sera pas annulée.
-                 */
-
                 await Promise.all(
                     STATIC_FILES.map(async url => {
 
@@ -169,10 +163,6 @@ self.addEventListener('install', event => {
 
             }
 
-            /*
-             * Active immédiatement le nouveau SW.
-             */
-
             await self.skipWaiting();
 
         })()
@@ -197,14 +187,6 @@ self.addEventListener('activate', event => {
                 await Promise.all(
                     cacheNames.map(cacheName => {
 
-                        /*
-                         * On supprime uniquement les anciennes
-                         * versions du cache de cette application.
-                         *
-                         * On ne touche PAS aux autres caches
-                         * présents sur le domaine.
-                         */
-
                         if (
                             cacheName.startsWith('fsa-cache-') &&
                             cacheName !== CACHE_NAME
@@ -222,11 +204,6 @@ self.addEventListener('activate', event => {
                     })
                 );
 
-                /*
-                 * Prend immédiatement le contrôle
-                 * des pages ouvertes.
-                 */
-
                 await self.clients.claim();
 
                 console.log('[FSA-SW] ✅ Service Worker actif');
@@ -242,16 +219,12 @@ self.addEventListener('activate', event => {
 });
 
 // ================================================================
-// FETCH — GESTION DU CACHE
+// FETCH
 // ================================================================
 
 self.addEventListener('fetch', event => {
 
     const request = event.request;
-
-    /*
-     * Nous ne traitons que GET.
-     */
 
     if (request.method !== 'GET') {
         return;
@@ -265,11 +238,6 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    /*
-     * On ne veut surtout pas mettre Firebase,
-     * Google APIs ou Cloud Functions dans notre cache.
-     */
-
     const isSameOrigin =
         requestUrl.origin === self.location.origin;
 
@@ -277,26 +245,9 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    /*
-     * Ne pas intercepter les ressources qui ne concernent
-     * pas l'application.
-     */
-
     if (!requestUrl.pathname.startsWith(APP_SCOPE)) {
         return;
     }
-
-    /*
-     * Pour les pages HTML :
-     *
-     * NETWORK FIRST
-     *
-     * On essaie d'abord Internet afin d'avoir la
-     * version la plus récente.
-     *
-     * Si Internet est indisponible :
-     * → utiliser le cache.
-     */
 
     if (
         request.mode === 'navigate' ||
@@ -341,11 +292,6 @@ self.addEventListener('fetch', event => {
                         return cachedResponse;
                     }
 
-                    /*
-                     * Dernier recours :
-                     * page étudiant.
-                     */
-
                     const fallback =
                         await caches.match(
                             getAppUrl('etudiant.html')
@@ -388,15 +334,6 @@ self.addEventListener('fetch', event => {
 
         return;
     }
-
-    /*
-     * Pour CSS, JS, images, etc. :
-     *
-     * CACHE FIRST
-     *
-     * Si disponible dans le cache → utilisation immédiate.
-     * Sinon → réseau puis ajout au cache.
-     */
 
     event.respondWith(
         (async () => {
@@ -457,7 +394,6 @@ if (messaging) {
 
     console.log('[FSA-SW] 📡 Configuration du listener FCM...');
 
-    // Gestionnaire pour les messages en arrière-plan
     messaging.onBackgroundMessage(payload => {
 
         console.log('[FSA-SW] 📨 Notification reçue en arrière-plan :', payload);
@@ -467,15 +403,6 @@ if (messaging) {
 
         const data =
             payload.data || {};
-
-        /*
-         * Les données peuvent provenir :
-         *
-         * 1. de notification
-         * 2. de data
-         *
-         * data est prioritaire pour notre architecture.
-         */
 
         const title =
             data.title ||
@@ -487,10 +414,6 @@ if (messaging) {
             notification.body ||
             'Nouvelle information disponible';
 
-        /*
-         * URL de destination.
-         */
-
         const requestedUrl =
             data.url ||
             notification.click_action ||
@@ -499,10 +422,6 @@ if (messaging) {
         const clickUrl =
             getAppUrl(requestedUrl);
 
-        /*
-         * Identifiants utiles.
-         */
-
         const type =
             data.type ||
             'info';
@@ -510,29 +429,6 @@ if (messaging) {
         const communiqueId =
             data.communiqueId ||
             null;
-
-        const cotationId =
-            data.cotationId ||
-            null;
-
-        const carteId =
-            data.carteId ||
-            null;
-
-        const transactionId =
-            data.transactionId ||
-            null;
-
-        const projectId =
-            data.projectId ||
-            null;
-
-        /*
-         * Tag unique par type.
-         *
-         * Cela évite que toutes les notifications
-         * soient considérées comme identiques.
-         */
 
         const tag =
             data.tag ||
@@ -557,19 +453,7 @@ if (messaging) {
                 type: type,
 
                 communiqueId:
-                    communiqueId,
-
-                cotationId:
-                    cotationId,
-
-                carteId:
-                    carteId,
-
-                transactionId:
-                    transactionId,
-
-                projectId:
-                    projectId
+                    communiqueId
 
             },
 
@@ -587,16 +471,6 @@ if (messaging) {
 
         };
 
-        /*
-         * IMPORTANT :
-         *
-         * Le backend doit envoyer des messages DATA ONLY
-         * pour cette architecture.
-         *
-         * Ainsi, c'est CE Service Worker qui affiche
-         * une seule notification.
-         */
-
         return self.registration.showNotification(
             title,
             options
@@ -612,7 +486,7 @@ if (messaging) {
 }
 
 // ================================================================
-// GESTIONNAIRE PUSH POUR MESSAGES NON-FCM
+// GESTIONNAIRE PUSH
 // ================================================================
 
 self.addEventListener('push', event => {
@@ -623,11 +497,9 @@ self.addEventListener('push', event => {
 
     try {
         if (event.data) {
-            // Essayer de parser en JSON
             try {
                 data = event.data.json();
             } catch (e) {
-                // Sinon, parser en texte
                 const text = event.data.text();
                 try {
                     data = JSON.parse(text);
@@ -662,7 +534,7 @@ self.addEventListener('push', event => {
 });
 
 // ================================================================
-// CLIC SUR UNE NOTIFICATION
+// CLIC SUR NOTIFICATION
 // ================================================================
 
 self.addEventListener(
@@ -682,15 +554,7 @@ self.addEventListener(
         const action =
             event.action;
 
-        /*
-         * Fermer immédiatement la notification.
-         */
-
         notification.close();
-
-        /*
-         * Bouton Fermer.
-         */
 
         if (action === 'close') {
             return;
@@ -699,19 +563,9 @@ self.addEventListener(
         event.waitUntil(
             (async () => {
 
-                /*
-                 * URL initiale.
-                 */
-
                 let targetUrl =
                     data.url ||
                     getAppUrl('etudiant.html');
-
-                /*
-                 * Sécurité :
-                 * si l'URL n'est pas celle de notre application,
-                 * on revient vers l'application.
-                 */
 
                 try {
 
@@ -749,11 +603,6 @@ self.addEventListener(
                         getAppUrl('etudiant.html');
                 }
 
-                /*
-                 * Si c'est un communiqué, on ajoute son ID
-                 * uniquement s'il n'est pas déjà présent.
-                 */
-
                 if (
                     data.communiqueId &&
                     !targetUrl.includes('communique=')
@@ -779,11 +628,6 @@ self.addEventListener(
                         );
                     }
                 }
-
-                /*
-                 * Chercher une fenêtre déjà ouverte
-                 * de notre application.
-                 */
 
                 const clientList =
                     await self.clients.matchAll({
@@ -813,13 +657,6 @@ self.addEventListener(
                         }
 
                     });
-
-                /*
-                 * Si l'application est déjà ouverte :
-                 *
-                 * → focus
-                 * → navigation
-                 */
 
                 if (appClient) {
 
@@ -858,11 +695,6 @@ self.addEventListener(
                     return;
                 }
 
-                /*
-                 * Sinon :
-                 * ouvrir une nouvelle fenêtre.
-                 */
-
                 await self.clients.openWindow(
                     targetUrl
                 );
@@ -874,7 +706,7 @@ self.addEventListener(
 );
 
 // ================================================================
-// MESSAGE DEPUIS LES PAGES
+// MESSAGE
 // ================================================================
 
 self.addEventListener(
@@ -886,11 +718,6 @@ self.addEventListener(
 
         console.log('[FSA-SW] 📨 Message reçu:', message.type);
 
-        /*
-         * Permet au frontend de forcer
-         * l'activation du nouveau Service Worker.
-         */
-
         if (
             message.type ===
             'SKIP_WAITING'
@@ -900,10 +727,6 @@ self.addEventListener(
 
             return;
         }
-
-        /*
-         * Demande de version.
-         */
 
         if (
             message.type ===
@@ -928,7 +751,7 @@ self.addEventListener(
 );
 
 // ================================================================
-// FIN DU SERVICE WORKER
+// FIN
 // ================================================================
 
 console.log('[FSA-SW] ✅ Service Worker Hybrilink chargé');
