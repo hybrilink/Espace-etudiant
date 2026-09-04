@@ -15,7 +15,7 @@ const FSA_APP_SCOPE = '/Espace-etudiant/';
 const FSA_VAPID_KEY =
     'BNDQ5l-Vf4yBzUl6wAZ0gBurHoJQG78zf173r-jsOderVcWBor0LjEsqzr11FegBTpRH-O-pb7xXzSTO00xMRP0';
 
-const FSA_SW_PATH = './sw.js';
+const FSA_SW_PATH = 'sw.js';
 
 const FSA_FCM_TOKEN_KEY = 'fsa_fcm_token';
 const FSA_FCM_USER_KEY = 'fsa_fcm_user';
