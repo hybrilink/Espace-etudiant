@@ -10,7 +10,7 @@
 // ================================================================
 
 const APP_SCOPE = '/Espace-etudiant/';
-const CACHE_NAME = 'fsa-cache-v3';
+const CACHE_NAME = 'fsa-cache-v5';
 
 const FIREBASE_VERSION = '10.8.0';
 
@@ -24,15 +24,26 @@ const FIREBASE_MESSAGING_URL =
 // FIREBASE
 // ================================================================
 
-importScripts(FIREBASE_APP_URL);
-importScripts(FIREBASE_MESSAGING_URL);
+console.log('[FSA-SW] 🔄 Chargement du Service Worker...');
+
+try {
+    console.log('[FSA-SW] 📥 Import de Firebase App...');
+    importScripts(FIREBASE_APP_URL);
+    console.log('[FSA-SW] ✅ Firebase App importé');
+    
+    console.log('[FSA-SW] 📥 Import de Firebase Messaging...');
+    importScripts(FIREBASE_MESSAGING_URL);
+    console.log('[FSA-SW] ✅ Firebase Messaging importé');
+} catch (error) {
+    console.error('[FSA-SW] ❌ Erreur import Firebase:', error);
+}
 
 // ================================================================
 // CONFIGURATION FIREBASE
 // ================================================================
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
+    apiKey: "AIzaSyBb82N2-5ns7qKjBAj5UvDW87s2PZ27F0",
     authDomain: "fsa-unilu.firebaseapp.com",
     projectId: "fsa-unilu",
     storageBucket: "fsa-unilu.firebasestorage.app",
@@ -45,27 +56,21 @@ const firebaseConfig = {
 // ================================================================
 
 try {
+    console.log('[FSA-SW] 🔧 Initialisation de Firebase...');
     firebase.initializeApp(firebaseConfig);
+    console.log('[FSA-SW] ✅ Firebase initialisé');
 } catch (error) {
-    console.error(
-        '[FSA-SW] Erreur initialisation Firebase :',
-        error
-    );
+    console.error('[FSA-SW] ❌ Erreur initialisation Firebase :', error);
 }
 
 let messaging = null;
 
 try {
+    console.log('[FSA-SW] 🔧 Initialisation de Firebase Messaging...');
     messaging = firebase.messaging();
-
-    console.log(
-        '[FSA-SW] Firebase Messaging initialisé'
-    );
+    console.log('[FSA-SW] ✅ Firebase Messaging initialisé');
 } catch (error) {
-    console.error(
-        '[FSA-SW] Firebase Messaging indisponible :',
-        error
-    );
+    console.error('[FSA-SW] ❌ Firebase Messaging indisponible :', error);
 }
 
 // ================================================================
@@ -117,9 +122,7 @@ function getAssetUrl(filename) {
 
 self.addEventListener('install', event => {
 
-    console.log(
-        '[FSA-SW] Installation du Service Worker...'
-    );
+    console.log('[FSA-SW] 📦 Installation du Service Worker...');
 
     event.waitUntil(
         (async () => {
@@ -142,31 +145,27 @@ self.addEventListener('install', event => {
                             await cache.add(url);
 
                             console.log(
-                                '[FSA-SW] Fichier mis en cache :',
+                                '[FSA-SW] ✅ Fichier mis en cache :',
                                 url
                             );
 
                         } catch (error) {
 
                             console.warn(
-                                '[FSA-SW] Impossible de mettre en cache :',
-                                url
+                                '[FSA-SW] ⚠️ Impossible de mettre en cache :',
+                                url,
+                                error
                             );
                         }
 
                     })
                 );
 
-                console.log(
-                    '[FSA-SW] Installation terminée'
-                );
+                console.log('[FSA-SW] ✅ Installation terminée');
 
             } catch (error) {
 
-                console.error(
-                    '[FSA-SW] Erreur installation :',
-                    error
-                );
+                console.error('[FSA-SW] ❌ Erreur installation :', error);
 
             }
 
@@ -186,9 +185,7 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
 
-    console.log(
-        '[FSA-SW] Activation du Service Worker...'
-    );
+    console.log('[FSA-SW] 🔄 Activation du Service Worker...');
 
     event.waitUntil(
         (async () => {
@@ -214,7 +211,7 @@ self.addEventListener('activate', event => {
                         ) {
 
                             console.log(
-                                '[FSA-SW] Suppression ancien cache :',
+                                '[FSA-SW] 🗑️ Suppression ancien cache :',
                                 cacheName
                             );
 
@@ -232,16 +229,11 @@ self.addEventListener('activate', event => {
 
                 await self.clients.claim();
 
-                console.log(
-                    '[FSA-SW] Service Worker actif'
-                );
+                console.log('[FSA-SW] ✅ Service Worker actif');
 
             } catch (error) {
 
-                console.error(
-                    '[FSA-SW] Erreur activation :',
-                    error
-                );
+                console.error('[FSA-SW] ❌ Erreur activation :', error);
 
             }
 
@@ -338,7 +330,7 @@ self.addEventListener('fetch', event => {
                 } catch (error) {
 
                     console.warn(
-                        '[FSA-SW] Hors ligne :',
+                        '[FSA-SW] 📴 Hors ligne :',
                         request.url
                     );
 
@@ -440,7 +432,7 @@ self.addEventListener('fetch', event => {
             } catch (error) {
 
                 console.warn(
-                    '[FSA-SW] Ressource indisponible :',
+                    '[FSA-SW] 📴 Ressource indisponible :',
                     request.url
                 );
 
@@ -463,12 +455,12 @@ self.addEventListener('fetch', event => {
 
 if (messaging) {
 
+    console.log('[FSA-SW] 📡 Configuration du listener FCM...');
+
+    // Gestionnaire pour les messages en arrière-plan
     messaging.onBackgroundMessage(payload => {
 
-        console.log(
-            '[FSA-SW] Notification reçue en arrière-plan :',
-            payload
-        );
+        console.log('[FSA-SW] 📨 Notification reçue en arrière-plan :', payload);
 
         const notification =
             payload.notification || {};
@@ -612,7 +604,62 @@ if (messaging) {
 
     });
 
+    console.log('[FSA-SW] ✅ Listener FCM configuré');
+
+} else {
+
+    console.warn('[FSA-SW] ⚠️ Firebase Messaging non disponible');
 }
+
+// ================================================================
+// GESTIONNAIRE PUSH POUR MESSAGES NON-FCM
+// ================================================================
+
+self.addEventListener('push', event => {
+
+    console.log('[FSA-SW] 📨 Push event reçu :', event);
+
+    let data = {};
+
+    try {
+        if (event.data) {
+            // Essayer de parser en JSON
+            try {
+                data = event.data.json();
+            } catch (e) {
+                // Sinon, parser en texte
+                const text = event.data.text();
+                try {
+                    data = JSON.parse(text);
+                } catch (e2) {
+                    data = { body: text };
+                }
+            }
+        }
+    } catch (error) {
+        console.warn('[FSA-SW] ⚠️ Erreur parsing push data :', error);
+    }
+
+    const title = data.title || 'Faculté Agronomique';
+    const body = data.body || 'Nouvelle information disponible';
+
+    const options = {
+        body: body,
+        icon: getAssetUrl('icon-192x192.png'),
+        badge: getAssetUrl('icon-96x96.png'),
+        data: {
+            url: data.url || getAppUrl('etudiant.html'),
+            type: data.type || 'info',
+        },
+        tag: `fsa-push-${Date.now()}`,
+        renotify: true,
+        vibrate: [200, 100, 200]
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
+});
 
 // ================================================================
 // CLIC SUR UNE NOTIFICATION
@@ -623,7 +670,7 @@ self.addEventListener(
     event => {
 
         console.log(
-            '[FSA-SW] Notification cliquée'
+            '[FSA-SW] 👆 Notification cliquée'
         );
 
         const notification =
@@ -728,7 +775,7 @@ self.addEventListener(
                     } catch (error) {
 
                         console.warn(
-                            '[FSA-SW] Impossible de construire URL communiqué'
+                            '[FSA-SW] ⚠️ Impossible de construire URL communiqué'
                         );
                     }
                 }
@@ -782,7 +829,7 @@ self.addEventListener(
 
                     } catch (error) {
                         console.warn(
-                            '[FSA-SW] Focus impossible :',
+                            '[FSA-SW] ⚠️ Focus impossible :',
                             error
                         );
                     }
@@ -803,7 +850,7 @@ self.addEventListener(
                     } catch (error) {
 
                         console.warn(
-                            '[FSA-SW] Navigation impossible :',
+                            '[FSA-SW] ⚠️ Navigation impossible :',
                             error
                         );
                     }
@@ -836,6 +883,8 @@ self.addEventListener(
 
         const message =
             event.data || {};
+
+        console.log('[FSA-SW] 📨 Message reçu:', message.type);
 
         /*
          * Permet au frontend de forcer
@@ -882,16 +931,6 @@ self.addEventListener(
 // FIN DU SERVICE WORKER
 // ================================================================
 
-console.log(
-    '[FSA-SW] Service Worker Hybrilink chargé'
-);
-
-console.log(
-    '[FSA-SW] Scope :',
-    APP_SCOPE
-);
-
-console.log(
-    '[FSA-SW] Cache :',
-    CACHE_NAME
-);
+console.log('[FSA-SW] ✅ Service Worker Hybrilink chargé');
+console.log('[FSA-SW] 📁 Scope :', APP_SCOPE);
+console.log('[FSA-SW] 💾 Cache :', CACHE_NAME);
