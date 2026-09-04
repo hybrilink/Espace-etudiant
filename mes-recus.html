@@ -1,0 +1,3853 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>Mes Cartes d'Accès - Faculté Agronomique</title>
+    <meta name="theme-color" content="#003366">
+    <meta name="description" content="Cartes d'accès numériques - Faculté des Sciences Agronomiques UNILU">
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+
+    <!-- Configuration du sceau et de la signature -->
+    <script>
+        const SCEAU_ADMIN =
+            'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="45" fill="%23bf953f"/%3E%3Ccircle cx="50" cy="50" r="38" fill="none" stroke="%23fff" stroke-width="2"/%3E%3Ctext x="50" y="45" text-anchor="middle" fill="white" font-size="10" font-weight="bold"%3EFACULTÉ%3C/text%3E%3Ctext x="50" y="58" text-anchor="middle" fill="white" font-size="8"%3EAGRONOMIQUE%3C/text%3E%3Ctext x="50" y="72" text-anchor="middle" fill="%23ffd700" font-size="12"%3E★%3C/text%3E%3C/svg%3E';
+
+        const SIGNATURE_DOYEN =
+            'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60"%3E%3Ctext x="10" y="35" font-family="Brush Script MT, cursive" font-size="32" fill="%23003366"%3EMpundu Mulimbi Michel%3C/text%3E%3C/svg%3E';
+
+        const DOYEN_INFO = {
+            titre: 'DOYEN FSA - UNILU',
+            nom: 'Mpundu Mulimbi Michel'
+        };
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary-blue: #003366;
+            --dark-blue: #002244;
+            --accent-yellow: #ffb347;
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+            --gold: #bf953f;
+            --gold-gradient: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            --silver-gradient: linear-gradient(135deg, #e8e8e8, #c0c0c0, #f5f5f5, #a0a0a0, #e0e0e0, #c8c8c8);
+        }
+
+        body {
+            background: #e9ecef;
+            font-family: 'Times New Roman', 'Segoe UI', serif;
+            padding-bottom: 30px;
+        }
+
+        .navbar-custom {
+            background: var(--primary-blue);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            padding: 8px 0;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: white;
+            text-decoration: none;
+        }
+
+        .profile-photo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-yellow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .profile-photo i {
+            font-size: 24px;
+            color: var(--primary-blue);
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            background: var(--danger-red);
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220,53,69,0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(220,53,69,0); }
+            100% { box-shadow: 0 0 0 0 rgba(220,53,69,0); }
+        }
+
+        .carte-wrapper {
+            perspective: 1400px;
+            margin: 16px auto;
+            max-width: 680px;
+            cursor: pointer;
+        }
+
+        .livre-3d {
+            position: relative;
+            width: 100%;
+            transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .livre-3d.ouvert {
+            transform: rotateY(180deg);
+        }
+
+        .livre-contenu {
+            position: relative;
+            width: 100%;
+            display: flex;
+            flex-direction: row !important;
+            backface-visibility: hidden;
+            background: #fdf8ed;
+            border-radius: 14px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+            overflow: hidden;
+            min-height: 380px;
+        }
+
+        .page-livre {
+            flex: 1;
+            position: relative;
+            padding: 14px 12px;
+            transition: all 0.2s ease;
+        }
+
+        .page-gauche,
+        .page-droite {
+            background: #F8F0DC;
+        }
+
+        .page-gauche {
+            border-right: 1px solid #DCC99A;
+        }
+
+        .livre-contenu::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, #bf953f, #fcf6ba, #bf953f);
+            transform: translateX(-50%);
+            z-index: 5;
+        }
+
+        .page-gauche::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 10px;
+            height: 100%;
+            background: linear-gradient(to left, rgba(0,0,0,0.06), transparent);
+            pointer-events: none;
+        }
+
+        .page-droite::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 10px;
+            height: 100%;
+            background: linear-gradient(to right, rgba(0,0,0,0.06), transparent);
+            pointer-events: none;
+        }
+
+        .cover-livre {
+            position: relative;
+            width: 100%;
+            backface-visibility: hidden;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .cover-livre.recto {
+            transform: rotateY(0deg);
+            z-index: 2;
+        }
+
+        .cover-livre.verso {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: rotateY(180deg);
+            z-index: 1;
+        }
+
+        .cover-card {
+            background: linear-gradient(135deg, #001a33 0%, #003366 50%, #001a33 100%);
+            padding: 30px 20px;
+            text-align: center;
+            min-height: 380px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid var(--gold);
+            border-radius: 14px;
+        }
+
+        .cover-logo-img {
+            width: 85px;
+            height: 85px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            border: 2px solid var(--gold);
+            overflow: hidden;
+        }
+
+        .cover-logo-img img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+        }
+
+        .cover-title {
+            color: var(--gold);
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .cover-subtitle {
+            color: #ffd700;
+            font-size: 0.75rem;
+            margin-top: 6px;
+        }
+
+        .cover-footer {
+            margin-top: 25px;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.65rem;
+        }
+
+        .instruction-text {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.65rem;
+        }
+
+        .page-titre {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            border-bottom: 1.5px solid var(--gold);
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        .photo-container-page {
+            width: 75px;
+            height: 90px;
+            border: 1.5px solid var(--gold);
+            background: #f5f0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            position: relative;
+        }
+
+        .photo-placeholder {
+            font-size: 42px;
+            color: #bbb;
+        }
+
+        .scellement-argent-page {
+            position: absolute;
+            bottom: -6px;
+            right: -6px;
+            width: 52px;
+            height: 52px;
+            background: var(--silver-gradient);
+            background-size: 200% 200%;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5.5px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.2;
+            padding: 4px;
+            z-index: 11;
+            font-family: Arial, sans-serif;
+            color: #1a3a5c;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 12px rgba(191,149,63,0.6);
+            animation: silverShine 1.5s ease-in-out infinite, silverRotate 4s linear infinite;
+            backdrop-filter: blur(0.5px);
+        }
+
+        @keyframes silverShine {
+            0% {
+                background-position: 0% 0%;
+                box-shadow: 0 0 8px rgba(191,149,63,0.4);
+                border-color: #bf953f;
+            }
+
+            50% {
+                background-position: 100% 50%;
+                box-shadow: 0 0 20px rgba(255,215,0,0.7);
+                border-color: #ffd700;
+            }
+
+            100% {
+                background-position: 0% 0%;
+                box-shadow: 0 0 8px rgba(191,149,63,0.4);
+                border-color: #bf953f;
+            }
+        }
+
+        @keyframes silverRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .border-frame-page {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border: 1px solid;
+            border-image: var(--gold-gradient) 1;
+            pointer-events: none;
+            border-radius: 5px;
+        }
+
+        .qr-wrapper-page {
+            width: 105px;
+            height: 105px;
+            border: 1.5px solid var(--primary-blue);
+            padding: 4px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .qr-wrapper-page img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .id-number-page {
+            font-family: 'Courier New', monospace;
+            background: #003366;
+            color: var(--gold);
+            padding: 2px 8px;
+            font-weight: bold;
+            display: inline-block;
+            font-size: 8px;
+            border-radius: 4px;
+        }
+
+        .signature-officielle-page {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid var(--gold);
+            text-align: center;
+            position: relative;
+        }
+
+        .signature-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            margin-top: 6px;
+            padding: 4px 0;
+        }
+
+        .sceau-sig {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: transparent;
+        }
+
+        .sceau-sig img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .signature-block {
+            flex: 1;
+            text-align: left;
+        }
+
+        .signature-image {
+            display: block;
+            max-width: 100px;
+            height: auto;
+            margin-bottom: 2px;
+        }
+
+        .signature-image img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .signature-ligne-page {
+            width: 80px;
+            height: 1.5px;
+            background: var(--gold);
+            margin: 2px 0;
+        }
+
+        .titre-doyen {
+            font-size: 7px;
+            margin: 0;
+            color: #555;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .nom-doyen {
+            font-size: 10px;
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin: 3px 0 0 0;
+            font-family: 'Brush Script MT', cursive, 'Segoe UI', serif;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+        }
+
+        .status-valid-page {
+            background: var(--success-green);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 15px;
+            font-size: 7.5px;
+        }
+
+        .status-expired-page {
+            background: var(--danger-red);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 15px;
+            font-size: 7.5px;
+        }
+
+        .watermark-centre {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40%;
+            opacity: 0.06;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .info-list {
+            list-style: none;
+            padding-left: 0;
+            font-size: 8px;
+            line-height: 1.45;
+            margin-bottom: 8px;
+        }
+
+        .info-list li {
+            padding-left: 14px;
+            position: relative;
+            margin-bottom: 5px;
+        }
+
+        .info-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--gold);
+            font-size: 7px;
+        }
+
+        .micro-text-page {
+            font-size: 5.5px;
+            color: #aaa;
+            text-align: center;
+            margin-top: 8px;
+            padding-top: 4px;
+            border-top: 0.5px solid #eee;
+        }
+
+        .entete-univ {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 6px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--gold);
+            padding-bottom: 5px;
+        }
+
+        .mini-logo-univ {
+            width: 26px;
+            height: 26px;
+            background: white;
+            border-radius: 30%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid var(--gold);
+        }
+
+        .mini-logo-univ img {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+        }
+
+        .titre-avec-logo {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-refresh {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 25px;
+            font-size: 0.8rem;
+        }
+
+        .btn-home {
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+            padding: 6px 16px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .btn-home:hover {
+            background: #ff9800;
+            color: var(--primary-blue);
+        }
+
+        .info-banner {
+            background: #e8f4fd;
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 16px;
+            font-size: 11px;
+            border-left: 3px solid var(--primary-blue);
+        }
+
+        .toast-notification {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 9999;
+            max-width: 260px;
+        }
+
+        .toast-custom {
+            animation: slideInRight 0.2s ease-out;
+            margin-bottom: 8px;
+            padding: 10px 15px;
+            border-radius: 12px;
+            color: white;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .toast-custom i {
+            font-size: 18px;
+        }
+
+        .toast-custom .close-toast {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: auto;
+            opacity: 0.7;
+        }
+
+        .toast-custom .close-toast:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .profile-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .profile-modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            max-width: 340px;
+            width: 90%;
+        }
+
+        .btn-action {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 30px;
+            width: 100%;
+        }
+
+        .btn-action:hover {
+            background: var(--dark-blue);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            border: 3px solid var(--primary-blue);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .new-card-badge {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background: var(--primary-blue);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 50px;
+            font-size: 13px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 100;
+            cursor: pointer;
+            animation: bounceIn 0.5s ease;
+            font-weight: bold;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .sync-status {
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: var(--success-green);
+            color: white;
+        }
+
+        .sync-status.offline {
+            background: var(--danger-red);
+        }
+
+        .cache-status {
+            font-size: 10px;
+            color: #888;
+            padding: 5px 0;
+            text-align: right;
+        }
+
+        .cache-status .cached { color: #28a745; }
+        .cache-status .live { color: #ffb347; }
+        .cache-status .offline { color: #dc3545; }
+
+        .qr-view-btn {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 25px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 8px rgba(0,51,102,0.3);
+        }
+
+        .qr-view-btn:hover {
+            background: #002244;
+        }
+
+        .qr-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            backdrop-filter: blur(3px);
+        }
+
+        .qr-modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .qr-modal-content .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 18px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            background: none;
+            border: none;
+        }
+
+        .qr-modal-content .close-btn:hover {
+            color: #333;
+        }
+
+        .qr-modal-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            border: 2px solid var(--primary-blue);
+            padding: 8px;
+            background: white;
+        }
+
+        .qr-modal-content .qr-info {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .qr-modal-content .qr-info strong {
+            color: var(--primary-blue);
+        }
+
+        .offline-badge {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: var(--accent-yellow);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            display: none;
+            z-index: 100;
+        }
+
+        .offline-badge.show {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .notification-permission-card {
+            display: none;
+            background: #fff8e1;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-yellow);
+        }
+
+        .notification-permission-card.show {
+            display: block;
+        }
+
+        .notification-permission-card h6 {
+            color: var(--primary-blue);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .notification-permission-card p {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .livre-contenu {
+                flex-direction: row !important;
+                min-height: 340px;
+            }
+
+            .page-livre {
+                padding: 10px 8px;
+            }
+
+            .photo-container-page {
+                width: 65px;
+                height: 82px;
+            }
+
+            .qr-wrapper-page {
+                width: 90px;
+                height: 90px;
+            }
+
+            .scellement-argent-page {
+                width: 48px;
+                height: 48px;
+                font-size: 5px;
+                bottom: -5px;
+                right: -5px;
+            }
+
+            .sceau-sig {
+                width: 40px;
+                height: 40px;
+            }
+
+            .signature-image {
+                max-width: 70px;
+            }
+
+            .nom-doyen {
+                font-size: 9px;
+            }
+
+            .titre-doyen {
+                font-size: 6px;
+            }
+
+            .info-list li {
+                font-size: 7.5px;
+                margin-bottom: 4px;
+            }
+
+            .page-titre {
+                font-size: 0.7rem;
+            }
+
+            .titre-avec-logo {
+                font-size: 0.65rem;
+            }
+
+            .mini-logo-univ {
+                width: 22px;
+                height: 22px;
+            }
+
+            .mini-logo-univ img {
+                width: 18px;
+                height: 18px;
+            }
+
+            .watermark-centre {
+                width: 35%;
+            }
+
+            .new-card-badge {
+                bottom: 80px;
+                right: 10px;
+                padding: 10px 14px;
+                font-size: 11px;
+            }
+
+            .qr-view-btn {
+                font-size: 0.65rem;
+                padding: 4px 12px;
+            }
+
+            .toast-custom {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
+
+        @media print {
+            .navbar-custom,
+            .action-bar,
+            .toast-custom,
+            .instruction-text,
+            .new-card-badge,
+            .qr-view-btn,
+            .qr-modal,
+            .offline-badge {
+                display: none;
+            }
+
+            .livre-3d {
+                transform: none !important;
+            }
+
+            .cover-livre.verso {
+                position: relative;
+                transform: none;
+                display: block;
+            }
+
+            .cover-livre.recto {
+                display: none;
+            }
+
+            .nom-doyen {
+                font-size: 12px;
+                white-space: nowrap;
+                line-height: 1;
+            }
+
+            .titre-doyen {
+                font-size: 9px !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-custom">
+    <div class="container">
+        <a class="navbar-brand" href="etudiant.html">
+            <i class="bi bi-tree-fill"></i>
+            FACULTÉ AGRONOMIQUE - UNILU
+        </a>
+
+        <div class="navbar-right">
+            <div class="profile-photo" id="profileBtn">
+                <i class="bi bi-person-circle"></i>
+                <span class="notification-dot" id="notificationDot"></span>
+            </div>
+
+            <button class="btn btn-outline-light btn-sm" id="logoutBtn">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-3">
+
+    <div id="toastContainer" class="toast-notification"></div>
+
+    <div class="offline-badge" id="offlineBadge">
+        <i class="bi bi-wifi-off"></i>
+        Mode hors ligne
+    </div>
+
+    <!-- NOTIFICATION PERMISSION -->
+    <div id="notificationPermissionCard" class="notification-permission-card">
+        <h6>
+            <i class="bi bi-bell-fill"></i>
+            Activer les notifications
+        </h6>
+
+        <p>
+            Recevez une notification dès qu'une nouvelle carte d'examen est disponible.
+        </p>
+
+        <button
+            type="button"
+            class="btn btn-sm btn-primary"
+            id="enableNotificationsBtn"
+            style="background:#003366;border:none;border-radius:25px;padding:8px 20px;"
+        >
+            <i class="bi bi-bell"></i>
+            Activer
+        </button>
+    </div>
+
+    <div class="action-bar">
+
+        <h5 class="mb-0">
+            <i class="bi bi-shield-lock-fill me-1" style="color: var(--gold);"></i>
+            Mes Cartes
+        </h5>
+
+        <div>
+
+            <span class="cache-status me-2" id="cacheStatus">
+                <i class="bi bi-database"></i>
+                <span id="cacheStatusText">Temps réel ⚡</span>
+            </span>
+
+            <span id="syncStatus" class="sync-status me-2">
+                <i class="bi bi-wifi"></i>
+                En ligne
+            </span>
+
+            <button class="btn-refresh me-2" id="refreshBtn">
+                <i class="bi bi-arrow-repeat"></i>
+                Sync
+            </button>
+
+            <a href="etudiant.html" class="btn-home">
+                <i class="bi bi-house-door-fill"></i>
+                Accueil
+            </a>
+
+        </div>
+    </div>
+
+    <div
+        class="content-card"
+        style="background:white;border-radius:20px;padding:15px;box-shadow:0 5px 18px rgba(0,0,0,0.08);"
+    >
+
+        <div class="info-banner">
+
+            <i class="bi bi-database me-1"></i>
+
+            <strong>Cache actif</strong>
+            — Synchronisation temps réel
+
+            <br>
+
+            <small class="text-muted">
+                <i class="bi bi-info-circle"></i>
+                Scannez le QR avec l'application Pointeur pour valider votre entrée
+            </small>
+
+        </div>
+
+        <div id="cartesContainer"></div>
+
+    </div>
+
+    <div
+        class="footer-info text-center mt-3 py-2"
+        style="font-size:10px;color:#888;"
+    >
+        <i class="bi bi-shield-check"></i>
+        HYBRILINK-TECH - Document officiel signé par le DÉCANAT
+    </div>
+
+</div>
+
+<!-- BADGE NOUVELLE CARTE -->
+<div
+    id="newCardBadge"
+    class="new-card-badge"
+    onclick="rafraichirCartes()"
+>
+    <i class="bi bi-bell-fill me-1"></i>
+    <span id="newCardCount">0</span>
+    nouvelle(s) carte(s)
+</div>
+
+<!-- PROFIL -->
+<div id="profileModal" class="profile-modal">
+
+    <div class="profile-modal-content text-center">
+
+        <i
+            class="bi bi-person-circle"
+            style="font-size:55px;color:var(--primary-blue);"
+        ></i>
+
+        <h5 id="profilNom"></h5>
+
+        <p id="profilMatricule" class="small"></p>
+
+        <p id="profilPromotion" class="small"></p>
+
+        <hr>
+
+        <h6 class="small">
+            Changer mot de passe
+        </h6>
+
+        <input
+            type="password"
+            class="form-control form-control-sm mb-2"
+            id="newPassword"
+            placeholder="Nouveau mot de passe"
+        >
+
+        <input
+            type="password"
+            class="form-control form-control-sm mb-2"
+            id="confirmNewPassword"
+            placeholder="Confirmer"
+        >
+
+        <button
+            class="btn-action btn-sm"
+            id="changePasswordBtn"
+        >
+            Modifier
+        </button>
+
+        <button
+            class="btn btn-secondary btn-sm w-100 mt-2"
+            onclick="closeProfileModal()"
+        >
+            Fermer
+        </button>
+
+    </div>
+
+</div>
+
+<!-- QR MODAL -->
+<div
+    id="qrModal"
+    class="qr-modal"
+    onclick="if(event.target===this) closeQRModal()"
+>
+
+    <div class="qr-modal-content">
+
+        <button
+            class="close-btn"
+            onclick="closeQRModal()"
+        >
+            &times;
+        </button>
+
+        <h5 style="color: var(--primary-blue); margin-bottom: 15px;">
+            <i class="bi bi-qr-code"></i>
+            QR Code d'Accès
+        </h5>
+
+        <img
+            id="qrModalImg"
+            src=""
+            alt="QR Code"
+        >
+
+        <div class="qr-info">
+
+            <p>
+                <strong>Nom:</strong>
+                <span id="qrModalNom"></span>
+            </p>
+
+            <p>
+                <strong>Matricule:</strong>
+                <span id="qrModalMatricule"></span>
+            </p>
+
+            <p>
+                <strong>Code:</strong>
+                <span id="qrModalCode"></span>
+            </p>
+
+        </div>
+
+        <p style="font-size:11px;color:#999;margin-top:10px;">
+            Présentez ce QR à l'entrée pour validation
+        </p>
+
+    </div>
+
+</div>
+
+<script>
+/* ================================================================
+   1. FIREBASE
+================================================================ */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBb82N-5ns7qKjQBAj5UvDW87s2PZ27F0",
+    authDomain: "fsa-unilu.firebaseapp.com",
+    projectId: "fsa-unilu",
+    storageBucket: "fsa-unilu.firebasestorage.app",
+    messagingSenderId: "36551990738",
+    appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+const db = firebase.firestore();
+
+let messaging = null;
+
+try {
+    if (firebase.messaging.isSupported()) {
+        messaging = firebase.messaging();
+    }
+} catch (error) {
+    console.warn('[FCM] Messaging indisponible:', error);
+}
+
+
+/* ================================================================
+   2. VARIABLES
+================================================================ */
+
+let currentStudent = null;
+let allPromotions = [];
+let allCartes = [];
+
+let newCartesCount = 0;
+
+let unsubscribeCartes = null;
+
+let previousCartes = [];
+
+let firstRealtimeSnapshot = true;
+
+
+/* ================================================================
+   3. SESSION
+================================================================ */
+
+function checkSession() {
+
+    const session = localStorage.getItem('session_etudiant');
+
+    if (!session) {
+
+        showToast(
+            'Session expirée, redirection...',
+            'warning'
+        );
+
+        setTimeout(() => {
+            window.location.href = 'login-etudiant.html';
+        }, 1500);
+
+        return false;
+    }
+
+    try {
+
+        const sessionData = JSON.parse(session);
+
+        if (
+            !sessionData.expires ||
+            Date.now() > sessionData.expires
+        ) {
+
+            localStorage.removeItem('session_etudiant');
+
+            window.location.href = 'login-etudiant.html';
+
+            return false;
+        }
+
+        if (!sessionData.id) {
+
+            console.error(
+                'Session invalide : identifiant étudiant absent'
+            );
+
+            localStorage.removeItem('session_etudiant');
+
+            window.location.href = 'login-etudiant.html';
+
+            return false;
+        }
+
+        currentStudent = sessionData;
+
+        console.log(
+            '👤 Étudiant connecté:',
+            currentStudent.nom
+        );
+
+        return true;
+
+    } catch (error) {
+
+        console.error(
+            'Erreur session:',
+            error
+        );
+
+        localStorage.removeItem('session_etudiant');
+
+        window.location.href = 'login-etudiant.html';
+
+        return false;
+    }
+}
+
+
+/* ================================================================
+   4. TOAST
+================================================================ */
+
+function showToast(message, type = 'success') {
+
+    const container =
+        document.getElementById('toastContainer');
+
+    if (!container) return;
+
+    const toast =
+        document.createElement('div');
+
+    toast.className =
+        'toast-custom';
+
+    const colors = {
+
+        success: {
+            bg: '#28a745',
+            icon: 'bi-check-circle-fill'
+        },
+
+        warning: {
+            bg: '#ffc107',
+            icon: 'bi-exclamation-triangle-fill',
+            textColor: '#333'
+        },
+
+        danger: {
+            bg: '#dc3545',
+            icon: 'bi-x-circle-fill'
+        },
+
+        info: {
+            bg: '#17a2b8',
+            icon: 'bi-info-circle-fill'
+        }
+    };
+
+    const config =
+        colors[type] || colors.success;
+
+    const textColor =
+        config.textColor || 'white';
+
+    toast.style.background =
+        config.bg;
+
+    toast.style.color =
+        textColor;
+
+    toast.innerHTML = `
+        <i class="bi ${config.icon}"></i>
+        <span>${escapeHtml(message)}</span>
+        <button
+            class="close-toast"
+            onclick="this.parentElement.remove()"
+        >
+            &times;
+        </button>
+    `;
+
+    container.prepend(toast);
+
+    setTimeout(() => {
+
+        if (toast.parentNode) {
+            toast.remove();
+        }
+
+    }, 5000);
+}
+
+
+/* ================================================================
+   5. UTILITAIRES
+================================================================ */
+
+function escapeHtml(text) {
+
+    if (
+        text === null ||
+        text === undefined
+    ) {
+        return '';
+    }
+
+    const div =
+        document.createElement('div');
+
+    div.textContent =
+        String(text);
+
+    return div.innerHTML;
+}
+
+
+function formatDate(date) {
+
+    if (!date) return '-';
+
+    try {
+
+        if (date.toDate) {
+            date = date.toDate();
+        }
+
+        return date.toLocaleDateString(
+            'fr-FR'
+        );
+
+    } catch (error) {
+
+        return '-';
+    }
+}
+
+
+function updateCacheStatus(
+    status,
+    message
+) {
+
+    const el =
+        document.getElementById(
+            'cacheStatusText'
+        );
+
+    if (!el) return;
+
+    const statusMap = {
+
+        cached: '📦 Cache',
+
+        live: '⚡ Temps réel',
+
+        offline: '⚠️ Hors ligne',
+
+        error: '❌ Erreur'
+    };
+
+    el.textContent =
+        message ||
+        statusMap[status] ||
+        status;
+}
+
+
+/* ================================================================
+   6. NOTIFICATION UTILITIES
+================================================================ */
+
+function loadNotificationUtils() {
+
+    return new Promise((resolve) => {
+
+        if (
+            typeof window.notificationManager !==
+            'undefined' &&
+            typeof window.registerAppServiceWorker ===
+            'function'
+        ) {
+
+            resolve(true);
+            return;
+        }
+
+        const existing =
+            document.querySelector(
+                'script[data-notification-utils]'
+            );
+
+        if (existing) {
+
+            existing.addEventListener(
+                'load',
+                () => resolve(true),
+                { once: true }
+            );
+
+            existing.addEventListener(
+                'error',
+                () => resolve(false),
+                { once: true }
+            );
+
+            return;
+        }
+
+        const script =
+            document.createElement('script');
+
+        script.src =
+            './notification-utils.js';
+
+        script.async = false;
+
+        script.dataset.notificationUtils =
+            'true';
+
+        script.onload = () => {
+
+            console.log(
+                '[NOTIFICATIONS] notification-utils.js chargé'
+            );
+
+            resolve(true);
+        };
+
+        script.onerror = () => {
+
+            console.error(
+                '[NOTIFICATIONS] Impossible de charger notification-utils.js'
+            );
+
+            resolve(false);
+        };
+
+        document.head.appendChild(script);
+    });
+}
+
+
+/* ================================================================
+   7. PROMOTIONS
+================================================================ */
+
+async function chargerPromotions(
+    forceRefresh = false
+) {
+
+    try {
+
+        const snapshot =
+            await db
+                .collection('promotions')
+                .get();
+
+        allPromotions = [];
+
+        snapshot.forEach(doc => {
+
+            allPromotions.push({
+                id: doc.id,
+                ...doc.data()
+            });
+
+        });
+
+        console.log(
+            '✅ Promotions chargées:',
+            allPromotions.length
+        );
+
+        return allPromotions;
+
+    } catch (error) {
+
+        console.error(
+            'Erreur promotions:',
+            error
+        );
+
+        return [];
+    }
+}
+
+
+function getPromotionNom(
+    promotionId
+) {
+
+    if (!promotionId) {
+        return 'Non définie';
+    }
+
+    const promo =
+        allPromotions.find(
+            p => p.id === promotionId
+        );
+
+    return promo
+        ? promo.nom
+        : promotionId;
+}
+
+
+/* ================================================================
+   8. QR CODE
+================================================================ */
+
+function genererQRCodeReel(
+    etudiantId,
+    codeAcces,
+    matricule,
+    nom
+) {
+
+    const baseUrl =
+        window.location.origin;
+
+    const validationUrl =
+        `${baseUrl}/pointeur.html` +
+        `?action=scan` +
+        `&code=${encodeURIComponent(codeAcces || '')}` +
+        `&id=${encodeURIComponent(etudiantId || '')}` +
+        `&mat=${encodeURIComponent(matricule || '')}` +
+        `&nom=${encodeURIComponent(nom || '')}`;
+
+    return (
+        'https://api.qrserver.com/v1/create-qr-code/' +
+        `?size=300x300&margin=2&data=` +
+        encodeURIComponent(validationUrl)
+    );
+}
+
+
+/* ================================================================
+   9. SIGNATURE NUMÉRIQUE
+================================================================ */
+
+async function generateDigitalSignature(data) {
+
+    try {
+
+        const encoder =
+            new TextEncoder();
+
+        const dataString =
+            `${data.matricule || ''}-${data.semestre || ''}-${data.codeAcces || ''}`;
+
+        const dataBuffer =
+            encoder.encode(dataString);
+
+        const hashBuffer =
+            await crypto.subtle.digest(
+                'SHA-256',
+                dataBuffer
+            );
+
+        const hashArray =
+            Array.from(
+                new Uint8Array(hashBuffer)
+            );
+
+        return hashArray
+            .map(
+                b =>
+                    b.toString(16)
+                     .padStart(2, '0')
+            )
+            .join('');
+
+    } catch (error) {
+
+        console.error(
+            'Erreur signature:',
+            error
+        );
+
+        return '00000000';
+    }
+}
+
+
+/* ================================================================
+   10. AFFICHAGE DES CARTES
+================================================================ */
+
+async function afficherCartes(
+    cartes,
+    fromCache = false
+) {
+
+    const container =
+        document.getElementById(
+            'cartesContainer'
+        );
+
+    if (!container) return;
+
+    if (
+        !Array.isArray(cartes) ||
+        cartes.length === 0
+    ) {
+
+        container.innerHTML = `
+            <div class="empty-state text-center p-4">
+
+                <i
+                    class="bi bi-shield-lock"
+                    style="font-size:55px;opacity:0.3;"
+                ></i>
+
+                <h6>Aucune carte</h6>
+
+                <p class="text-muted small">
+                    Contactez le secrétariat pour obtenir votre carte.
+                </p>
+
+                ${
+                    fromCache
+                    ? `
+                        <p class="text-muted small">
+                            <i class="bi bi-database"></i>
+                            Données en cache
+                        </p>
+                    `
+                    : ''
+                }
+
+                <button
+                    class="btn btn-primary mt-2"
+                    onclick="rafraichirCartes()"
+                    style="background:#003366;border:none;"
+                >
+                    <i class="bi bi-arrow-repeat"></i>
+                    Rafraîchir
+                </button>
+
+            </div>
+        `;
+
+        updateNotificationDot(false);
+
+        if (fromCache) {
+            updateCacheStatus('cached');
+        }
+
+        return;
+    }
+
+    let html = '';
+
+    for (const carte of cartes) {
+
+        if (!carte || !carte.codeAcces) {
+            continue;
+        }
+
+        const estExpiree =
+            carte.dateExpirationObj
+                ? new Date(carte.dateExpirationObj) < new Date()
+                : false;
+
+        const promoNom =
+            carte.promotionNom ||
+            getPromotionNom(carte.promotionId) ||
+            'Non définie';
+
+        const qrUrl =
+            genererQRCodeReel(
+                carte.etudiantId ||
+                    currentStudent.id,
+
+                carte.codeAcces,
+
+                carte.matricule ||
+                    currentStudent.matricule,
+
+                carte.etudiantNom ||
+                    currentStudent.nom
+            );
+
+        const nomEtudiant =
+            (
+                carte.etudiantNom ||
+                currentStudent.nom ||
+                'Étudiant'
+            ).toUpperCase();
+
+        const matricule =
+            carte.matricule ||
+            currentStudent.matricule ||
+            'N/A';
+
+        const codeAcces =
+            carte.codeAcces;
+
+        const semestreNom =
+            carte.semestreNom ||
+            (
+                carte.semestre === 'deuxieme'
+                    ? 'Deuxième Semestre'
+                    : 'Premier Semestre'
+            );
+
+        const dateExpiration =
+            carte.dateExpiration ||
+            '-';
+
+        const checksum =
+            carte.checksum ||
+            'FSA2025';
+
+        const safeQrUrl =
+            encodeURIComponent(qrUrl);
+
+        html += `
+
+            <div
+                class="carte-wrapper"
+                data-carte-id="${escapeHtml(carte.id || 'carte')}"
+            >
+
+                <div
+                    style="
+                        display:flex;
+                        justify-content:center;
+                        margin-bottom:6px;
+                    "
+                >
+
+                    <button
+                        class="qr-view-btn"
+                        data-qr-url="${escapeHtml(qrUrl)}"
+                        data-nom="${escapeHtml(nomEtudiant)}"
+                        data-matricule="${escapeHtml(matricule)}"
+                        data-code="${escapeHtml(codeAcces)}"
+                    >
+                        <i class="bi bi-qr-code"></i>
+                        Voir QR
+                    </button>
+
+                </div>
+
+                <div class="livre-3d">
+
+                    <!-- RECTO -->
+
+                    <div class="cover-livre recto">
+
+                        <div class="cover-card">
+
+                            <div class="cover-logo-img">
+
+                                <img
+                                    src="ti.png"
+                                    alt="Logo"
+                                    onerror="
+                                        this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%23bf953f%22/%3E%3Ctext x=%2250%22 y=%2265%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2230%22%3E🌾%3C/text%3E%3C/svg%3E'
+                                    "
+                                >
+
+                            </div>
+
+                            <div class="cover-title">
+                                UNIVERSITÉ DE LUBUMBASHI
+                            </div>
+
+                            <div class="cover-subtitle">
+                                Faculté des Sciences Agronomiques
+                            </div>
+
+                            <div
+                                style="
+                                    color:white;
+                                    font-size:1rem;
+                                    margin-top:10px;
+                                "
+                            >
+                                CARTE D'ACCÈS
+                            </div>
+
+                            <div class="cover-footer">
+                                <i class="bi bi-gem"></i>
+                                Sceau rotatif
+                            </div>
+
+                            <div class="instruction-text">
+                                👆 Cliquez pour ouvrir
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- VERSO -->
+
+                    <div class="cover-livre verso">
+
+                        <div class="livre-contenu">
+
+                            <img
+                                src="ti.png"
+                                class="watermark-centre"
+                                alt=""
+                                onerror="this.style.display='none'"
+                            >
+
+                            <!-- PAGE GAUCHE -->
+
+                            <div class="page-livre page-gauche">
+
+                                <div class="page-titre">
+                                    <i class="bi bi-info-circle-fill me-1"></i>
+                                    À SUIVRE
+                                </div>
+
+                                <ul class="info-list">
+
+                                    <li>
+                                        <strong>Validité:</strong>
+                                        Année académique
+                                    </li>
+
+                                    <li>
+                                        <strong>Accès:</strong>
+                                        labos, salles d'examen
+                                    </li>
+
+                                    <li>
+                                        <strong>Renouvellement:</strong>
+                                        Chaque semestre
+                                    </li>
+
+                                    <li>
+                                        <strong>Contrôle:</strong>
+                                        Scan QR temps réel
+                                    </li>
+
+                                    <li>
+                                        <strong>Anti-fraude:</strong>
+                                        Signature électronique
+                                    </li>
+
+                                </ul>
+
+                                <div class="signature-officielle-page">
+
+                                    <div class="signature-container">
+
+                                        <div
+                                            class="sceau-sig"
+                                            title="Sceau administratif - Faculté Agronomique"
+                                        >
+
+                                            <img
+                                                src="${SCEAU_ADMIN}"
+                                                alt="Sceau"
+                                                onerror="
+                                                    this.style.display='none'
+                                                "
+                                            >
+
+                                        </div>
+
+                                        <div class="signature-block">
+
+                                            <div class="signature-image">
+
+                                                <img
+                                                    src="${SIGNATURE_DOYEN}"
+                                                    alt="Signature du Doyen"
+                                                    onerror="
+                                                        this.style.display='none'
+                                                    "
+                                                >
+
+                                            </div>
+
+                                            <div class="signature-ligne-page"></div>
+
+                                            <div class="titre-doyen">
+                                                ${escapeHtml(DOYEN_INFO.titre)}
+                                            </div>
+
+                                            <div class="nom-doyen">
+                                                ${escapeHtml(DOYEN_INFO.nom)}
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="micro-text-page">
+                                    <i class="bi bi-shield-check"></i>
+                                    HYBRILINK-TECH
+                                </div>
+
+                            </div>
+
+
+                            <!-- PAGE DROITE -->
+
+                            <div class="page-livre page-droite">
+
+                                <div class="border-frame-page"></div>
+
+                                <div class="entete-univ">
+
+                                    <div class="mini-logo-univ">
+
+                                        <img
+                                            src="ti.png"
+                                            alt="logo"
+                                            onerror="
+                                                this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22%3E%3Ccircle cx=%2220%22 cy=%2220%22 r=%2218%22 fill=%22%23bf953f%22/%3E%3Ctext x=%2220%22 y=%2228%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2214%22%3E🌾%3C/text%3E%3C/svg%3E'
+                                            "
+                                        >
+
+                                    </div>
+
+                                    <span class="titre-avec-logo">
+                                        UNIVERSITÉ DE LUBUMBASHI
+                                    </span>
+
+                                </div>
+
+                                <div class="d-flex gap-2 flex-wrap align-start">
+
+                                    <div
+                                        class="photo-container-page"
+                                        style="position:relative;"
+                                    >
+
+                                        <div class="photo-placeholder">
+                                            👨‍🎓
+                                        </div>
+
+                                        <div
+                                            class="scellement-argent-page"
+                                            title="Sceau officiel"
+                                        >
+                                            FACULTÉ<br>
+                                            AGRONOMIQUE
+                                        </div>
+
+                                    </div>
+
+                                    <div style="flex:1">
+
+                                        <div
+                                            style="
+                                                font-size:8px;
+                                                color:#777;
+                                            "
+                                        >
+                                            TITULAIRE
+                                        </div>
+
+                                        <div
+                                            style="
+                                                font-size:12px;
+                                                font-weight:bold;
+                                            "
+                                        >
+                                            ${escapeHtml(nomEtudiant)}
+                                        </div>
+
+                                        <div
+                                            style="
+                                                font-size:9px;
+                                            "
+                                        >
+                                            ${escapeHtml(promoNom)}
+                                        </div>
+
+                                        <div
+                                            class="id-number-page mt-1"
+                                        >
+                                            MAT:
+                                            ${escapeHtml(matricule)}
+                                        </div>
+
+                                        <div
+                                            style="font-size:8px;"
+                                        >
+                                            N°
+                                            ${escapeHtml(codeAcces)}
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div
+                                    class="d-flex justify-content-between align-items-center mt-2"
+                                >
+
+                                    <div
+                                        style="
+                                            font-size:7px;
+                                            color:#999;
+                                        "
+                                    >
+                                        <i class="bi bi-qr-code"></i>
+                                        QR disponible
+                                    </div>
+
+                                    <div class="text-end">
+
+                                        <div
+                                            style="
+                                                font-size:7px;
+                                                background:#f0e8d5;
+                                                padding:2px 5px;
+                                                border-radius:12px;
+                                            "
+                                        >
+                                            ${escapeHtml(semestreNom)}
+                                        </div>
+
+                                        <div style="font-size:7px;">
+                                            Exp:
+                                            ${escapeHtml(dateExpiration)}
+                                        </div>
+
+                                        <div
+                                            class="mt-1 ${
+                                                estExpiree
+                                                    ? 'status-expired-page'
+                                                    : 'status-valid-page'
+                                            }"
+                                        >
+                                            ${
+                                                estExpiree
+                                                    ? 'EXPIRÉE'
+                                                    : 'VALIDE'
+                                            }
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div
+                                    class="micro-text-page mt-1"
+                                >
+                                    CHECKSUM:
+                                    ${escapeHtml(checksum)}
+                                    • Q/R dynamique
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+    }
+
+    container.innerHTML = html;
+
+
+    /* ============================================================
+       ÉVÉNEMENTS DES CARTES
+    ============================================================ */
+
+    document
+        .querySelectorAll('.carte-wrapper')
+        .forEach(wrapper => {
+
+            const livre3d =
+                wrapper.querySelector(
+                    '.livre-3d'
+                );
+
+            if (!livre3d) return;
+
+            wrapper.addEventListener(
+                'click',
+                function(e) {
+
+                    if (
+                        e.target.closest(
+                            '.qr-view-btn'
+                        )
+                    ) {
+                        return;
+                    }
+
+                    livre3d.classList.toggle(
+                        'ouvert'
+                    );
+                }
+            );
+        });
+
+
+    /* ============================================================
+       BOUTONS QR
+    ============================================================ */
+
+    document
+        .querySelectorAll('.qr-view-btn')
+        .forEach(button => {
+
+            button.addEventListener(
+                'click',
+                function(e) {
+
+                    e.stopPropagation();
+
+                    openQRModal(
+                        this.dataset.qrUrl,
+                        this.dataset.nom,
+                        this.dataset.matricule,
+                        this.dataset.code
+                    );
+                }
+            );
+        });
+
+
+    if (fromCache) {
+
+        updateCacheStatus(
+            'cached'
+        );
+
+    } else {
+
+        updateCacheStatus(
+            'live',
+            '⚡ Temps réel (' +
+            cartes.length +
+            ' cartes)'
+        );
+    }
+}
+
+
+/* ================================================================
+   11. QR MODAL
+================================================================ */
+
+function openQRModal(
+    qrUrl,
+    nom,
+    matricule,
+    code
+) {
+
+    const modal =
+        document.getElementById(
+            'qrModal'
+        );
+
+    const img =
+        document.getElementById(
+            'qrModalImg'
+        );
+
+    const nomSpan =
+        document.getElementById(
+            'qrModalNom'
+        );
+
+    const matSpan =
+        document.getElementById(
+            'qrModalMatricule'
+        );
+
+    const codeSpan =
+        document.getElementById(
+            'qrModalCode'
+        );
+
+    img.src =
+        qrUrl || '';
+
+    nomSpan.textContent =
+        nom || 'N/A';
+
+    matSpan.textContent =
+        matricule || 'N/A';
+
+    codeSpan.textContent =
+        code || 'N/A';
+
+    modal.style.display =
+        'flex';
+}
+
+
+function closeQRModal() {
+
+    const modal =
+        document.getElementById(
+            'qrModal'
+        );
+
+    if (modal) {
+        modal.style.display =
+            'none';
+    }
+}
+
+window.closeQRModal =
+    closeQRModal;
+
+
+document.addEventListener(
+    'keydown',
+    function(e) {
+
+        if (e.key === 'Escape') {
+            closeQRModal();
+        }
+    }
+);
+
+
+/* ================================================================
+   12. NOUVELLES CARTES
+================================================================ */
+
+function showNewCardBadge(count) {
+
+    const badge =
+        document.getElementById(
+            'newCardBadge'
+        );
+
+    const countSpan =
+        document.getElementById(
+            'newCardCount'
+        );
+
+    if (!badge || !countSpan) {
+        return;
+    }
+
+    if (count > 0) {
+
+        countSpan.textContent =
+            count;
+
+        badge.style.display =
+            'block';
+
+        badge.style.animation =
+            'none';
+
+        setTimeout(() => {
+
+            badge.style.animation =
+                'bounceIn 0.5s ease';
+
+        }, 10);
+
+    } else {
+
+        badge.style.display =
+            'none';
+    }
+}
+
+
+function updateNotificationDot(
+    hasNew
+) {
+
+    const dot =
+        document.getElementById(
+            'notificationDot'
+        );
+
+    if (dot) {
+
+        dot.style.display =
+            hasNew
+                ? 'block'
+                : 'none';
+    }
+}
+
+
+/* ================================================================
+   13. RÉCUPÉRATION DES CARTES
+================================================================ */
+
+async function recupererCartes(
+    forceRefresh = false
+) {
+
+    if (!db || !currentStudent) {
+        return [];
+    }
+
+    const cacheKey =
+        'cartes_' +
+        currentStudent.id;
+
+    const storageKey =
+        'fsa_cache_' +
+        cacheKey;
+
+
+    /* ------------------------------------------------------------
+       CACHE
+    ------------------------------------------------------------ */
+
+    if (!forceRefresh) {
+
+        const cached =
+            localStorage.getItem(
+                storageKey
+            );
+
+        if (cached) {
+
+            try {
+
+                const parsed =
+                    JSON.parse(cached);
+
+                if (
+                    parsed &&
+                    Array.isArray(parsed.data) &&
+                    parsed.data.length > 0
+                ) {
+
+                    console.log(
+                        '📦 Cartes récupérées depuis le cache'
+                    );
+
+                    return parsed.data;
+                }
+
+            } catch (error) {
+
+                console.warn(
+                    'Cache cartes invalide:',
+                    error
+                );
+            }
+        }
+    }
+
+
+    /* ------------------------------------------------------------
+       FIRESTORE
+    ------------------------------------------------------------ */
+
+    try {
+
+        const cartesQuery =
+            await db
+                .collection('cartesAcces')
+                .where(
+                    'etudiantId',
+                    '==',
+                    currentStudent.id
+                )
+                .orderBy(
+                    'dateGeneration',
+                    'desc'
+                )
+                .get();
+
+        const cartes = [];
+
+
+        for (
+            const doc of cartesQuery.docs
+        ) {
+
+            const data =
+                doc.data();
+
+            const signature =
+                await generateDigitalSignature({
+
+                    matricule:
+                        data.matricule,
+
+                    semestre:
+                        data.semestre,
+
+                    codeAcces:
+                        data.codeAcces
+                });
+
+
+            const semestre =
+                data.semestre ||
+                'premier';
+
+
+            let semestreNom =
+                'Premier Semestre';
+
+            if (
+                semestre === 'deuxieme' ||
+                semestre === 'deuxième' ||
+                semestre === 'second'
+            ) {
+
+                semestreNom =
+                    'Deuxième Semestre';
+            }
+
+
+            let dateExpirationObj =
+                null;
+
+            if (data.dateExpiration) {
+
+                try {
+
+                    dateExpirationObj =
+                        data.dateExpiration.toDate
+                            ? data.dateExpiration.toDate()
+                            : new Date(
+                                data.dateExpiration
+                            );
+
+                } catch (error) {
+
+                    dateExpirationObj =
+                        null;
+                }
+            }
+
+
+            cartes.push({
+
+                id: doc.id,
+
+                etudiantId:
+                    data.etudiantId ||
+                    currentStudent.id,
+
+                etudiantNom:
+                    data.etudiantNom ||
+                    currentStudent.nom,
+
+                matricule:
+                    data.matricule ||
+                    currentStudent.matricule,
+
+                promotionId:
+                    data.promotionId ||
+                    currentStudent.promotion,
+
+                promotionNom:
+                    data.promotionNom ||
+                    getPromotionNom(
+                        data.promotionId
+                    ),
+
+                semestre:
+
+                    semestre,
+
+                semestreNom:
+                    data.semestreNom ||
+                    semestreNom,
+
+                dateGeneration:
+                    formatDate(
+                        data.dateGeneration
+                    ),
+
+                dateExpiration:
+                    data.dateExpirationStr ||
+                    formatDate(
+                        data.dateExpiration
+                    ),
+
+                dateExpirationObj:
+                    dateExpirationObj,
+
+                codeAcces:
+                    data.codeAcces ||
+                    null,
+
+                actif:
+                    data.actif !== false,
+
+                checksum:
+                    signature.substring(
+                        0,
+                        8
+                    )
+            });
+        }
+
+
+        /* --------------------------------------------------------
+           SAUVEGARDE CACHE
+        -------------------------------------------------------- */
+
+        try {
+
+            localStorage.setItem(
+                storageKey,
+                JSON.stringify({
+
+                    data: cartes,
+
+                    timestamp:
+                        Date.now(),
+
+                    expires:
+                        Date.now() +
+                        300000
+                })
+            );
+
+        } catch (error) {
+
+            console.warn(
+                'Impossible de sauvegarder le cache:',
+                error
+            );
+        }
+
+
+        console.log(
+            '✅ Cartes récupérées depuis Firestore:',
+            cartes.length
+        );
+
+        return cartes;
+
+    } catch (error) {
+
+        console.error(
+            '❌ Erreur récupération cartes:',
+            error
+        );
+
+
+        /* --------------------------------------------------------
+           FALLBACK CACHE MÊME EN CAS D'ERREUR
+        -------------------------------------------------------- */
+
+        const cached =
+            localStorage.getItem(
+                storageKey
+            );
+
+        if (cached) {
+
+            try {
+
+                const parsed =
+                    JSON.parse(cached);
+
+                if (
+                    parsed &&
+                    Array.isArray(parsed.data)
+                ) {
+
+                    showToast(
+                        'Mode hors ligne - données en cache',
+                        'warning'
+                    );
+
+                    return parsed.data;
+                }
+
+            } catch (cacheError) {
+
+                console.error(
+                    'Cache invalide:',
+                    cacheError
+                );
+            }
+        }
+
+        return [];
+    }
+}
+
+
+/* ================================================================
+   14. RAFRAÎCHISSEMENT
+================================================================ */
+
+async function rafraichirCartes() {
+
+    const badge =
+        document.getElementById(
+            'newCardBadge'
+        );
+
+    if (badge) {
+        badge.style.display =
+            'none';
+    }
+
+    newCartesCount = 0;
+
+    showToast(
+        'Synchronisation...',
+        'info'
+    );
+
+    await chargerPromotions(true);
+
+    const fresh =
+        await recupererCartes(true);
+
+    allCartes =
+        fresh;
+
+    previousCartes =
+        JSON.parse(
+            JSON.stringify(fresh)
+        );
+
+    await afficherCartes(
+        fresh,
+        false
+    );
+
+    updateNotificationDot(false);
+
+    showToast(
+        `${fresh.length} carte(s) synchronisée(s)`,
+        'success'
+    );
+}
+
+window.rafraichirCartes =
+    rafraichirCartes;
+
+
+/* ================================================================
+   15. ÉCOUTE TEMPS RÉEL
+================================================================ */
+
+function setupRealtimeListener() {
+
+    if (!db || !currentStudent) {
+        return;
+    }
+
+    console.log(
+        '🔄 Écoute temps réel des cartes...'
+    );
+
+
+    if (unsubscribeCartes) {
+
+        unsubscribeCartes();
+
+        unsubscribeCartes =
+            null;
+    }
+
+
+    firstRealtimeSnapshot =
+        true;
+
+
+    /* ------------------------------------------------------------
+       AFFICHER LE CACHE IMMÉDIATEMENT
+    ------------------------------------------------------------ */
+
+    const cacheKey =
+        'cartes_' +
+        currentStudent.id;
+
+    const storageKey =
+        'fsa_cache_' +
+        cacheKey;
+
+    const cached =
+        localStorage.getItem(
+            storageKey
+        );
+
+    if (cached) {
+
+        try {
+
+            const parsed =
+                JSON.parse(cached);
+
+            if (
+                parsed &&
+                Array.isArray(parsed.data)
+            ) {
+
+                allCartes =
+                    parsed.data;
+
+                previousCartes =
+                    JSON.parse(
+                        JSON.stringify(
+                            parsed.data
+                        )
+                    );
+
+                afficherCartes(
+                    parsed.data,
+                    true
+                );
+
+                console.log(
+                    '📦 Cartes affichées depuis le cache'
+                );
+            }
+
+        } catch (error) {
+
+            console.warn(
+                'Erreur lecture cache:',
+                error
+            );
+        }
+    }
+
+
+    /* ------------------------------------------------------------
+       FIRESTORE LISTENER
+    ------------------------------------------------------------ */
+
+    unsubscribeCartes =
+        db
+            .collection('cartesAcces')
+            .where(
+                'etudiantId',
+                '==',
+                currentStudent.id
+            )
+            .onSnapshot(
+
+                async snapshot => {
+
+                    console.log(
+                        '📡 Snapshot cartes reçu:',
+                        snapshot.size
+                    );
+
+
+                    /*
+                     * IMPORTANT :
+                     * Le premier snapshot contient toutes
+                     * les cartes comme "added".
+                     *
+                     * On ne doit donc PAS considérer ces cartes
+                     * comme de nouvelles cartes.
+                     */
+
+                    const changements =
+                        snapshot.docChanges();
+
+                    if (
+                        firstRealtimeSnapshot
+                    ) {
+
+                        firstRealtimeSnapshot =
+                            false;
+
+                        console.log(
+                            '📚 Premier snapshot : aucune notification de nouvelle carte'
+                        );
+                    }
+
+
+                    const cartes =
+                        await recupererCartes(
+                            true
+                        );
+
+
+                    const previousIds =
+                        new Set(
+                            previousCartes.map(
+                                carte => carte.id
+                            )
+                        );
+
+
+                    const vraimentNouvelles =
+                        firstRealtimeSnapshot
+                            ? []
+                            : cartes.filter(
+                                carte =>
+                                    !previousIds.has(
+                                        carte.id
+                                    )
+                            );
+
+
+                    allCartes =
+                        cartes;
+
+
+                    previousCartes =
+                        JSON.parse(
+                            JSON.stringify(
+                                cartes
+                            )
+                        );
+
+
+                    await afficherCartes(
+                        cartes,
+                        false
+                    );
+
+
+                    updateCacheStatus(
+                        'live',
+                        '⚡ Temps réel (' +
+                        cartes.length +
+                        ' cartes)'
+                    );
+
+
+                    /* ------------------------------------------------
+                       NOUVELLES CARTES
+                    ------------------------------------------------ */
+
+                    if (
+                        vraimentNouvelles.length >
+                        0
+                    ) {
+
+                        console.log(
+                            '🆕 Nouvelles cartes:',
+                            vraimentNouvelles.length
+                        );
+
+
+                        vraimentNouvelles.forEach(
+                            carte => {
+
+                                const semestreNom =
+                                    carte.semestreNom ||
+                                    (
+                                        carte.semestre ===
+                                        'deuxieme'
+                                            ? 'Deuxième Semestre'
+                                            : 'Premier Semestre'
+                                    );
+
+
+                                const promoNom =
+                                    carte.promotionNom ||
+                                    getPromotionNom(
+                                        carte.promotionId
+                                    ) ||
+                                    'Non définie';
+
+
+                                let corps =
+                                    `${semestreNom} - ${promoNom}`;
+
+
+                                if (
+                                    carte.codeAcces
+                                ) {
+
+                                    corps +=
+                                        ` (N° ${String(
+                                            carte.codeAcces
+                                        ).substring(
+                                            0,
+                                            8
+                                        )})`;
+                                }
+
+
+                                showToast(
+                                    `🪪 Nouvelle carte : ${corps}`,
+                                    'success'
+                                );
+
+
+                                try {
+
+                                    const audio =
+                                        new Audio();
+
+                                    audio.src =
+                                        'data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==';
+
+                                    audio.volume =
+                                        0.3;
+
+                                    audio.play()
+                                        .catch(
+                                            () => {}
+                                        );
+
+                                } catch (error) {}
+
+                            }
+                        );
+
+
+                        newCartesCount +=
+                            vraimentNouvelles.length;
+
+
+                        showNewCardBadge(
+                            newCartesCount
+                        );
+
+
+                        updateNotificationDot(
+                            true
+                        );
+
+
+                        showToast(
+                            `📇 ${vraimentNouvelles.length} nouvelle(s) carte(s) disponible(s) !`,
+                            'success'
+                        );
+                    }
+
+
+                    const statusEl =
+                        document.getElementById(
+                            'syncStatus'
+                        );
+
+
+                    if (statusEl) {
+
+                        statusEl.innerHTML =
+                            '<i class="bi bi-wifi"></i> En ligne';
+
+                        statusEl.className =
+                            'sync-status';
+                    }
+
+                },
+
+                error => {
+
+                    console.error(
+                        '❌ Erreur listener:',
+                        error
+                    );
+
+
+                    const statusEl =
+                        document.getElementById(
+                            'syncStatus'
+                        );
+
+
+                    if (statusEl) {
+
+                        statusEl.innerHTML =
+                            '<i class="bi bi-wifi-off"></i> Hors ligne';
+
+                        statusEl.className =
+                            'sync-status offline';
+                    }
+
+
+                    updateCacheStatus(
+                        'offline'
+                    );
+                }
+            );
+}
+
+
+/* ================================================================
+   16. PROFIL
+================================================================ */
+
+async function loadProfileData() {
+
+    await chargerPromotions();
+
+    const promoNom =
+        getPromotionNom(
+            currentStudent.promotion
+        );
+
+
+    document.getElementById(
+        'profilNom'
+    ).textContent =
+        currentStudent.nom || '';
+
+
+    document.getElementById(
+        'profilMatricule'
+    ).textContent =
+        `Matricule: ${
+            currentStudent.matricule || '-'
+        }`;
+
+
+    document.getElementById(
+        'profilPromotion'
+    ).textContent =
+        `Promotion: ${promoNom}`;
+}
+
+
+document.getElementById(
+    'profileBtn'
+).onclick = async () => {
+
+    await loadProfileData();
+
+    document.getElementById(
+        'profileModal'
+    ).style.display =
+        'flex';
+};
+
+
+window.closeProfileModal =
+    () => {
+
+        document.getElementById(
+            'profileModal'
+        ).style.display =
+            'none';
+    };
+
+
+document.getElementById(
+    'profileModal'
+).addEventListener(
+    'click',
+    function(e) {
+
+        if (e.target === this) {
+            closeProfileModal();
+        }
+    }
+);
+
+
+/* ================================================================
+   17. DÉCONNEXION
+================================================================ */
+
+document.getElementById(
+    'logoutBtn'
+).onclick = () => {
+
+    if (
+        confirm(
+            'Déconnexion ?'
+        )
+    ) {
+
+        localStorage.removeItem(
+            'session_etudiant'
+        );
+
+
+        if (unsubscribeCartes) {
+
+            unsubscribeCartes();
+
+            unsubscribeCartes =
+                null;
+        }
+
+
+        window.location.href =
+            'login-etudiant.html';
+    }
+};
+
+
+/* ================================================================
+   18. CHANGEMENT MOT DE PASSE
+================================================================ */
+
+document.getElementById(
+    'changePasswordBtn'
+).onclick = async () => {
+
+    const newPwd =
+        document.getElementById(
+            'newPassword'
+        ).value;
+
+    const confirmPwd =
+        document.getElementById(
+            'confirmNewPassword'
+        ).value;
+
+
+    if (!newPwd || !confirmPwd) {
+
+        showToast(
+            'Remplissez tous les champs',
+            'warning'
+        );
+
+        return;
+    }
+
+
+    if (newPwd !== confirmPwd) {
+
+        showToast(
+            'Mots de passe différents',
+            'warning'
+        );
+
+        return;
+    }
+
+
+    if (newPwd.length < 4) {
+
+        showToast(
+            'Minimum 4 caractères',
+            'warning'
+        );
+
+        return;
+    }
+
+
+    try {
+
+        await db
+            .collection('etudiants')
+            .doc(currentStudent.id)
+            .update({
+                motDePasse: newPwd
+            });
+
+
+        showToast(
+            'Mot de passe modifié',
+            'success'
+        );
+
+
+        closeProfileModal();
+
+
+        document.getElementById(
+            'newPassword'
+        ).value = '';
+
+        document.getElementById(
+            'confirmNewPassword'
+        ).value = '';
+
+    } catch (error) {
+
+        console.error(
+            'Erreur changement mot de passe:',
+            error
+        );
+
+        showToast(
+            'Erreur: ' +
+            error.message,
+            'danger'
+        );
+    }
+};
+
+
+/* ================================================================
+   19. BOUTON SYNC
+================================================================ */
+
+document.getElementById(
+    'refreshBtn'
+).onclick = async () => {
+
+    await rafraichirCartes();
+};
+
+
+/* ================================================================
+   20. SERVICE WORKER CENTRAL
+================================================================ */
+
+async function registerServiceWorker() {
+
+    if (
+        !('serviceWorker' in navigator)
+    ) {
+
+        console.warn(
+            '[SW] Service Worker non supporté'
+        );
+
+        return null;
+    }
+
+
+    try {
+
+        /*
+         * NOUVELLE ARCHITECTURE :
+         * notification-utils.js possède la fonction
+         * registerAppServiceWorker().
+         */
+
+        if (
+            typeof window.registerAppServiceWorker ===
+            'function'
+        ) {
+
+            const registration =
+                await window.registerAppServiceWorker();
+
+            console.log(
+                '[SW] ✅ Service Worker central enregistré'
+            );
+
+            return registration;
+        }
+
+
+        /*
+         * FALLBACK :
+         * utile si notification-utils.js n'a pas pu
+         * être chargé.
+         */
+
+        let registration =
+            await navigator.serviceWorker
+                .getRegistration(
+                    '/Espace-etudiant/'
+                );
+
+
+        if (!registration) {
+
+            registration =
+                await navigator.serviceWorker.register(
+                    './sw.js',
+                    {
+                        scope:
+                            '/Espace-etudiant/'
+                    }
+                );
+
+            console.log(
+                '[SW] ✅ Fallback sw.js enregistré'
+            );
+        }
+
+
+        return registration;
+
+    } catch (error) {
+
+        console.error(
+            '[SW] ❌ Erreur:',
+            error
+        );
+
+        return null;
+    }
+}
+
+
+/* ================================================================
+   21. MODE HORS LIGNE
+================================================================ */
+
+function setupOfflineDetection() {
+
+    const offlineBadge =
+        document.getElementById(
+            'offlineBadge'
+        );
+
+
+    function updateStatus() {
+
+        if (!navigator.onLine) {
+
+            if (offlineBadge) {
+                offlineBadge.classList.add(
+                    'show'
+                );
+            }
+
+            updateCacheStatus(
+                'offline'
+            );
+
+        } else {
+
+            if (offlineBadge) {
+                offlineBadge.classList.remove(
+                    'show'
+                );
+            }
+        }
+    }
+
+
+    window.addEventListener(
+        'online',
+        updateStatus
+    );
+
+    window.addEventListener(
+        'offline',
+        updateStatus
+    );
+
+
+    updateStatus();
+}
+
+
+/* ================================================================
+   22. STATUT NOTIFICATIONS
+================================================================ */
+
+function checkNotificationStatus() {
+
+    const card =
+        document.getElementById(
+            'notificationPermissionCard'
+        );
+
+
+    if (!card) return;
+
+
+    if (
+        !('Notification' in window)
+    ) {
+
+        card.classList.remove(
+            'show'
+        );
+
+        return;
+    }
+
+
+    if (
+        Notification.permission ===
+        'default'
+    ) {
+
+        card.classList.add(
+            'show'
+        );
+
+    } else {
+
+        card.classList.remove(
+            'show'
+        );
+    }
+}
+
+
+/* ================================================================
+   23. ACTIVATION DES NOTIFICATIONS
+================================================================ */
+
+document.getElementById(
+    'enableNotificationsBtn'
+)?.addEventListener(
+    'click',
+    async () => {
+
+        if (!currentStudent) {
+            return;
+        }
+
+
+        const btn =
+            document.getElementById(
+                'enableNotificationsBtn'
+            );
+
+
+        btn.disabled =
+            true;
+
+
+        btn.innerHTML =
+            `
+                <span
+                    class="spinner-border spinner-border-sm me-1"
+                ></span>
+                Activation...
+            `;
+
+
+        try {
+
+            /*
+             * IMPORTANT :
+             * On utilise notification-utils.js.
+             *
+             * Aucun firebase-messaging-sw.js.
+             * Aucun nouveau Service Worker.
+             */
+
+            if (
+                window.notificationManager &&
+                typeof window.notificationManager
+                    .requestPermissionAndRegister ===
+                    'function'
+            ) {
+
+                await window
+                    .notificationManager
+                    .requestPermissionAndRegister();
+
+
+                document
+                    .getElementById(
+                        'notificationPermissionCard'
+                    )
+                    ?.classList.remove(
+                        'show'
+                    );
+
+
+                showToast(
+                    '🔔 Notifications activées !',
+                    'success'
+                );
+
+            } else {
+
+                showToast(
+                    'Le système de notification est indisponible.',
+                    'warning'
+                );
+            }
+
+        } catch (error) {
+
+            console.error(
+                '[FCM] Erreur activation:',
+                error
+            );
+
+            showToast(
+                '⚠️ Impossible d’activer les notifications.',
+                'warning'
+            );
+
+        } finally {
+
+            btn.disabled =
+                false;
+
+            btn.innerHTML =
+                `
+                    <i class="bi bi-bell"></i>
+                    Activer
+                `;
+        }
+    }
+);
+
+
+/* ================================================================
+   24. INITIALISATION
+================================================================ */
+
+async function init() {
+
+    if (!checkSession()) {
+        return;
+    }
+
+
+    console.log(
+        '🚀 Dashboard Cartes - Démarrage'
+    );
+
+    console.log(
+        '👤 Étudiant:',
+        currentStudent.nom
+    );
+
+
+    const container =
+        document.getElementById(
+            'cartesContainer'
+        );
+
+
+    if (container) {
+
+        container.innerHTML = `
+
+            <div class="text-center py-4">
+
+                <div class="loading-spinner"></div>
+
+                <p class="mt-2">
+                    Chargement de vos cartes...
+                </p>
+
+            </div>
+        `;
+    }
+
+
+    /*
+     * Firebase est déjà chargé.
+     * On charge maintenant notification-utils.js.
+     */
+
+    const notificationsReady =
+        await loadNotificationUtils();
+
+
+    /*
+     * Promotions
+     */
+
+    await chargerPromotions();
+
+
+    /*
+     * Service Worker central
+     */
+
+    await registerServiceWorker();
+
+
+    /*
+     * Initialisation du gestionnaire
+     * de notifications.
+     *
+     * IMPORTANT :
+     * init() ne demande PAS automatiquement
+     * la permission au navigateur.
+     */
+
+    if (
+        notificationsReady &&
+        window.notificationManager &&
+        currentStudent?.id
+    ) {
+
+        try {
+
+            await window
+                .notificationManager
+                .init(
+                    currentStudent.id,
+                    currentStudent.nom,
+                    currentStudent.promotion
+                );
+
+
+            console.log(
+                '[FCM] ✅ Gestionnaire de notifications initialisé'
+            );
+
+        } catch (error) {
+
+            console.warn(
+                '[FCM] Initialisation impossible:',
+                error
+            );
+        }
+    }
+
+
+    /*
+     * Mode hors ligne
+     */
+
+    setupOfflineDetection();
+
+
+    /*
+     * Écoute temps réel
+     */
+
+    setupRealtimeListener();
+
+
+    /*
+     * Interface permission
+     */
+
+    checkNotificationStatus();
+
+
+    /*
+     * Si la permission a déjà été accordée,
+     * notification-utils.js gère le token.
+     *
+     * Nous ne recréons PAS un token ici.
+     */
+
+    if (
+        'Notification' in window &&
+        Notification.permission ===
+        'granted'
+    ) {
+
+        console.log(
+            '[FCM] 🔔 Permission déjà accordée'
+        );
+    }
+
+
+    console.log(
+        '✅ Dashboard Cartes prêt'
+    );
+}
+
+
+/* ================================================================
+   25. VISIBILITÉ DE LA PAGE
+================================================================ */
+
+document.addEventListener(
+    'visibilitychange',
+    () => {
+
+        if (
+            !document.hidden &&
+            currentStudent
+        ) {
+
+            const cacheKey =
+                'cartes_' +
+                currentStudent.id;
+
+            const storageKey =
+                'fsa_cache_' +
+                cacheKey;
+
+
+            const cached =
+                localStorage.getItem(
+                    storageKey
+                );
+
+
+            if (!cached) {
+
+                console.log(
+                    '🔄 Aucun cache : réactivation du listener'
+                );
+
+                setupRealtimeListener();
+            }
+        }
+    }
+);
+
+
+/* ================================================================
+   26. DÉMARRAGE
+================================================================ */
+
+document.addEventListener(
+    'DOMContentLoaded',
+    init
+);
+
+</script>
+
+</body>
+</html>

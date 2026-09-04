@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mes Cours - Étudiant</title>
+    <meta name="theme-color" content="#003366">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FAC Agro">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { 
+            --primary-blue: #003366; 
+            --dark-blue: #002244; 
+            --accent-yellow: #ffb347; 
+            --light-gray: #f0f2f5;
+            --success-green: #28a745;
+        }
+        
+        body { 
+            background: var(--light-gray); 
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 20px;
+        }
+        
+        .navbar-custom { 
+            background: var(--primary-blue); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            padding: 12px 0;
+        }
+        
+        .navbar-brand { font-weight: bold; font-size: 1rem; }
+        
+        .back-btn {
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .back-btn:hover { background: #ff9800; transform: translateY(-2px); color: var(--primary-blue); }
+        
+        .navbar-right { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        
+        .profile-photo {
+            width: 45px; height: 45px;
+            border-radius: 50%;
+            background: var(--accent-yellow);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; position: relative;
+        }
+        .profile-photo i { font-size: 28px; color: var(--primary-blue); }
+        
+        /* Stats cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+        .stat-icon { font-size: 35px; color: var(--primary-blue); margin-bottom: 10px; }
+        .stat-number { font-size: 28px; font-weight: bold; color: var(--primary-blue); }
+        .stat-label { font-size: 12px; color: #888; margin-top: 5px; }
+        
+        /* Info promo */
+        .info-promo {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: white;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .info-promo i { font-size: 30px; color: var(--accent-yellow); }
+        
+        /* Content card */
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            animation: fadeIn 0.5s ease;
+            margin-bottom: 30px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .section-header h4 { color: var(--primary-blue); margin: 0; font-weight: bold; }
+        
+        .sync-badge {
+            background: var(--success-green);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+        }
+        
+        /* Barre de recherche */
+        .search-bar {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        .search-group { flex: 1; min-width: 200px; }
+        .search-input-group { position: relative; }
+        .search-input-group i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #999; }
+        .search-input-group input { padding-left: 35px; }
+        .clear-search { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999; display: none; }
+        
+        /* Tableau */
+        .cours-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .cours-table thead th {
+            background: var(--primary-blue);
+            color: white;
+            padding: 14px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .cours-table thead th.text-center { text-align: center; }
+        .cours-table thead th.text-right { text-align: right; }
+        .cours-table tbody td {
+            padding: 14px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+        .cours-table tbody tr:hover { background: #f8f9fa; }
+        .cours-table tbody tr:last-child td { border-bottom: none; }
+        .cours-table tfoot td {
+            padding: 14px 15px;
+            font-weight: bold;
+            background: #f0f4f8;
+            border-top: 2px solid var(--primary-blue);
+            font-size: 15px;
+        }
+        
+        .num-cell {
+            text-align: center;
+            font-weight: bold;
+            color: #888;
+            width: 50px;
+        }
+        
+        .cours-nom-cell {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+        .cours-nom-cell i { color: var(--primary-blue); margin-right: 8px; }
+        
+        .badge-credit {
+            background: var(--primary-blue);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .badge-prof {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .total-cell {
+            color: var(--primary-blue);
+            font-size: 16px;
+        }
+        
+        .empty-state { text-align: center; padding: 60px 20px; color: #888; }
+        .empty-state i { font-size: 70px; color: #ccc; margin-bottom: 20px; }
+        
+        .toast-notification { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 280px; max-width: 350px; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast { animation: slideInRight 0.3s ease-out; margin-bottom: 10px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); }
+        
+        .footer-info { text-align: center; margin-top: auto; padding: 20px 0; border-top: 1px solid #e0e0e0; font-size: 11px; color: #888; }
+        .footer-info img { border-radius: 20px; vertical-align: middle; }
+        
+        .table-responsive { border-radius: 15px; overflow-x: auto; }
+        
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .cours-table thead th, .cours-table tbody td, .cours-table tfoot td { padding: 10px 8px; font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom">
+        <div class="container">
+            <a class="navbar-brand text-white" href="#">
+                <i class="bi bi-tree-fill"></i> FACULTÉ AGRONOMIQUE - UNILU
+            </a>
+            <div class="navbar-right">
+                <div class="profile-photo" id="profileBtn">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <a href="etudiant.html" class="back-btn">
+                    <i class="bi bi-house-door-fill"></i> Accueil
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-4" style="flex: 1;">
+        <div id="toastContainer" class="toast-notification"></div>
+        
+        <!-- Info promotion -->
+        <div class="info-promo">
+            <i class="bi bi-trophy-fill"></i>
+            <div>
+                <strong id="promoName">Chargement...</strong>
+                <br><small id="studentInfo" style="opacity:0.9;"></small>
+            </div>
+        </div>
+        
+        <!-- Statistiques -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-book-fill"></i></div>
+                <div class="stat-number" id="totalCours">0</div>
+                <div class="stat-label">Total Cours</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-star-fill"></i></div>
+                <div class="stat-number" id="totalCredits">0</div>
+                <div class="stat-label">Total Crédits</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-person-workspace"></i></div>
+                <div class="stat-number" id="totalProfesseurs">0</div>
+                <div class="stat-label">Professeurs</div>
+            </div>
+        </div>
+        
+        <!-- Liste des cours -->
+        <div class="content-card">
+            <div class="section-header">
+                <h4><i class="bi bi-book-fill"></i> Mes Cours</h4>
+                <span class="sync-badge"><i class="bi bi-circle-fill" style="font-size:8px;"></i> Temps réel</span>
+            </div>
+            
+            <!-- Barre de recherche -->
+            <div class="search-bar">
+                <div class="search-group">
+                    <label style="font-weight:600;color:var(--primary-blue);font-size:13px;">
+                        <i class="bi bi-search"></i> Rechercher un cours
+                    </label>
+                    <div class="search-input-group">
+                        <i class="bi bi-search"></i>
+                        <input type="text" class="form-control" id="searchCours" placeholder="Nom du cours, professeur...">
+                        <i class="bi bi-x-circle-fill clear-search" id="clearSearchCours"></i>
+                    </div>
+                </div>
+                <div>
+                    <small class="text-muted" id="resultCount"></small>
+                </div>
+            </div>
+            
+            <!-- Tableau -->
+            <div id="coursContainer">
+                <div class="text-center py-5">
+                    <div style="width:40px;height:40px;border:4px solid #e0e0e0;border-top-color:var(--primary-blue);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto;"></div>
+                    <p class="mt-3 text-muted">Chargement de vos cours...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="container">
+        <div class="footer-info">
+            <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital<br>
+            <img src="t.png" width="40px" alt="HYBRILINK" onerror="this.style.display='none'">
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+
+    <script>
+        // ========== CONFIGURATION FIREBASE ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
+            authDomain: "fsa-unilu.firebaseapp.com",
+            projectId: "fsa-unilu",
+            storageBucket: "fsa-unilu.firebasestorage.app",
+            messagingSenderId: "36551990738",
+            appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+        };
+        
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // Activer la persistance pour le mode hors-ligne
+        db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+        
+        // ========== VARIABLES ==========
+        let currentStudent = null;
+        let allCours = [];
+        let allPromotions = [];
+        let searchTerm = '';
+        let unsubscribeCours = null;
+        
+        // Cache local
+        const CACHE_KEY = 'cache_cours_etudiant';
+        const CACHE_KEY_PROMOS = 'cache_promotions_etudiant';
+        const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+        
+        // ========== SYSTÈME DE CACHE ==========
+        class LocalCache {
+            static set(key, data) {
+                try {
+                    localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
+                } catch(e) { console.warn('Cache saturé'); }
+            }
+            static get(key) {
+                try {
+                    const raw = localStorage.getItem(key);
+                    if (!raw) return null;
+                    const parsed = JSON.parse(raw);
+                    return (Date.now() - parsed.timestamp) < CACHE_DURATION ? parsed.data : null;
+                } catch(e) { return null; }
+            }
+        }
+        
+        // ========== SESSION ==========
+        (function() {
+            const session = localStorage.getItem('session_etudiant');
+            if (!session) { window.location.href = 'login-etudiant.html'; return; }
+            
+            try {
+                const sessionData = JSON.parse(session);
+                if (Date.now() > sessionData.expires) {
+                    localStorage.removeItem('session_etudiant');
+                    window.location.href = 'login-etudiant.html';
+                    return;
+                }
+                currentStudent = sessionData;
+                
+                // Afficher infos étudiant
+                document.getElementById('studentInfo').textContent = 
+                    `Matricule: ${currentStudent.matricule || 'N/A'} | ${currentStudent.nom || 'Étudiant'}`;
+                
+                // Charger depuis le cache d'abord
+                chargerDepuisCache();
+                
+                // Puis initialiser le temps réel
+                init();
+            } catch(e) {
+                localStorage.removeItem('session_etudiant');
+                window.location.href = 'login-etudiant.html';
+            }
+        })();
+        
+        // ========== CHARGEMENT DEPUIS LE CACHE ==========
+        function chargerDepuisCache() {
+            const cachedPromos = LocalCache.get(CACHE_KEY_PROMOS);
+            const cachedCours = LocalCache.get(CACHE_KEY);
+            
+            if (cachedPromos) {
+                allPromotions = cachedPromos;
+                updatePromoInfo();
+            }
+            
+            if (cachedCours) {
+                allCours = cachedCours;
+                afficherCours();
+                mettreAJourStats();
+                console.log('📦 Cours chargés depuis le cache');
+            }
+        }
+        
+        // ========== INITIALISATION ==========
+        async function init() {
+            // Charger les promotions
+            chargerPromotionsRealtime();
+            
+            // Charger les cours en temps réel
+            chargerCoursRealtime();
+        }
+        
+        function chargerPromotionsRealtime() {
+            db.collection('promotions').onSnapshot(snap => {
+                allPromotions = [];
+                snap.forEach(doc => allPromotions.push({ id: doc.id, ...doc.data() }));
+                LocalCache.set(CACHE_KEY_PROMOS, allPromotions);
+                updatePromoInfo();
+            }, err => console.error('Erreur écoute promotions:', err));
+        }
+        
+        function updatePromoInfo() {
+            const promo = allPromotions.find(p => p.id === currentStudent.promotion);
+            document.getElementById('promoName').textContent = promo ? promo.nom : 'Promotion inconnue';
+        }
+        
+        function chargerCoursRealtime() {
+            // Écouter tous les cours et filtrer par promotion
+            unsubscribeCours = db.collection('cours').onSnapshot(snap => {
+                allCours = [];
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    // Filtrer : ne garder que les cours de la promotion de l'étudiant
+                    if (data.promotionId === currentStudent.promotion) {
+                        allCours.push({ id: doc.id, ...data });
+                    }
+                });
+                
+                // Trier par nom de cours
+                allCours.sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
+                
+                // Mettre en cache
+                LocalCache.set(CACHE_KEY, allCours);
+                
+                // Afficher
+                afficherCours();
+                mettreAJourStats();
+            }, err => {
+                console.error('Erreur écoute cours:', err);
+                // Fallback au cache
+                const cached = LocalCache.get(CACHE_KEY);
+                if (cached) {
+                    allCours = cached;
+                    afficherCours();
+                    mettreAJourStats();
+                }
+            });
+        }
+        
+        // ========== AFFICHAGE ==========
+        function getCoursFiltres() {
+            if (!searchTerm) return allCours;
+            const term = searchTerm.toLowerCase();
+            return allCours.filter(c => 
+                (c.nom || '').toLowerCase().includes(term) ||
+                (c.professeurNom || '').toLowerCase().includes(term)
+            );
+        }
+        
+        function afficherCours() {
+            const container = document.getElementById('coursContainer');
+            if (!container) return;
+            
+            const coursFiltres = getCoursFiltres();
+            
+            // Mettre à jour le compteur
+            document.getElementById('resultCount').textContent = 
+                allCours.length > 0 ? `${coursFiltres.length} cours affiché(s) sur ${allCours.length}` : '';
+            
+            if (allCours.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <h5>Aucun cours disponible</h5>
+                        <p>Les cours de votre promotion apparaîtront ici dès qu'ils seront publiés.</p>
+                    </div>`;
+                return;
+            }
+            
+            if (coursFiltres.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-search"></i>
+                        <h5>Aucun résultat</h5>
+                        <p>Aucun cours ne correspond à "${escapeHtml(searchTerm)}".</p>
+                    </div>`;
+                return;
+            }
+            
+            // Calculer le total des crédits
+            const totalCredits = coursFiltres.reduce((sum, c) => sum + (c.credits || 0), 0);
+            
+            let html = `
+                <div class="table-responsive">
+                    <table class="cours-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width:50px;">#</th>
+                                <th>Nom du cours</th>
+                                <th>Nom du professeur</th>
+                                <th class="text-center" style="width:100px;">Crédits</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+            
+            coursFiltres.forEach((cours, index) => {
+                html += `
+                    <tr>
+                        <td class="num-cell">${index + 1}</td>
+                        <td class="cours-nom-cell">
+                            <i class="bi bi-book-fill"></i> ${escapeHtml(cours.nom)}
+                        </td>
+                        <td>
+                            <span class="badge-prof">
+                                <i class="bi bi-person-fill"></i> ${escapeHtml(cours.professeurNom || 'Non assigné')}
+                            </span>
+                        </td>
+                        <td style="text-align:center;">
+                            <span class="badge-credit">
+                                <i class="bi bi-star-fill"></i> ${cours.credits || 0}
+                            </span>
+                        </td>
+                    </tr>`;
+            });
+            
+            html += `
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="text-align:right;">
+                                    <strong><i class="bi bi-calculator-fill"></i> Total des crédits :</strong>
+                                </td>
+                                <td style="text-align:center;">
+                                    <span class="total-cell">
+                                        <i class="bi bi-star-fill"></i> <strong>${totalCredits}</strong>
+                                    </span>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>`;
+            
+            container.innerHTML = html;
+        }
+        
+        function mettreAJourStats() {
+            document.getElementById('totalCours').textContent = allCours.length;
+            
+            const totalCredits = allCours.reduce((sum, c) => sum + (c.credits || 0), 0);
+            document.getElementById('totalCredits').textContent = totalCredits;
+            
+            // Nombre de professeurs uniques
+            const profsUniques = new Set(allCours.map(c => c.professeurId).filter(Boolean));
+            document.getElementById('totalProfesseurs').textContent = profsUniques.size;
+        }
+        
+        function escapeHtml(t) { 
+            if(!t) return ''; 
+            const d = document.createElement('div'); 
+            d.textContent = t; 
+            return d.innerHTML; 
+        }
+        
+        // ========== RECHERCHE ==========
+        document.getElementById('searchCours').addEventListener('input', function(e) {
+            searchTerm = e.target.value;
+            document.getElementById('clearSearchCours').style.display = searchTerm ? 'block' : 'none';
+            afficherCours();
+        });
+        
+        document.getElementById('clearSearchCours').addEventListener('click', function() {
+            document.getElementById('searchCours').value = '';
+            searchTerm = '';
+            this.style.display = 'none';
+            afficherCours();
+        });
+        
+        // ========== NETTOYAGE ==========
+        window.addEventListener('beforeunload', () => {
+            if (unsubscribeCours) unsubscribeCours();
+        });
+        
+        console.log('✅ Page Mes Cours - Étudiant chargée');
+    </script>
+</body>
+</html>

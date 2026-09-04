@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>Paiement en Ligne - Faculté Agronomique</title>
+    <meta name="theme-color" content="#003366">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { 
+            --primary-blue: #003366; 
+            --dark-blue: #002244; 
+            --accent-yellow: #ffb347; 
+            --light-gray: #f0f2f5;
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+            --genius-purple: #6C2BD9;
+        }
+        
+        body { 
+            background: var(--light-gray); 
+            font-family: 'Segoe UI', sans-serif;
+            padding-bottom: 20px;
+        }
+        
+        .navbar-custom { 
+            background: var(--primary-blue); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            padding: 12px 0;
+        }
+        
+        .navbar-brand { font-weight: bold; font-size: 0.95rem; color: white !important; }
+        .profile-photo { 
+            width: 40px; height: 40px; border-radius: 50%; 
+            background: var(--accent-yellow); 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; 
+        }
+        .profile-photo i { font-size: 24px; color: var(--primary-blue); }
+        .navbar-right { display: flex; align-items: center; gap: 12px; }
+        
+        .payment-card {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            max-width: 700px;
+            margin: 20px auto;
+        }
+        
+        .mode-badge {
+            display: inline-block;
+            padding: 4px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .mode-badge.production {
+            background: #dc3545;
+            color: white;
+            animation: pulse-production 2s infinite;
+        }
+        
+        @keyframes pulse-production {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 25px;
+        }
+        
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 11px;
+            color: #999;
+            position: relative;
+        }
+        
+        .step-item .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 4px;
+            transition: all 0.3s;
+        }
+        
+        .step-item.active .step-circle { background: var(--primary-blue); color: white; }
+        .step-item.done .step-circle { background: var(--success-green); color: white; }
+        .step-item.error .step-circle { background: var(--danger-red); color: white; }
+        
+        .step-item::after {
+            content: '';
+            position: absolute;
+            top: 16px;
+            left: 40px;
+            width: calc(100% - 40px);
+            height: 2px;
+            background: #e0e0e0;
+        }
+        
+        .step-item:last-child::after { display: none; }
+        .step-item.done::after { background: var(--success-green); }
+        .step-item.error::after { background: var(--danger-red); }
+        
+        .operator-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .operator-btn {
+            padding: 15px 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .operator-btn:hover { border-color: var(--primary-blue); transform: translateY(-2px); }
+        .operator-btn.active { border-color: var(--genius-purple); background: #f0ebff; }
+        .operator-btn .operator-icon { font-size: 32px; display: block; margin-bottom: 8px; }
+        
+        .operator-btn.wave .operator-icon { color: #00a65a; }
+        .operator-btn.orange .operator-icon { color: #ff6b00; }
+        .operator-btn.airtel .operator-icon { color: #dc2626; }
+        .operator-btn.mtn .operator-icon { color: #ffcc00; }
+        
+        .fiche-selector-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .fiche-selector-item:hover { background: #e8f4fd; border-color: var(--primary-blue); }
+        .fiche-selector-item.selected { background: var(--primary-blue); color: white; border-color: var(--primary-blue); }
+        .fiche-selector-item.selected .fiche-price { color: var(--accent-yellow); }
+        .fiche-selector-item .fiche-price { font-weight: bold; font-size: 16px; }
+        
+        .total-section {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .total-amount { font-size: 32px; font-weight: bold; }
+        
+        .btn-pay {
+            background: linear-gradient(135deg, var(--genius-purple), #5a22b5);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(108, 43, 217, 0.3); }
+        .btn-pay:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        
+        .btn-pay .spinner { display: none; }
+        .btn-pay.loading .spinner { display: inline-block; }
+        .btn-pay.loading .btn-text { display: none; }
+        
+        .status-banner {
+            padding: 15px;
+            border-radius: 15px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .status-banner.show { display: block; }
+        .status-banner.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status-banner.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status-banner.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .status-banner.pending { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 280px;
+            max-width: 350px;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .toast { animation: slideInRight 0.3s ease-out; margin-bottom: 10px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); padding: 12px 15px; color: white; font-size: 14px; }
+        
+        .phone-input-group {
+            position: relative;
+        }
+        
+        .phone-input-group .prefix {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
+            color: var(--primary-blue);
+            font-size: 14px;
+        }
+        
+        .phone-input-group input {
+            padding-left: 15px;
+            padding-right: 15px;
+            height: 50px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            width: 100%;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .phone-input-group input:focus {
+            outline: none;
+            border-color: var(--genius-purple);
+            box-shadow: 0 0 0 3px rgba(108, 43, 217, 0.1);
+        }
+        
+        .phone-input-group input::placeholder {
+            color: #aaa;
+            font-size: 14px;
+        }
+        
+        .footer-info {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 11px;
+            color: #888;
+        }
+        
+        .profile-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .profile-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .btn-action {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-action:hover { background: var(--dark-blue); transform: translateY(-2px); }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .loading-spinner-large {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #e0e0e0;
+            border-top-color: var(--genius-purple);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 20px;
+            font-size: 18px;
+            color: var(--primary-blue);
+            font-weight: bold;
+        }
+        
+        .loading-subtext {
+            font-size: 14px;
+            color: #888;
+            margin-top: 8px;
+        }
+        
+        .genius-badge {
+            display: inline-block;
+            background: var(--genius-purple);
+            color: white;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .warning-banner {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #856404;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .warning-banner i { font-size: 20px; }
+        
+        .phone-hint {
+            font-size: 11px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        .phone-hint strong {
+            color: var(--primary-blue);
+        }
+        
+        @media (max-width: 600px) {
+            .operator-selector { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .operator-btn { padding: 12px 8px; font-size: 12px; }
+            .operator-btn .operator-icon { font-size: 28px; }
+            .step-indicator { gap: 15px; }
+            .step-item { font-size: 9px; }
+            .step-item .step-circle { width: 28px; height: 28px; font-size: 12px; }
+            .step-item::after { top: 14px; left: 32px; width: calc(100% - 32px); }
+            
+            .phone-input-group input {
+                font-size: 14px;
+                padding-left: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="etudiant.html">
+                <i class="bi bi-tree-fill"></i> FACULTÉ AGRONOMIQUE - UNILU
+            </a>
+            <div class="navbar-right">
+                <div class="profile-photo" id="profileBtn">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <button class="btn btn-outline-light btn-sm" id="logoutBtn">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div id="toastContainer" class="toast-notification"></div>
+        
+        <div class="payment-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h5 class="mb-0"><i class="bi bi-credit-card-fill" style="color: var(--genius-purple);"></i> Paiement en ligne</h5>
+                <div>
+                    <span class="genius-badge"><i class="bi bi-shield-check"></i> GeniusPay</span>
+                    <span class="mode-badge production" id="modeBadge">💰 Production (Réel)</span>
+                </div>
+            </div>
+            
+            <!-- ⚠️ Bannière d'avertissement production -->
+            <div class="warning-banner">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div>
+                    <strong>⚠️ Mode Production</strong> - Les paiements sont <strong>RÉELS</strong>. 
+                    L'argent sera débité de votre compte Mobile Money.
+                </div>
+            </div>
+            
+            <div class="step-indicator">
+                <div class="step-item active" id="step1">
+                    <div class="step-circle">1</div>
+                    <span>Sélection</span>
+                </div>
+                <div class="step-item" id="step2">
+                    <div class="step-circle">2</div>
+                    <span>Paiement</span>
+                </div>
+                <div class="step-item" id="step3">
+                    <div class="step-circle">3</div>
+                    <span>Confirmation</span>
+                </div>
+            </div>
+            
+            <div id="stepSelection">
+                <h6 class="mb-3"><i class="bi bi-file-text-fill" style="color: var(--primary-blue);"></i> Sélectionnez les fiches à payer</h6>
+                <div id="fichesList"></div>
+                
+                <div class="total-section">
+                    <div>Total à payer</div>
+                    <div class="total-amount" id="totalAmount">0 FC</div>
+                    <div id="totalAmountUSD" style="font-size: 14px; opacity: 0.8;"></div>
+                </div>
+                
+                <button class="btn-pay" id="nextStepBtn" disabled>
+                    <span class="btn-text">Continuer <i class="bi bi-arrow-right"></i></span>
+                </button>
+            </div>
+            
+            <div id="stepPayment" style="display: none;">
+                <h6 class="mb-3"><i class="bi bi-phone-fill" style="color: var(--genius-purple);"></i> Choisissez votre opérateur</h6>
+                
+                <div class="operator-selector">
+                    <div class="operator-btn wave" data-operator="wave">
+                        <span class="operator-icon"><i class="bi bi-phone"></i></span>
+                        Wave
+                    </div>
+                    <div class="operator-btn orange" data-operator="orange_money">
+                        <span class="operator-icon"><i class="bi bi-phone"></i></span>
+                        Orange Money
+                    </div>
+                    <div class="operator-btn airtel" data-operator="airtel_money">
+                        <span class="operator-icon"><i class="bi bi-phone"></i></span>
+                        Airtel Money
+                    </div>
+                    <div class="operator-btn mtn" data-operator="mtn_money">
+                        <span class="operator-icon"><i class="bi bi-phone"></i></span>
+                        MTN Money
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label"><i class="bi bi-phone"></i> Numéro de téléphone</label>
+                    <div class="phone-input-group">
+                        <input type="tel" id="phoneNumber" placeholder="243971877758" maxlength="15" inputmode="numeric">
+                    </div>
+                    <div class="phone-hint">
+                        📱 Saisissez <strong>12 chiffres</strong> avec l'indicatif (ex: 243971877758)
+                    </div>
+                </div>
+                
+                <div class="total-section" style="background: linear-gradient(135deg, var(--genius-purple), #5a22b5);">
+                    <div>Montant à payer</div>
+                    <div class="total-amount" id="paymentAmount">0 FC</div>
+                </div>
+                
+                <button class="btn-pay" id="payNowBtn">
+                    <span class="spinner"><i class="bi bi-hourglass-split"></i></span>
+                    <span class="btn-text"><i class="bi bi-shield-check"></i> Payer maintenant</span>
+                </button>
+                
+                <button class="btn btn-secondary w-100 mt-2" id="backToSelectionBtn">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </button>
+            </div>
+            
+            <div id="stepResult" style="display: none;">
+                <div id="resultStatus" class="status-banner"></div>
+                <div id="resultDetails" style="text-align: center; padding: 20px 0;"></div>
+                <div id="resultActions" style="text-align: center;"></div>
+            </div>
+        </div>
+        
+        <div class="footer-info">
+            <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Paiement sécurisé via GeniusPay<br>
+            <small class="text-muted" id="modeFooter">Mode: Production - Argent réel débité du compte Mobile Money</small>
+        </div>
+    </div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner-large"></div>
+        <div class="loading-text" id="loadingText">Envoi de la demande de paiement...</div>
+        <div class="loading-subtext" id="loadingSubtext">Mode Production - Argent réel</div>
+    </div>
+    
+    <div id="profileModal" class="profile-modal">
+        <div class="profile-modal-content text-center">
+            <i class="bi bi-person-circle" style="font-size:55px;color:var(--primary-blue);"></i>
+            <h5 id="profilNom"></h5>
+            <p id="profilMatricule" class="small"></p>
+            <p id="profilPromotion" class="small"></p>
+            <hr>
+            <button class="btn-action" id="closeProfileBtn">Fermer</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONFIGURATION FIREBASE ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
+            authDomain: "fsa-unilu.firebaseapp.com",
+            projectId: "fsa-unilu",
+            storageBucket: "fsa-unilu.firebasestorage.app",
+            messagingSenderId: "36551990738",
+            appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // ==================== CONFIGURATION GENIUSPAY - PRODUCTION ====================
+        // 🔑 REMPLACEZ AVEC VOTRE CLÉ DE PRODUCTION
+        const GENIUSPAY_CONFIG = {
+            // ⚠️ METTEZ VOTRE CLÉ DE PRODUCTION ICI
+            API_KEY: "pk_live_nzCI7KaahbWPaJZatEce89ZgG2AEEUH0",
+            
+            API_URL: "https://api.genius.ci/v1",
+            CURRENCY: "CDF",
+            WEBHOOK_URL: "https://hybrilink.github.io/Espace-etudiant/geniuspay-webhook.html",
+            
+            // ⚠️ false = PRODUCTION (argent réel)
+            SANDBOX: false,
+            
+            REDIRECT_URL: window.location.origin + "/paiement-ligne.html"
+        };
+        
+        // ==================== AFFICHAGE DU MODE ====================
+        console.log('🔑 GeniusPay configuré en mode PRODUCTION (argent réel)');
+        console.log('⚠️ ATTENTION: Les transactions sont RÉELLES');
+        console.log('⚠️ L\'argent sera débité du compte Mobile Money');
+        console.log('📡 Mode: PRODUCTION (Réel)');
+        
+        // ==================== VARIABLES GLOBALES ====================
+        let currentStudent = null;
+        let allPromotions = [];
+        let allFiches = [];
+        let selectedFiches = [];
+        let selectedOperator = null;
+        let allAnnees = [];
+        let pendingPaymentId = null;
+        let paymentListener = null;
+        let paymentInterval = null;
+        let isPaymentConfirmed = false;
+        
+        // ==================== SESSION ====================
+        function checkSession() {
+            const session = localStorage.getItem('session_etudiant');
+            if (!session) {
+                window.location.href = 'login-etudiant.html';
+                return false;
+            }
+            try {
+                const data = JSON.parse(session);
+                if (Date.now() > data.expires) {
+                    localStorage.removeItem('session_etudiant');
+                    window.location.href = 'login-etudiant.html';
+                    return false;
+                }
+                currentStudent = data;
+                return true;
+            } catch(e) {
+                window.location.href = 'login-etudiant.html';
+                return false;
+            }
+        }
+        
+        // ==================== UTILITAIRES ====================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const colors = {
+                success: '#28a745',
+                warning: '#ffc107',
+                danger: '#dc3545',
+                info: '#17a2b8'
+            };
+            const icons = {
+                success: 'check-circle-fill',
+                warning: 'exclamation-triangle-fill',
+                danger: 'x-circle-fill',
+                info: 'info-circle-fill'
+            };
+            const textColor = type === 'warning' ? '#333' : 'white';
+            const toastHtml = `<div class="toast" style="background: ${colors[type]}; color: ${textColor};"><i class="bi bi-${icons[type]} me-2"></i>${message}</div>`;
+            container.insertAdjacentHTML('afterbegin', toastHtml);
+            setTimeout(() => { if (container.firstElementChild) container.firstElementChild.remove(); }, 4000);
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formaterMontant(montant) {
+            return `${montant.toLocaleString()} FC`;
+        }
+        
+        function numberToWords(number) {
+            if (number === 0) return 'ZERO FRANC';
+            return number.toLocaleString() + ' FRANCS CONGOLAIS';
+        }
+        
+        function generatePaymentId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = 'PEND-';
+            for (let i = 0; i < 10; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        
+        function generateTransactionId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = 'TRX-';
+            for (let i = 0; i < 12; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        
+        function generateNumeroRecu() {
+            return Math.floor(Math.random() * 900) + 100 + '-' + Math.floor(Math.random() * 900) + 100;
+        }
+        
+        // ==================== VALIDATION DU NUMÉRO - 12 CHIFFRES ====================
+        function validerNumeroTelephone(numero) {
+            // Supprimer tous les espaces, tirets et caractères spéciaux
+            let clean = numero.replace(/[\s\-\(\)\+]/g, '');
+            
+            // Vérifier si le numéro commence par 243
+            if (!clean.startsWith('243')) {
+                return {
+                    valide: false,
+                    erreur: 'Le numéro doit commencer par 243 (ex: 243971877758)'
+                };
+            }
+            
+            // Vérifier que le numéro fait exactement 12 chiffres
+            if (clean.length !== 12) {
+                return {
+                    valide: false,
+                    erreur: 'Le numéro doit contenir 12 chiffres (ex: 243971877758)'
+                };
+            }
+            
+            // Vérifier que les 9 derniers chiffres sont valides (opérateur)
+            const reste = clean.substring(3);
+            if (!reste.match(/^[0-9]{9}$/)) {
+                return {
+                    valide: false,
+                    erreur: 'Numéro invalide - Vérifiez les 9 derniers chiffres'
+                };
+            }
+            
+            return {
+                valide: true,
+                numeroComplet: clean,
+                message: 'Numéro valide'
+            };
+        }
+        
+        // ==================== CHARGEMENT DES DONNÉES ====================
+        async function chargerPromotions() {
+            try {
+                const snapshot = await db.collection('promotions').get();
+                allPromotions = [];
+                snapshot.forEach(doc => allPromotions.push({ id: doc.id, ...doc.data() }));
+            } catch (error) {
+                console.error('Erreur promotions:', error);
+            }
+        }
+        
+        async function chargerFiches() {
+            try {
+                const snapshot = await db.collection('fiches').get();
+                allFiches = [];
+                snapshot.forEach(doc => allFiches.push({ id: doc.id, ...doc.data() }));
+            } catch (error) {
+                console.error('Erreur fiches:', error);
+            }
+        }
+        
+        async function chargerAnnees() {
+            try {
+                const snapshot = await db.collection('anneesAcademiques').get();
+                allAnnees = [];
+                snapshot.forEach(doc => allAnnees.push({ id: doc.id, ...doc.data() }));
+            } catch (error) {
+                console.error('Erreur années:', error);
+            }
+        }
+        
+        function getPromotionNom(promotionId) {
+            if (!promotionId) return 'Non définie';
+            const promo = allPromotions.find(p => p.id === promotionId);
+            return promo ? promo.nom : promotionId;
+        }
+        
+        async function getAnneeActive() {
+            await chargerAnnees();
+            const active = allAnnees.find(a => a.statut === 'active');
+            return active || null;
+        }
+        
+        // ==================== AFFICHAGE DES FICHES ====================
+        function afficherFiches() {
+            const container = document.getElementById('fichesList');
+            if (!container) return;
+            
+            if (allFiches.length === 0) {
+                container.innerHTML = '<div class="alert alert-warning">Aucune fiche disponible.</div>';
+                return;
+            }
+            
+            const promoId = currentStudent.promotion;
+            const fichesFiltrees = allFiches.filter(fiche => {
+                if (fiche.promotions && Array.isArray(fiche.promotions)) {
+                    return fiche.promotions.includes(promoId);
+                }
+                return true;
+            });
+            
+            if (fichesFiltrees.length === 0) {
+                container.innerHTML = '<div class="alert alert-warning">Aucune fiche disponible pour votre promotion.</div>';
+                return;
+            }
+            
+            let html = '';
+            fichesFiltrees.forEach(fiche => {
+                const isSelected = selectedFiches.includes(fiche.id);
+                html += `
+                    <div class="fiche-selector-item ${isSelected ? 'selected' : ''}" data-fiche-id="${fiche.id}" onclick="toggleFiche('${fiche.id}')">
+                        <div>
+                            <strong>${escapeHtml(fiche.nom)}</strong>
+                            <div style="font-size: 12px; color: #888;">${escapeHtml(fiche.description || '')}</div>
+                        </div>
+                        <div>
+                            <span class="fiche-price">${formaterMontant(fiche.montant || 0)}</span>
+                            <div style="font-size: 11px; color: #999;">$ ${((fiche.montant || 0) / 2300).toFixed(2)}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+        
+        // ==================== SÉLECTION DES FICHES ====================
+        function toggleFiche(ficheId) {
+            const item = document.querySelector(`.fiche-selector-item[data-fiche-id="${ficheId}"]`);
+            if (!item) return;
+            
+            const index = selectedFiches.indexOf(ficheId);
+            if (index === -1) {
+                selectedFiches.push(ficheId);
+                item.classList.add('selected');
+            } else {
+                selectedFiches.splice(index, 1);
+                item.classList.remove('selected');
+            }
+            
+            updateTotal();
+        }
+        
+        function updateTotal() {
+            const total = selectedFiches.reduce((sum, id) => {
+                const fiche = allFiches.find(f => f.id === id);
+                return sum + (fiche ? (fiche.montant || 0) : 0);
+            }, 0);
+            
+            document.getElementById('totalAmount').textContent = formaterMontant(total);
+            document.getElementById('paymentAmount').textContent = formaterMontant(total);
+            
+            const usd = total / 2300;
+            document.getElementById('totalAmountUSD').textContent = `$ ${usd.toFixed(2)}`;
+            
+            const nextBtn = document.getElementById('nextStepBtn');
+            nextBtn.disabled = selectedFiches.length === 0;
+        }
+        
+        // ==================== NAVIGATION ====================
+        function goToStep(step) {
+            document.querySelectorAll('.step-item').forEach((el, index) => {
+                el.classList.remove('active', 'done', 'error');
+                if (index + 1 === step) el.classList.add('active');
+                else if (index + 1 < step) el.classList.add('done');
+            });
+            
+            document.getElementById('stepSelection').style.display = step === 1 ? 'block' : 'none';
+            document.getElementById('stepPayment').style.display = step === 2 ? 'block' : 'none';
+            document.getElementById('stepResult').style.display = step === 3 ? 'block' : 'none';
+        }
+        
+        document.getElementById('nextStepBtn').addEventListener('click', () => {
+            if (selectedFiches.length === 0) {
+                showToast('Veuillez sélectionner au moins une fiche', 'warning');
+                return;
+            }
+            goToStep(2);
+        });
+        
+        document.getElementById('backToSelectionBtn').addEventListener('click', () => {
+            goToStep(1);
+        });
+        
+        // ==================== OPÉRATEURS ====================
+        document.querySelectorAll('.operator-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.operator-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedOperator = btn.dataset.operator;
+            });
+        });
+        
+        // ==================== NUMÉRO DE TÉLÉPHONE - 12 CHIFFRES DIRECT ====================
+        document.getElementById('phoneNumber').addEventListener('input', function() {
+            // Supprimer tous les caractères non numériques
+            let value = this.value.replace(/\D/g, '');
+            
+            // Limiter à 12 chiffres
+            if (value.length > 12) {
+                value = value.slice(0, 12);
+            }
+            
+            // Formater avec des espaces pour la lisibilité (243 971 877 758)
+            let formatted = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i === 3 || i === 6 || i === 9) {
+                    formatted += ' ';
+                }
+                formatted += value[i];
+            }
+            
+            this.value = formatted;
+        });
+        
+        // ==================== PAIEMENT AVEC GENIUSPAY - PRODUCTION ====================
+        async function initierPaiement() {
+            // Vérifications
+            if (selectedFiches.length === 0) {
+                showToast('Sélectionnez au moins une fiche', 'warning');
+                return;
+            }
+            
+            if (!selectedOperator) {
+                showToast('Choisissez votre opérateur mobile', 'warning');
+                return;
+            }
+            
+            const phoneRaw = document.getElementById('phoneNumber').value.replace(/\s/g, '');
+            
+            // Validation du numéro avec 12 chiffres
+            const validation = validerNumeroTelephone(phoneRaw);
+            
+            if (!validation.valide) {
+                showToast('❌ ' + validation.erreur, 'warning');
+                document.getElementById('phoneNumber').focus();
+                document.getElementById('phoneNumber').style.borderColor = '#dc3545';
+                setTimeout(() => {
+                    document.getElementById('phoneNumber').style.borderColor = '#e0e0e0';
+                }, 3000);
+                return;
+            }
+            
+            const phoneNumber = validation.numeroComplet; // 243971877758 (12 chiffres)
+            
+            console.log('📱 Numéro formaté:', phoneNumber);
+            console.log('📱 Longueur:', phoneNumber.length, 'chiffres');
+            
+            const total = selectedFiches.reduce((sum, id) => {
+                const fiche = allFiches.find(f => f.id === id);
+                return sum + (fiche ? (fiche.montant || 0) : 0);
+            }, 0);
+            
+            if (total <= 0) {
+                showToast('Montant invalide', 'warning');
+                return;
+            }
+            
+            const annee = await getAnneeActive();
+            if (!annee) {
+                showToast('Aucune année académique active', 'warning');
+                return;
+            }
+            
+            const fichesDetails = selectedFiches.map(id => {
+                const fiche = allFiches.find(f => f.id === id);
+                return { id: fiche.id, nom: fiche.nom, prix: fiche.montant || 0 };
+            });
+            
+            const paymentId = generatePaymentId();
+            pendingPaymentId = paymentId;
+            isPaymentConfirmed = false;
+            
+            const pendingData = {
+                id: paymentId,
+                etudiantId: currentStudent.id,
+                etudiantNom: currentStudent.nom,
+                etudiantMatricule: currentStudent.matricule || currentStudent.id,
+                promotion: currentStudent.promotion,
+                promotionNom: getPromotionNom(currentStudent.promotion),
+                anneeAcademiqueId: annee.id,
+                anneeAcademiqueNom: annee.annee || annee.nom,
+                fiches: fichesDetails,
+                montantTotal: total,
+                montantLettres: numberToWords(total),
+                telephone: phoneNumber,
+                operateur: selectedOperator,
+                status: 'pending',
+                dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
+                type: 'ligne',
+                provider: 'geniuspay',
+                mode: 'production'
+            };
+            
+            const btn = document.getElementById('payNowBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+            
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            document.getElementById('loadingText').textContent = '📤 Envoi de la demande de paiement...';
+            document.getElementById('loadingSubtext').textContent = '💰 Mode Production - Argent réel';
+            loadingOverlay.classList.add('active');
+            
+            try {
+                await db.collection('paiements_attente').doc(paymentId).set(pendingData);
+                showToast('📤 Demande envoyée à GeniusPay', 'info');
+                
+                document.getElementById('loadingText').textContent = '⏳ Initiation du paiement...';
+                document.getElementById('loadingSubtext').textContent = 'GeniusPay prépare la requête pour votre opérateur';
+                
+                const paymentResult = await initierPaiementGeniusPay(paymentId, total, phoneNumber, selectedOperator);
+                
+                console.log('✅ Réponse GeniusPay:', paymentResult);
+                
+                if (paymentResult.success && paymentResult.paymentUrl) {
+                    document.getElementById('loadingText').textContent = '📱 En attente de confirmation sur votre téléphone';
+                    document.getElementById('loadingSubtext').textContent = 'Veuillez vérifier votre téléphone et confirmer avec votre code PIN';
+                    
+                    goToStep(3);
+                    showResult('pending', {
+                        message: '⏳ En attente de confirmation sur votre téléphone',
+                        details: `
+                            <div style="text-align: center;">
+                                <div class="spinner-border text-warning" role="status" style="width: 50px; height: 50px;">
+                                    <span class="visually-hidden">En attente...</span>
+                                </div>
+                                <p class="mt-3">Une requête a été envoyée à votre numéro <strong>${phoneNumber}</strong></p>
+                                <p>Veuillez ouvrir votre application Mobile Money et confirmer le paiement avec votre code PIN.</p>
+                                <div class="alert alert-danger mt-3" style="font-size: 13px;">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> 
+                                    <strong>⚠️ Mode Production</strong> - L'argent sera débité de votre compte Mobile Money
+                                </div>
+                                <p class="text-muted mt-2" style="font-size: 12px;">
+                                    <span id="countdownTimer">⏱️ 5:00</span> restant pour confirmer
+                                </p>
+                            </div>
+                        `
+                    });
+                    
+                    window.open(paymentResult.paymentUrl, '_blank');
+                    
+                    demarrerVerificationPaiement(paymentId);
+                    demarrerCompteARebours(300);
+                    
+                } else {
+                    throw new Error(paymentResult.message || 'Échec de l\'initiation du paiement');
+                }
+                
+                loadingOverlay.classList.remove('active');
+                
+            } catch (error) {
+                console.error('❌ Erreur paiement:', error);
+                showToast('❌ Erreur: ' + error.message, 'danger');
+                
+                if (pendingPaymentId) {
+                    await db.collection('paiements_attente').doc(pendingPaymentId).update({
+                        status: 'failed',
+                        erreur: error.message
+                    });
+                }
+                
+                goToStep(3);
+                showResult('error', {
+                    message: '❌ Paiement échoué',
+                    details: `
+                        <p>${error.message}</p>
+                        <p class="text-muted mt-2" style="font-size: 13px;">
+                            <i class="bi bi-info-circle"></i> 
+                            Aucun argent n'a été débité de votre compte.
+                        </p>
+                    `
+                });
+                
+                loadingOverlay.classList.remove('active');
+            }
+            
+            btn.classList.remove('loading');
+            btn.disabled = false;
+        }
+        
+        // ==================== APPEL API GENIUSPAY - PRODUCTION ====================
+        async function initierPaiementGeniusPay(paymentId, montant, telephone, operateur) {
+            const operatorMap = {
+                'wave': 'wave',
+                'orange_money': 'orange_money',
+                'airtel_money': 'airtel_money',
+                'mtn_money': 'mtn_money'
+            };
+            
+            const geniusOperator = operatorMap[operateur] || operateur;
+            
+            const payload = {
+                amount: montant,
+                currency: GENIUSPAY_CONFIG.CURRENCY,
+                paymentMethod: geniusOperator,
+                reference: paymentId,
+                customer: {
+                    name: currentStudent.nom,
+                    email: currentStudent.email || `${currentStudent.id}@fsa-unilu.com`,
+                    phone: telephone
+                },
+                description: `Paiement Faculté Agronomique - ${currentStudent.nom}`,
+                metadata: {
+                    etudiantId: currentStudent.id,
+                    matricule: currentStudent.matricule || currentStudent.id,
+                    paymentId: paymentId,
+                    mode: 'production'
+                },
+                webhookUrl: GENIUSPAY_CONFIG.WEBHOOK_URL,
+                successUrl: GENIUSPAY_CONFIG.REDIRECT_URL + '?status=success&payment=' + paymentId,
+                errorUrl: GENIUSPAY_CONFIG.REDIRECT_URL + '?status=error&payment=' + paymentId
+            };
+            
+            console.log('📤 Envoi requête GeniusPay (PRODUCTION):', payload);
+            console.log('📱 Numéro envoyé:', telephone, '(', telephone.length, 'chiffres)');
+            
+            try {
+                const response = await fetch(`${GENIUSPAY_CONFIG.API_URL}/payments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': GENIUSPAY_CONFIG.API_KEY,
+                        'X-Sandbox': 'false'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                console.log('📥 Réponse GeniusPay:', data);
+                
+                if (!response.ok) {
+                    throw new Error(data.message || `Erreur HTTP ${response.status}`);
+                }
+                
+                let paymentUrl = data.paymentUrl || data.checkoutUrl || data.redirectUrl || null;
+                
+                if (!paymentUrl && data.reference) {
+                    paymentUrl = `https://pay.genius.ci/checkout?reference=${data.reference}`;
+                }
+                
+                await db.collection('paiements_attente').doc(paymentId).update({
+                    geniuspayReference: data.reference || data.id,
+                    geniuspayStatus: data.status || 'pending',
+                    geniuspayData: data
+                });
+                
+                return {
+                    success: true,
+                    reference: data.reference || data.id,
+                    status: data.status || 'pending',
+                    paymentUrl: paymentUrl,
+                    data: data
+                };
+                
+            } catch (error) {
+                console.error('❌ Erreur API GeniusPay:', error);
+                
+                const fallbackUrl = `https://pay.genius.ci/checkout?reference=${paymentId}&amount=${montant}&currency=${GENIUSPAY_CONFIG.CURRENCY}&paymentMethod=${geniusOperator}&phone=${telephone}`;
+                
+                return {
+                    success: true,
+                    reference: paymentId,
+                    status: 'pending',
+                    paymentUrl: fallbackUrl,
+                    data: { fallback: true },
+                    message: 'URL de paiement générée (fallback)'
+                };
+            }
+        }
+        
+        // ==================== VÉRIFICATION ====================
+        function demarrerVerificationPaiement(paymentId) {
+            if (paymentListener) {
+                paymentListener();
+                paymentListener = null;
+            }
+            
+            console.log('⏳ En attente de confirmation GeniusPay pour:', paymentId);
+            
+            paymentListener = db.collection('paiements_attente').doc(paymentId)
+                .onSnapshot((doc) => {
+                    if (!doc.exists) return;
+                    
+                    const data = doc.data();
+                    const status = data.status;
+                    
+                    console.log('📊 Statut actuel:', status);
+                    
+                    if (status === 'confirmed') {
+                        console.log('✅ Paiement confirmé par GeniusPay !');
+                        isPaymentConfirmed = true;
+                        paymentListener();
+                        paymentListener = null;
+                        
+                        db.collection('transactions')
+                            .where('paiementAttenteId', '==', paymentId)
+                            .get()
+                            .then((snapshot) => {
+                                if (!snapshot.empty) {
+                                    const transactionDoc = snapshot.docs[0];
+                                    const transactionData = transactionDoc.data();
+                                    
+                                    showResult('success', {
+                                        message: '✅ Paiement confirmé avec succès !',
+                                        details: `
+                                            <div style="text-align: center;">
+                                                <i class="bi bi-check-circle-fill" style="font-size: 48px; color: #28a745;"></i>
+                                                <p style="font-weight: bold; color: #155724; margin-top: 10px;">
+                                                    Votre paiement de ${formaterMontant(transactionData.montantTotal)} a été validé
+                                                </p>
+                                                <p>✅ L'argent a été débité de votre compte Mobile Money.</p>
+                                                <p><strong>N° Transaction:</strong> ${transactionDoc.id}</p>
+                                                <p><strong>N° Reçu:</strong> ${transactionData.numeroRecu}</p>
+                                                <p><strong>Téléphone:</strong> ${transactionData.telephone}</p>
+                                            </div>
+                                        `,
+                                        transactionId: transactionDoc.id
+                                    });
+                                    showToast('✅ Paiement confirmé avec succès !', 'success');
+                                }
+                            });
+                        
+                    } else if (status === 'failed' || status === 'expired') {
+                        console.log('❌ Paiement échoué');
+                        isPaymentConfirmed = false;
+                        paymentListener();
+                        paymentListener = null;
+                        
+                        showResult('error', {
+                            message: '❌ Paiement échoué',
+                            details: `
+                                <div style="text-align: center;">
+                                    <i class="bi bi-x-circle-fill" style="font-size: 48px; color: #dc3545;"></i>
+                                    <p>${data.erreur || 'Le paiement n\'a pas été confirmé.'}</p>
+                                    <p class="text-muted mt-2" style="font-size: 13px;">
+                                        <i class="bi bi-info-circle"></i> 
+                                        Aucun argent n'a été débité de votre compte.
+                                    </p>
+                                </div>
+                            `
+                        });
+                        showToast('❌ Paiement échoué', 'danger');
+                    }
+                }, (error) => {
+                    console.error('❌ Erreur suivi paiement:', error);
+                });
+        }
+        
+        // ==================== COMPTE À REBOURS ====================
+        function demarrerCompteARebours(secondes) {
+            let tempsRestant = secondes;
+            const timerElement = document.getElementById('countdownTimer');
+            
+            if (paymentInterval) {
+                clearInterval(paymentInterval);
+            }
+            
+            paymentInterval = setInterval(() => {
+                tempsRestant--;
+                const minutes = Math.floor(tempsRestant / 60);
+                const secs = tempsRestant % 60;
+                if (timerElement) {
+                    timerElement.textContent = `⏱️ ${minutes}:${secs.toString().padStart(2, '0')}`;
+                }
+                
+                if (tempsRestant <= 0) {
+                    clearInterval(paymentInterval);
+                    paymentInterval = null;
+                    
+                    if (pendingPaymentId) {
+                        db.collection('paiements_attente').doc(pendingPaymentId).get().then((doc) => {
+                            if (doc.exists && doc.data().status === 'pending') {
+                                doc.ref.update({
+                                    status: 'expired',
+                                    erreur: 'Délai de confirmation dépassé (5 minutes)'
+                                });
+                            }
+                        });
+                    }
+                }
+            }, 1000);
+        }
+        
+        // ==================== AFFICHAGE DU RÉSULTAT ====================
+        function showResult(type, data) {
+            const statusBanner = document.getElementById('resultStatus');
+            const detailsContainer = document.getElementById('resultDetails');
+            const actionsContainer = document.getElementById('resultActions');
+            
+            statusBanner.className = 'status-banner show ' + type;
+            
+            let details = data.details || '';
+            let actions = '';
+            
+            switch(type) {
+                case 'success':
+                    actions = `
+                        <button class="btn-pay success" onclick="resetPayment()" style="max-width: 300px; margin: 0 auto; background: #28a745;">
+                            <i class="bi bi-plus-circle"></i> Nouveau paiement
+                        </button>
+                        <a href="etudiant.html" class="btn btn-outline-secondary w-100 mt-2" style="max-width: 300px; margin: 10px auto 0;">
+                            <i class="bi bi-house-door"></i> Retour à l'accueil
+                        </a>
+                        <button class="btn btn-success w-100 mt-2" onclick="window.print()" style="max-width: 300px; margin: 10px auto 0;">
+                            <i class="bi bi-printer"></i> Imprimer le reçu
+                        </button>
+                    `;
+                    break;
+                case 'error':
+                    actions = `
+                        <button class="btn-pay error" onclick="resetPayment()" style="max-width: 300px; margin: 0 auto; background: #dc3545;">
+                            <i class="bi bi-arrow-repeat"></i> Réessayer
+                        </button>
+                        <a href="etudiant.html" class="btn btn-outline-secondary w-100 mt-2" style="max-width: 300px; margin: 10px auto 0;">
+                            <i class="bi bi-house-door"></i> Retour à l'accueil
+                        </a>
+                    `;
+                    break;
+                case 'pending':
+                    actions = `
+                        <button class="btn btn-danger mt-3" onclick="annulerPaiementEnCours()" style="max-width: 300px; margin: 0 auto;">
+                            <i class="bi bi-x-circle"></i> Annuler le paiement
+                        </button>
+                    `;
+                    break;
+                default:
+                    actions = `
+                        <a href="etudiant.html" class="btn btn-outline-secondary w-100 mt-2" style="max-width: 300px; margin: 0 auto;">
+                            <i class="bi bi-house-door"></i> Retour à l'accueil
+                        </a>
+                    `;
+            }
+            
+            statusBanner.innerHTML = `
+                <div style="text-align: center;">
+                    ${details}
+                </div>
+            `;
+            
+            detailsContainer.innerHTML = '';
+            actionsContainer.innerHTML = actions;
+        }
+        
+        // ==================== ANNULER PAIEMENT ====================
+        async function annulerPaiementEnCours() {
+            if (pendingPaymentId) {
+                try {
+                    const doc = await db.collection('paiements_attente').doc(pendingPaymentId).get();
+                    if (doc.exists && doc.data().status === 'pending') {
+                        await doc.ref.update({
+                            status: 'failed',
+                            erreur: 'Annulé par l\'étudiant'
+                        });
+                    }
+                } catch(e) {
+                    console.error('Erreur annulation:', e);
+                }
+            }
+            
+            if (paymentInterval) {
+                clearInterval(paymentInterval);
+                paymentInterval = null;
+            }
+            
+            showToast('Paiement annulé - Aucun argent débité', 'warning');
+            resetPayment();
+        }
+        
+        function resetPayment() {
+            selectedFiches = [];
+            selectedOperator = null;
+            pendingPaymentId = null;
+            isPaymentConfirmed = false;
+            
+            if (paymentListener) {
+                paymentListener();
+                paymentListener = null;
+            }
+            if (paymentInterval) {
+                clearInterval(paymentInterval);
+                paymentInterval = null;
+            }
+            
+            document.querySelectorAll('.fiche-selector-item').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.operator-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('phoneNumber').value = '';
+            document.getElementById('resultStatus').className = 'status-banner';
+            document.getElementById('resultStatus').style.display = 'none';
+            document.getElementById('resultDetails').innerHTML = '';
+            document.getElementById('resultActions').innerHTML = '';
+            document.getElementById('loadingOverlay').classList.remove('active');
+            updateTotal();
+            goToStep(1);
+        }
+        
+        // ==================== PROFIL ====================
+        async function loadProfileData() {
+            await chargerPromotions();
+            document.getElementById('profilNom').textContent = currentStudent.nom || 'Étudiant';
+            document.getElementById('profilMatricule').textContent = `Matricule: ${currentStudent.matricule || currentStudent.id}`;
+            document.getElementById('profilPromotion').textContent = `Promotion: ${getPromotionNom(currentStudent.promotion)}`;
+        }
+        
+        document.getElementById('profileBtn').addEventListener('click', async () => {
+            await loadProfileData();
+            document.getElementById('profileModal').style.display = 'flex';
+        });
+        
+        document.getElementById('closeProfileBtn').addEventListener('click', () => {
+            document.getElementById('profileModal').style.display = 'none';
+        });
+        
+        document.getElementById('profileModal').addEventListener('click', function(e) {
+            if (e.target === this) this.style.display = 'none';
+        });
+        
+        // ==================== LOGOUT ====================
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if (confirm('Voulez-vous vous déconnecter ?')) {
+                localStorage.removeItem('session_etudiant');
+                window.location.href = 'login-etudiant.html';
+            }
+        });
+        
+        // ==================== EXPOSER LES FONCTIONS ====================
+        window.resetPayment = resetPayment;
+        window.annulerPaiementEnCours = annulerPaiementEnCours;
+        window.toggleFiche = toggleFiche;
+        
+        // ==================== INITIALISATION ====================
+        document.getElementById('payNowBtn').addEventListener('click', initierPaiement);
+        
+        async function init() {
+            if (!checkSession()) return;
+            
+            await chargerPromotions();
+            await chargerFiches();
+            await chargerAnnees();
+            
+            afficherFiches();
+            updateTotal();
+            
+            console.log('🚀 GeniusPay - MODE PRODUCTION');
+            console.log('👤 Étudiant:', currentStudent.nom);
+            console.log('💰 Les transactions sont RÉELLES');
+            console.log('⚠️ L\'argent sera débité du compte Mobile Money');
+            console.log('📱 Format téléphone: 12 chiffres (ex: 243971877758)');
+        }
+        
+        init();
+    </script>
+</body>
+</html>

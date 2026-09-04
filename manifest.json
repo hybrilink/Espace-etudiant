@@ -1,0 +1,106 @@
+{
+  "name": "Faculté Agronomique - Espace Étudiant",
+  "short_name": "FAC Agro",
+  "description": "Application étudiante avec notifications push en temps réel - UNILU",
+  "start_url": "index.html",
+  "display": "standalone",
+  "theme_color": "#003366",
+  "background_color": "#003366",
+  "orientation": "portrait",
+  "scope": "/Espace-etudiant/",
+  "lang": "fr",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "gcm_sender_id": "36551990738",
+  "gcm_user_visible_only": true,
+  "icons": [
+    {
+      "src": "icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Espace-etudiant/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Espace-etudiant/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Espace-etudiant/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Espace-etudiant/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Espace-etudiant/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Espace-etudiant/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mes Notes",
+      "short_name": "Notes",
+      "description": "Voir mes notes",
+      "url": "/Espace-etudiant/moyenne.html",
+      "icons": [{ "src": "/Espace-etudiant/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Communiqués",
+      "short_name": "Comms",
+      "description": "Voir les communiqués",
+      "url": "/Espace-etudiant/communiquer.html",
+      "icons": [{ "src": "/Espace-etudiant/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Mon Profil",
+      "short_name": "Profil",
+      "description": "Gérer mon compte",
+      "url": "/Espace-etudiant/profil.html",
+      "icons": [{ "src": "/Espace-etudiant/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Mes Cours",
+      "short_name": "Cours",
+      "description": "Voir mes cours",
+      "url": "/Espace-etudiant/mes-cours.html",
+      "icons": [{ "src": "/Espace-etudiant/icon-96x96.png", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [],
+  "display_override": ["standalone", "minimal-ui"],
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}

@@ -1,0 +1,2341 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Connexion Étudiant - Faculté Agronomique</title>
+    <meta name="theme-color" content="#003366">
+    <meta name="description" content="Connexion à l'espace étudiant avec notifications en temps réel">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FAC Agro">
+    
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+    >
+
+    <!-- ============================================================
+         FIREBASE
+    ============================================================ -->
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+
+    <!-- ============================================================
+         GESTIONNAIRE CENTRAL DES NOTIFICATIONS
+         IMPORTANT : un seul gestionnaire pour toute l'application
+    ============================================================ -->
+
+    <script src="notification-utils.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #003366;
+            --dark-blue: #002244;
+            --accent-yellow: #ffb347;
+        }
+        
+        body {
+            background: linear-gradient(
+                135deg,
+                var(--primary-blue) 0%,
+                var(--dark-blue) 100%
+            );
+
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 30px;
+            padding: 40px 35px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35);
+            animation: fadeInUp 0.6s ease-out;
+            position: relative;
+        }
+        
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(
+                90deg,
+                var(--primary-blue),
+                var(--accent-yellow),
+                var(--primary-blue)
+            );
+            border-radius: 30px 30px 0 0;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(
+                135deg,
+                var(--primary-blue),
+                var(--dark-blue)
+            );
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: 0 10px 25px -5px rgba(0,51,102,0.4);
+        }
+
+        .logo-icon img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+
+        .logo h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .input-group-custom {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group-custom i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-blue);
+            font-size: 18px;
+            z-index: 1;
+        }
+
+        .input-group-custom input {
+            width: 100%;
+            padding: 14px 15px 14px 50px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .input-group-custom input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0,51,102,0.1);
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(
+                135deg,
+                var(--primary-blue),
+                var(--dark-blue)
+            );
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0,51,102,0.5);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-login .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .switch-action {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .switch-action a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .switch-action a:hover {
+            color: var(--accent-yellow);
+        }
+        
+        .alert-custom {
+            background: #f8d7da;
+            color: #721c24;
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert-success-custom {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 280px;
+            max-width: 350px;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast {
+            animation: slideInRight 0.3s ease-out;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .footer-info {
+            position: fixed;
+            bottom: 15px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .offline-badge {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: var(--accent-yellow);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            display: none;
+            z-index: 100;
+        }
+
+        .offline-badge.show {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .cache-indicator {
+            font-size: 10px;
+            color: #888;
+            text-align: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 15px;
+            }
+
+            .login-card {
+                padding: 35px 25px;
+                border-radius: 25px;
+            }
+
+            .logo h2 {
+                font-size: 22px;
+            }
+
+            .toast-notification {
+                top: 15px;
+                left: 15px;
+                right: 15px;
+                min-width: auto;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ============================================================
+         BADGE HORS LIGNE
+    ============================================================ -->
+
+    <div class="offline-badge" id="offlineBadge">
+        <i class="bi bi-wifi-off"></i>
+        Hors ligne
+    </div>
+
+
+    <!-- ============================================================
+         CONTENEUR PRINCIPAL
+    ============================================================ -->
+
+    <div class="login-container">
+
+        <div class="login-card">
+
+            <!-- ====================================================
+                 LOGO
+            ==================================================== -->
+
+            <div class="logo">
+
+                <div class="logo-icon">
+
+                    <img
+                        src="fsa.png"
+                        alt="Logo Faculté Agronomique"
+                        onerror="this.style.display='none';"
+                    >
+
+                </div>
+
+                <h2>
+                    Faculté Agronomique
+                </h2>
+
+                <p>
+                    Espace Étudiant - UNILU
+                </p>
+
+            </div>
+
+
+            <!-- ====================================================
+                 MESSAGE
+            ==================================================== -->
+
+            <div
+                id="alertMessage"
+                class="alert-custom"
+            ></div>
+
+
+            <!-- ====================================================
+                 FORMULAIRE DE CONNEXION
+            ==================================================== -->
+
+            <div id="loginForm">
+
+                <div class="input-group-custom">
+
+                    <i class="bi bi-person-badge"></i>
+
+                    <input
+                        type="text"
+                        id="matricule"
+                        placeholder="Matricule"
+                        autocomplete="username"
+                        autocapitalize="characters"
+                        spellcheck="false"
+                    >
+
+                </div>
+
+
+                <div class="input-group-custom">
+
+                    <i class="bi bi-lock"></i>
+
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Mot de passe"
+                        autocomplete="current-password"
+                    >
+
+                </div>
+
+
+                <button
+                    class="btn-login"
+                    id="loginBtn"
+                    type="button"
+                >
+
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Se connecter
+
+                </button>
+
+
+                <div class="switch-action">
+
+                    <a id="showActivationLink">
+                        Activer mon compte / Créer mot de passe
+                    </a>
+
+                </div>
+
+
+                <div class="cache-indicator">
+
+                    <i class="bi bi-database"></i>
+
+                    <span id="cacheStatusText">
+                        Prêt
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- ====================================================
+                 FORMULAIRE D'ACTIVATION
+            ==================================================== -->
+
+            <div
+                id="activationForm"
+                style="display: none;"
+            >
+
+                <div
+                    style="
+                        background:#e8f4fd;
+                        border-radius:12px;
+                        padding:12px;
+                        margin-bottom:20px;
+                        border-left:4px solid var(--primary-blue);
+                        font-size:13px;
+                    "
+                >
+
+                    <i class="bi bi-info-circle-fill"></i>
+
+                    Activez votre compte en créant votre mot de passe.
+
+                </div>
+
+
+                <div class="input-group-custom">
+
+                    <i class="bi bi-person-badge"></i>
+
+                    <input
+                        type="text"
+                        id="activationMatricule"
+                        placeholder="Matricule"
+                        autocomplete="off"
+                        autocapitalize="characters"
+                    >
+
+                </div>
+
+
+                <div class="input-group-custom">
+
+                    <i class="bi bi-lock"></i>
+
+                    <input
+                        type="password"
+                        id="newPassword"
+                        placeholder="Nouveau mot de passe (min. 4)"
+                        autocomplete="new-password"
+                    >
+
+                </div>
+
+
+                <div class="input-group-custom">
+
+                    <i class="bi bi-lock"></i>
+
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        placeholder="Confirmer"
+                        autocomplete="new-password"
+                    >
+
+                </div>
+
+
+                <button
+                    class="btn-login"
+                    id="activationBtn"
+                    type="button"
+                >
+
+                    <i class="bi bi-check-circle"></i>
+                    Activer mon compte
+
+                </button>
+
+
+                <div class="switch-action">
+
+                    <a id="showLoginLink">
+                        ← Retour à la connexion
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         TOASTS
+    ============================================================ -->
+
+    <div
+        id="toastContainer"
+        class="toast-notification"
+    ></div>
+
+
+    <!-- ============================================================
+         FOOTER
+    ============================================================ -->
+
+    <div class="footer-info">
+        HYBRILINK-TECH | Notifications en temps réel
+    </div>
+
+
+    <!-- ============================================================
+         JAVASCRIPT
+    ============================================================ -->
+
+    <script>
+
+        "use strict";
+
+
+        // ============================================================
+        // FIREBASE CONFIGURATION
+        // ============================================================
+
+        const firebaseConfig = {
+
+            apiKey:
+                "AIzaSyBbQ2N-5ns7qKjBAj5UvDW87s2PZ27F0",
+
+            authDomain:
+                "fsa-unilu.firebaseapp.com",
+
+            projectId:
+                "fsa-unilu",
+
+            storageBucket:
+                "fsa-unilu.firebasestorage.app",
+
+            messagingSenderId:
+                "36551990738",
+
+            appId:
+                "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+
+        };
+
+
+        // ============================================================
+        // INITIALISATION FIREBASE
+        // ============================================================
+
+        if (!firebase.apps.length) {
+
+            firebase.initializeApp(
+                firebaseConfig
+            );
+
+        }
+
+
+        const db =
+            firebase.firestore();
+
+
+        let messaging = null;
+
+
+        try {
+
+            messaging =
+                firebase.messaging();
+
+        } catch (error) {
+
+            console.warn(
+                "[FCM] Firebase Messaging indisponible :",
+                error
+            );
+
+        }
+
+
+        // ============================================================
+        // VARIABLES
+        // ============================================================
+
+        let loginAttempts = 0;
+
+        let lastLoginAttempt = 0;
+
+        const SESSION_KEY =
+            "session_etudiant";
+
+
+        // ============================================================
+        // OUTILS
+        // ============================================================
+
+        function showToast(
+            message,
+            type = "success"
+        ) {
+
+            const container =
+                document.getElementById(
+                    "toastContainer"
+                );
+
+            if (!container) {
+                return;
+            }
+
+
+            const colors = {
+
+                success: {
+                    bg: "#28a745",
+                    icon: "check-circle-fill"
+                },
+
+                warning: {
+                    bg: "#ffc107",
+                    icon: "exclamation-triangle-fill",
+                    textColor: "#333"
+                },
+
+                danger: {
+                    bg: "#dc3545",
+                    icon: "x-circle-fill"
+                },
+
+                info: {
+                    bg: "#17a2b8",
+                    icon: "info-circle-fill"
+                }
+
+            };
+
+
+            const config =
+                colors[type] ||
+                colors.success;
+
+
+            const textColor =
+                config.textColor ||
+                "white";
+
+
+            const toastHtml = `
+
+                <div
+                    class="toast"
+                    style="
+                        background:${config.bg};
+                        color:${textColor};
+                    "
+                >
+
+                    <div class="toast-body">
+
+                        <i
+                            class="bi bi-${config.icon} me-2"
+                        ></i>
+
+                        ${message}
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            container.insertAdjacentHTML(
+                "afterbegin",
+                toastHtml
+            );
+
+
+            setTimeout(
+                () => {
+
+                    if (
+                        container.firstElementChild
+                    ) {
+
+                        container
+                            .firstElementChild
+                            .remove();
+
+                    }
+
+                },
+                4000
+            );
+
+        }
+
+
+        function showAlert(
+            message,
+            isError = true
+        ) {
+
+            const alertDiv =
+                document.getElementById(
+                    "alertMessage"
+                );
+
+
+            alertDiv.textContent =
+                message;
+
+
+            alertDiv.className =
+                isError
+                    ? "alert-custom"
+                    : "alert-custom alert-success-custom";
+
+
+            alertDiv.style.display =
+                "block";
+
+
+            setTimeout(
+                () => {
+
+                    alertDiv.style.display =
+                        "none";
+
+                },
+                5000
+            );
+
+        }
+
+
+        function updateCacheStatus(
+            status,
+            message
+        ) {
+
+            const element =
+                document.getElementById(
+                    "cacheStatusText"
+                );
+
+
+            if (!element) {
+                return;
+            }
+
+
+            const statusMap = {
+
+                cached:
+                    "📦 Données en cache",
+
+                live:
+                    "🔄 En ligne",
+
+                offline:
+                    "⚠️ Hors ligne",
+
+                error:
+                    "❌ Erreur"
+
+            };
+
+
+            element.textContent =
+                message ||
+                statusMap[status] ||
+                status;
+
+        }
+
+
+        // ============================================================
+        // NORMALISATION MATRICULE
+        // ============================================================
+
+        function normaliserMatricule(
+            matricule
+        ) {
+
+            return String(
+                matricule || ""
+            )
+                .trim()
+                .toUpperCase();
+
+        }
+
+
+        // ============================================================
+        // SAUVEGARDE DE SESSION
+        // ============================================================
+
+        function saveStudentSession(
+            studentData
+        ) {
+
+            try {
+
+                const sessionData = {
+
+                    id:
+                        studentData.id,
+
+                    matricule:
+                        studentData.matricule,
+
+                    nom:
+                        studentData.nom ||
+                        "Étudiant",
+
+                    promotion:
+                        studentData.promotion ||
+                        "",
+
+                    email:
+                        studentData.email ||
+                        "",
+
+                    loginTime:
+                        Date.now(),
+
+                    expires:
+                        Date.now() +
+                        (
+                            24 *
+                            60 *
+                            60 *
+                            1000
+                        )
+
+                };
+
+
+                localStorage.setItem(
+                    SESSION_KEY,
+                    JSON.stringify(
+                        sessionData
+                    )
+                );
+
+
+                sessionStorage.setItem(
+                    "login_timestamp",
+                    Date.now().toString()
+                );
+
+
+                localStorage.setItem(
+                    "last_matricule",
+                    studentData.matricule
+                );
+
+
+                /*
+                 * IMPORTANT :
+                 * On ne transmet plus la session au Service Worker.
+                 *
+                 * Le nouveau sw.js ne stocke aucune session utilisateur.
+                 */
+
+
+                console.log(
+                    "✅ Session sauvegardée :",
+                    sessionData
+                );
+
+
+                return sessionData;
+
+            } catch (error) {
+
+                console.error(
+                    "❌ Erreur sauvegarde session :",
+                    error
+                );
+
+                return null;
+
+            }
+
+        }
+
+
+        // ============================================================
+        // INITIALISATION SERVICE WORKER UNIQUE
+        // ============================================================
+
+        async function registerServiceWorkers() {
+
+            if (
+                !("serviceWorker" in navigator)
+            ) {
+
+                console.warn(
+                    "⚠️ Service Worker non supporté."
+                );
+
+                return null;
+
+            }
+
+
+            try {
+
+                /*
+                 * =====================================================
+                 * NETTOYAGE DES ANCIENS SERVICE WORKERS
+                 * =====================================================
+                 *
+                 * On supprime uniquement les anciennes registrations
+                 * de l'ancien système.
+                 */
+
+                const registrations =
+                    await navigator
+                        .serviceWorker
+                        .getRegistrations();
+
+
+                for (
+                    const registration
+                    of registrations
+                ) {
+
+                    const scope =
+                        registration.scope;
+
+
+                    /*
+                     * Ancien scope racine.
+                     */
+
+                    if (
+                        scope ===
+                        window.location.origin + "/"
+                    ) {
+
+                        try {
+
+                            await registration.unregister();
+
+                            console.log(
+                                "🗑️ Ancien SW racine supprimé :",
+                                scope
+                            );
+
+                        } catch (error) {
+
+                            console.warn(
+                                "Impossible de supprimer :",
+                                scope,
+                                error
+                            );
+
+                        }
+
+                    }
+
+
+                    /*
+                     * Ancien Firebase Messaging SW.
+                     */
+
+                    if (
+                        scope.includes(
+                            "firebase-cloud-messaging-push-scope"
+                        )
+                    ) {
+
+                        try {
+
+                            await registration.unregister();
+
+                            console.log(
+                                "🗑️ Ancien SW FCM supprimé :",
+                                scope
+                            );
+
+                        } catch (error) {
+
+                            console.warn(
+                                "Impossible de supprimer ancien FCM SW :",
+                                error
+                            );
+
+                        }
+
+                    }
+
+                }
+
+
+                /*
+                 * =====================================================
+                 * UN SEUL SERVICE WORKER
+                 * =====================================================
+                 */
+
+                let registration =
+                    await navigator
+                        .serviceWorker
+                        .getRegistration(
+                            "/Espace-etudiant/"
+                        );
+
+
+                if (!registration) {
+
+                    registration =
+                        await navigator
+                            .serviceWorker
+                            .register(
+                                "./sw.js",
+                                {
+                                    scope:
+                                        "/Espace-etudiant/"
+                                }
+                            );
+
+                }
+
+
+                console.log(
+                    "✅ Service Worker principal :",
+                    registration.scope
+                );
+
+
+                return registration;
+
+
+            } catch (error) {
+
+                console.error(
+                    "❌ Erreur Service Worker :",
+                    error
+                );
+
+                return null;
+
+            }
+
+        }
+
+
+        // ============================================================
+        // NOTIFICATIONS FCM
+        // ============================================================
+
+        async function enregistrerTokenFCM(
+            etudiantId,
+            etudiantNom,
+            promotion
+        ) {
+
+            try {
+
+                console.log(
+                    "[FCM] 📱 Initialisation des notifications..."
+                );
+
+
+                /*
+                 * Le nouveau notification-utils.js gère :
+                 *
+                 * - permission
+                 * - Service Worker
+                 * - VAPID
+                 * - token
+                 * - Firestore
+                 * - messages foreground
+                 *
+                 * On ne duplique donc plus ces fonctions ici.
+                 */
+
+                if (
+                    !window.notificationManager
+                ) {
+
+                    console.warn(
+                        "[FCM] notificationManager indisponible."
+                    );
+
+                    return null;
+
+                }
+
+
+                /*
+                 * IMPORTANT :
+                 * init() ne force pas automatiquement la permission.
+                 */
+
+                const result =
+                    await window
+                        .notificationManager
+                        .init(
+                            etudiantId,
+                            etudiantNom || "",
+                            promotion || ""
+                        );
+
+
+                console.log(
+                    "[FCM] Résultat initialisation :",
+                    result
+                );
+
+
+                /*
+                 * Si la permission est déjà accordée,
+                 * notification-utils.js peut enregistrer le token.
+                 */
+
+                if (
+                    "Notification" in window &&
+                    Notification.permission === "granted"
+                ) {
+
+                    try {
+
+                        const token =
+                            await window
+                                .notificationManager
+                                .registerToken();
+
+
+                        if (token) {
+
+                            console.log(
+                                "[FCM] ✅ Token enregistré."
+                            );
+
+                            showToast(
+                                "🔔 Notifications activées !",
+                                "success"
+                            );
+
+                            return token;
+
+                        }
+
+                    } catch (error) {
+
+                        console.warn(
+                            "[FCM] Enregistrement token non bloquant :",
+                            error
+                        );
+
+                    }
+
+                }
+
+
+                return null;
+
+
+            } catch (error) {
+
+                console.error(
+                    "[FCM] ❌ Erreur :",
+                    error
+                );
+
+                /*
+                 * Les notifications ne doivent jamais empêcher
+                 * l'étudiant de se connecter.
+                 */
+
+                return null;
+
+            }
+
+        }
+
+
+        // ============================================================
+        // ACTIVATION DU COMPTE
+        // ============================================================
+
+        document.getElementById(
+            "activationBtn"
+        ).onclick = async () => {
+
+            const matricule =
+                normaliserMatricule(
+                    document.getElementById(
+                        "activationMatricule"
+                    ).value
+                );
+
+
+            const newPassword =
+                document.getElementById(
+                    "newPassword"
+                ).value;
+
+
+            const confirmPassword =
+                document.getElementById(
+                    "confirmPassword"
+                ).value;
+
+
+            if (!matricule) {
+
+                showAlert(
+                    "Matricule requis",
+                    true
+                );
+
+                return;
+
+            }
+
+
+            if (
+                !newPassword ||
+                newPassword.length < 4
+            ) {
+
+                showAlert(
+                    "Mot de passe (min. 4 caractères)",
+                    true
+                );
+
+                return;
+
+            }
+
+
+            if (
+                newPassword !==
+                confirmPassword
+            ) {
+
+                showAlert(
+                    "Mots de passe différents",
+                    true
+                );
+
+                return;
+
+            }
+
+
+            const btn =
+                document.getElementById(
+                    "activationBtn"
+                );
+
+
+            btn.disabled =
+                true;
+
+
+            btn.innerHTML =
+                '<span class="spinner"></span> Activation...';
+
+
+            try {
+
+                const studentQuery =
+                    await db
+                        .collection("etudiants")
+                        .where(
+                            "matricule",
+                            "==",
+                            matricule
+                        )
+                        .limit(1)
+                        .get();
+
+
+                if (
+                    studentQuery.empty
+                ) {
+
+                    throw new Error(
+                        "Matricule non trouvé"
+                    );
+
+                }
+
+
+                const studentDoc =
+                    studentQuery.docs[0];
+
+
+                const data =
+                    studentDoc.data();
+
+
+                if (
+                    data.motDePasse &&
+                    data.compteActive
+                ) {
+
+                    throw new Error(
+                        "Compte déjà activé"
+                    );
+
+                }
+
+
+                /*
+                 * CONSERVÉ POUR COMPATIBILITÉ AVEC
+                 * TON SYSTÈME ACTUEL.
+                 *
+                 * Pour une sécurité maximale, cette partie devra
+                 * être migrée vers Firebase Authentication.
+                 */
+
+                await db
+                    .collection("etudiants")
+                    .doc(studentDoc.id)
+                    .update({
+
+                        motDePasse:
+                            newPassword,
+
+                        compteActive:
+                            true,
+
+                        dateActivation:
+                            firebase.firestore
+                                .FieldValue
+                                .serverTimestamp()
+
+                    });
+
+
+                showAlert(
+                    "✅ Compte activé ! Connectez-vous",
+                    false
+                );
+
+
+                document.getElementById(
+                    "activationForm"
+                ).style.display =
+                    "none";
+
+
+                document.getElementById(
+                    "loginForm"
+                ).style.display =
+                    "block";
+
+
+                document.getElementById(
+                    "matricule"
+                ).value =
+                    matricule;
+
+
+                document.getElementById(
+                    "password"
+                ).value =
+                    "";
+
+
+                document.getElementById(
+                    "password"
+                ).focus();
+
+
+            } catch (error) {
+
+                console.error(
+                    "❌ Erreur activation :",
+                    error
+                );
+
+
+                showAlert(
+                    error.message ||
+                    "Erreur pendant l'activation",
+                    true
+                );
+
+
+            } finally {
+
+                btn.disabled =
+                    false;
+
+
+                btn.innerHTML =
+                    '<i class="bi bi-check-circle"></i> Activer mon compte';
+
+            }
+
+        };
+
+
+        // ============================================================
+        // CONNEXION
+        // ============================================================
+
+        document.getElementById(
+            "loginBtn"
+        ).onclick = async () => {
+
+            const matricule =
+                normaliserMatricule(
+                    document.getElementById(
+                        "matricule"
+                    ).value
+                );
+
+
+            const password =
+                document.getElementById(
+                    "password"
+                ).value;
+
+
+            if (
+                !matricule ||
+                !password
+            ) {
+
+                showAlert(
+                    "Matricule et mot de passe requis",
+                    true
+                );
+
+                return;
+
+            }
+
+
+            const now =
+                Date.now();
+
+
+            if (
+                now -
+                lastLoginAttempt <
+                1000 &&
+                loginAttempts > 3
+            ) {
+
+                showAlert(
+                    "⏳ Trop de tentatives. Attendez quelques secondes.",
+                    true
+                );
+
+                return;
+
+            }
+
+
+            lastLoginAttempt =
+                now;
+
+
+            const btn =
+                document.getElementById(
+                    "loginBtn"
+                );
+
+
+            btn.disabled =
+                true;
+
+
+            btn.innerHTML =
+                '<span class="spinner"></span> Connexion...';
+
+
+            try {
+
+                /*
+                 * =====================================================
+                 * VÉRIFICATION INTERNET
+                 * =====================================================
+                 */
+
+                if (!navigator.onLine) {
+
+                    throw new Error(
+                        "Pas de connexion Internet"
+                    );
+
+                }
+
+
+                /*
+                 * =====================================================
+                 * RECHERCHE ÉTUDIANT
+                 * =====================================================
+                 */
+
+                const studentQuery =
+                    await db
+                        .collection("etudiants")
+                        .where(
+                            "matricule",
+                            "==",
+                            matricule
+                        )
+                        .limit(1)
+                        .get();
+
+
+                if (
+                    studentQuery.empty
+                ) {
+
+                    throw new Error(
+                        "Matricule incorrect"
+                    );
+
+                }
+
+
+                const studentDoc =
+                    studentQuery.docs[0];
+
+
+                const studentData =
+                    studentDoc.data();
+
+
+                /*
+                 * =====================================================
+                 * VÉRIFICATION COMPTE
+                 * =====================================================
+                 */
+
+                if (
+                    !studentData.compteActive ||
+                    !studentData.motDePasse
+                ) {
+
+                    throw new Error(
+                        "Compte non activé. Veuillez d'abord activer votre compte."
+                    );
+
+                }
+
+
+                /*
+                 * =====================================================
+                 * VÉRIFICATION MOT DE PASSE
+                 * =====================================================
+                 */
+
+                if (
+                    studentData.motDePasse !==
+                    password
+                ) {
+
+                    loginAttempts++;
+
+                    throw new Error(
+                        "Mot de passe incorrect"
+                    );
+
+                }
+
+
+                /*
+                 * =====================================================
+                 * SUCCÈS
+                 * =====================================================
+                 */
+
+                const sessionData =
+                    saveStudentSession({
+
+                        id:
+                            studentDoc.id,
+
+                        matricule:
+                            studentData.matricule ||
+                            matricule,
+
+                        nom:
+                            studentData.nom ||
+                            "Étudiant",
+
+                        promotion:
+                            studentData.promotion ||
+                            "",
+
+                        email:
+                            studentData.email ||
+                            ""
+
+                    });
+
+
+                if (!sessionData) {
+
+                    throw new Error(
+                        "Erreur lors de la sauvegarde de la session"
+                    );
+
+                }
+
+
+                console.log(
+                    "✅ Session créée avec succès"
+                );
+
+
+                /*
+                 * =====================================================
+                 * INITIALISATION FCM
+                 * =====================================================
+                 *
+                 * Les notifications sont maintenant gérées par :
+                 *
+                 * login-etudiant.html
+                 *       ↓
+                 * notification-utils.js
+                 *       ↓
+                 * sw.js
+                 *       ↓
+                 * Firebase Cloud Messaging
+                 *
+                 * Aucun firebase-messaging-sw.js.
+                 */
+
+                try {
+
+                    await enregistrerTokenFCM(
+                        studentDoc.id,
+                        studentData.nom,
+                        studentData.promotion
+                    );
+
+                } catch (notifError) {
+
+                    console.warn(
+                        "⚠️ Erreur notifications :",
+                        notifError
+                    );
+
+                }
+
+
+                loginAttempts =
+                    0;
+
+
+                showToast(
+                    "✅ Connexion réussie !",
+                    "success"
+                );
+
+
+                /*
+                 * =====================================================
+                 * REDIRECTION
+                 * =====================================================
+                 */
+
+                setTimeout(
+                    () => {
+
+                        window.location.href =
+                            "etudiant.html";
+
+                    },
+                    800
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "❌ Erreur connexion :",
+                    error
+                );
+
+
+                if (
+                    error.message.includes(
+                        "Pas de connexion"
+                    )
+                ) {
+
+                    showAlert(
+                        "⚠️ Vous êtes hors ligne. Vérifiez votre connexion Internet.",
+                        true
+                    );
+
+                } else if (
+                    error.message.includes(
+                        "Compte non activé"
+                    )
+                ) {
+
+                    showAlert(
+                        error.message,
+                        true
+                    );
+
+
+                    document.getElementById(
+                        "loginForm"
+                    ).style.display =
+                        "none";
+
+
+                    document.getElementById(
+                        "activationForm"
+                    ).style.display =
+                        "block";
+
+
+                    document.getElementById(
+                        "activationMatricule"
+                    ).value =
+                        matricule;
+
+                } else {
+
+                    showAlert(
+                        error.message ||
+                        "Erreur de connexion",
+                        true
+                    );
+
+                }
+
+
+                btn.disabled =
+                    false;
+
+
+                btn.innerHTML =
+                    '<i class="bi bi-box-arrow-in-right"></i> Se connecter';
+
+
+                document.getElementById(
+                    "password"
+                ).value =
+                    "";
+
+            }
+
+        };
+
+
+        // ============================================================
+        // NAVIGATION VERS ACTIVATION
+        // ============================================================
+
+        document.getElementById(
+            "showActivationLink"
+        ).onclick = () => {
+
+            document.getElementById(
+                "loginForm"
+            ).style.display =
+                "none";
+
+
+            document.getElementById(
+                "activationForm"
+            ).style.display =
+                "block";
+
+
+            document.getElementById(
+                "alertMessage"
+            ).style.display =
+                "none";
+
+
+            const matricule =
+                document.getElementById(
+                    "matricule"
+                ).value;
+
+
+            if (matricule) {
+
+                document.getElementById(
+                    "activationMatricule"
+                ).value =
+                    matricule;
+
+            }
+
+        };
+
+
+        // ============================================================
+        // RETOUR CONNEXION
+        // ============================================================
+
+        document.getElementById(
+            "showLoginLink"
+        ).onclick = () => {
+
+            document.getElementById(
+                "activationForm"
+            ).style.display =
+                "none";
+
+
+            document.getElementById(
+                "loginForm"
+            ).style.display =
+                "block";
+
+
+            document.getElementById(
+                "alertMessage"
+            ).style.display =
+                "none";
+
+
+            document.getElementById(
+                "newPassword"
+            ).value =
+                "";
+
+
+            document.getElementById(
+                "confirmPassword"
+            ).value =
+                "";
+
+        };
+
+
+        // ============================================================
+        // RACCOURCIS CLAVIER
+        // ============================================================
+
+        [
+            "matricule",
+            "password"
+        ].forEach(
+            id => {
+
+                const element =
+                    document.getElementById(
+                        id
+                    );
+
+
+                if (!element) {
+                    return;
+                }
+
+
+                element.addEventListener(
+                    "keypress",
+                    event => {
+
+                        if (
+                            event.key ===
+                            "Enter"
+                        ) {
+
+                            document
+                                .getElementById(
+                                    "loginBtn"
+                                )
+                                .click();
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+        [
+            "activationMatricule",
+            "newPassword",
+            "confirmPassword"
+        ].forEach(
+            id => {
+
+                const element =
+                    document.getElementById(
+                        id
+                    );
+
+
+                if (!element) {
+                    return;
+                }
+
+
+                element.addEventListener(
+                    "keypress",
+                    event => {
+
+                        if (
+                            event.key ===
+                            "Enter"
+                        ) {
+
+                            document
+                                .getElementById(
+                                    "activationBtn"
+                                )
+                                .click();
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+        // ============================================================
+        // SESSION EXISTANTE
+        // ============================================================
+
+        function checkExistingSession() {
+
+            try {
+
+                const session =
+                    localStorage.getItem(
+                        SESSION_KEY
+                    );
+
+
+                if (!session) {
+
+                    return false;
+
+                }
+
+
+                const data =
+                    JSON.parse(
+                        session
+                    );
+
+
+                if (
+                    data.expires &&
+                    Date.now() <
+                    data.expires
+                ) {
+
+                    console.log(
+                        "✅ Session valide trouvée."
+                    );
+
+
+                    return true;
+
+                }
+
+
+                localStorage.removeItem(
+                    SESSION_KEY
+                );
+
+
+                return false;
+
+
+            } catch (error) {
+
+                console.warn(
+                    "⚠️ Session invalide :",
+                    error
+                );
+
+
+                localStorage.removeItem(
+                    SESSION_KEY
+                );
+
+
+                return false;
+
+            }
+
+        }
+
+
+        // ============================================================
+        // MODE HORS LIGNE
+        // ============================================================
+
+        function setupOfflineDetection() {
+
+            const offlineBadge =
+                document.getElementById(
+                    "offlineBadge"
+                );
+
+
+            function updateStatus() {
+
+                if (
+                    !navigator.onLine
+                ) {
+
+                    offlineBadge.classList.add(
+                        "show"
+                    );
+
+
+                    updateCacheStatus(
+                        "offline"
+                    );
+
+                } else {
+
+                    offlineBadge.classList.remove(
+                        "show"
+                    );
+
+
+                    updateCacheStatus(
+                        "live"
+                    );
+
+                }
+
+            }
+
+
+            window.addEventListener(
+                "online",
+                updateStatus
+            );
+
+
+            window.addEventListener(
+                "offline",
+                updateStatus
+            );
+
+
+            updateStatus();
+
+        }
+
+
+        // ============================================================
+        // DERNIER MATRICULE
+        // ============================================================
+
+        function loadLastMatricule() {
+
+            try {
+
+                const last =
+                    localStorage.getItem(
+                        "last_matricule"
+                    );
+
+
+                if (last) {
+
+                    document.getElementById(
+                        "matricule"
+                    ).value =
+                        last;
+
+                }
+
+            } catch (error) {
+
+                console.warn(
+                    "Impossible de charger le matricule.",
+                    error
+                );
+
+            }
+
+        }
+
+
+        // ============================================================
+        // SAUVEGARDE MATRICULE
+        // ============================================================
+
+        document.getElementById(
+            "matricule"
+        ).addEventListener(
+            "change",
+            function () {
+
+                try {
+
+                    localStorage.setItem(
+                        "last_matricule",
+                        normaliserMatricule(
+                            this.value
+                        )
+                    );
+
+                } catch (error) {
+
+                    console.warn(
+                        "Impossible de sauvegarder le matricule.",
+                        error
+                    );
+
+                }
+
+            }
+        );
+
+
+        // ============================================================
+        // INITIALISATION
+        // ============================================================
+
+        async function init() {
+
+            console.log(
+                "🚀 Login Étudiant - Démarrage"
+            );
+
+
+            console.log(
+                "🔔 Architecture FCM centralisée activée"
+            );
+
+
+            /*
+             * Vérifier une session existante.
+             */
+
+            if (
+                checkExistingSession()
+            ) {
+
+                window.location.href =
+                    "etudiant.html";
+
+                return;
+
+            }
+
+
+            /*
+             * Charger le dernier matricule.
+             */
+
+            loadLastMatricule();
+
+
+            /*
+             * Service Worker unique.
+             */
+
+            await registerServiceWorkers();
+
+
+            /*
+             * Mode hors ligne.
+             */
+
+            setupOfflineDetection();
+
+
+            /*
+             * Vérifier le gestionnaire de notifications.
+             */
+
+            if (
+                window.notificationManager
+            ) {
+
+                console.log(
+                    "✅ notification-utils.js chargé."
+                );
+
+            } else {
+
+                console.warn(
+                    "⚠️ notification-utils.js non disponible."
+                );
+
+            }
+
+
+            console.log(
+                "✅ Login prêt."
+            );
+
+        }
+
+
+        // ============================================================
+        // DÉMARRAGE
+        // ============================================================
+
+        init().catch(
+            error => {
+
+                console.error(
+                    "❌ Erreur initialisation :",
+                    error
+                );
+
+            }
+        );
+
+
+        // ============================================================
+        // LOGS
+        // ============================================================
+
+        console.log(
+            "%c🔔 FCM CENTRALISÉ",
+            "color:#ffb347;font-size:14px;font-weight:bold;"
+        );
+
+
+        console.log(
+            "%c📱 Service Worker unique : sw.js",
+            "color:#28a745;font-size:12px;"
+        );
+
+
+        console.log(
+            "%c📦 Cache PWA activé",
+            "color:#17a2b8;font-size:12px;"
+        );
+
+
+        console.log(
+            "%c📍 Scope : /Espace-etudiant/",
+            "color:#003366;font-size:12px;font-weight:bold;"
+        );
+
+    </script>
+
+</body>
+</html>

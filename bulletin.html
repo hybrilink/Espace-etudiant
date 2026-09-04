@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Bulletin - Faculté Agronomique</title>
+    <meta name="theme-color" content="#003366">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FAC Agro">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { 
+            --primary-blue: #003366; 
+            --dark-blue: #002244; 
+            --accent-yellow: #ffb347; 
+            --light-gray: #f0f2f5;
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+        }
+        
+        body { 
+            background: var(--light-gray); 
+            font-family: 'Segoe UI', sans-serif;
+            padding-bottom: 20px;
+        }
+        
+        .navbar-custom { 
+            background: var(--primary-blue); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            padding: 12px 0;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: white !important;
+        }
+        
+        .navbar-brand i { margin-right: 8px; }
+        
+        .profile-photo { 
+            width: 45px; 
+            height: 45px; 
+            border-radius: 50%; 
+            background: var(--accent-yellow); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .profile-photo i { 
+            font-size: 28px; 
+            color: var(--primary-blue); 
+        }
+        
+        .navbar-right { 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            flex-wrap: wrap; 
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            border-radius: 20px;
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+        }
+        
+        .page-header h1 {
+            font-size: 1.3rem;
+            margin: 0;
+        }
+        
+        .page-header .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .page-header .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-3px);
+        }
+        
+        /* Onglets styles */
+        .tabs-container {
+            background: white;
+            border-radius: 20px;
+            padding: 15px 15px 0 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+            overflow-x: auto;
+        }
+        
+        .tabs-nav {
+            display: flex;
+            gap: 5px;
+            flex-wrap: nowrap;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+        
+        .tabs-nav::-webkit-scrollbar {
+            height: 3px;
+        }
+        
+        .tabs-nav::-webkit-scrollbar-thumb {
+            background: var(--primary-blue);
+            border-radius: 10px;
+        }
+        
+        .tab-btn {
+            padding: 12px 18px;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            white-space: nowrap;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .tab-btn:hover {
+            color: var(--primary-blue);
+            background: rgba(0,51,102,0.05);
+        }
+        
+        .tab-btn.active {
+            color: var(--primary-blue);
+            background: rgba(0,51,102,0.08);
+        }
+        
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-blue);
+            border-radius: 3px 3px 0 0;
+        }
+        
+        .tab-btn .tab-icon {
+            margin-right: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .tab-btn .badge-tab {
+            background: var(--danger-red);
+            color: white;
+            font-size: 0.6rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 5px;
+        }
+        
+        /* Contenu des onglets */
+        .tab-content {
+            background: white;
+            border-radius: 0 0 20px 20px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+            min-height: 350px;
+        }
+        
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        .tab-pane.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Carte "Résultats non disponibles" */
+        .result-card {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .result-card .icon-big {
+            font-size: 80px;
+            color: var(--primary-blue);
+            opacity: 0.2;
+            margin-bottom: 20px;
+        }
+        
+        .result-card .status-badge {
+            display: inline-block;
+            background: #fff3cd;
+            color: #856404;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .result-card .status-badge i {
+            margin-right: 8px;
+        }
+        
+        .result-card h3 {
+            color: var(--dark-blue);
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+        
+        .result-card p {
+            color: #6c757d;
+            font-size: 0.95rem;
+            max-width: 400px;
+            margin: 0 auto 10px;
+        }
+        
+        .result-card .code-ref {
+            font-size: 0.8rem;
+            color: #adb5bd;
+            background: #f8f9fa;
+            padding: 4px 12px;
+            border-radius: 10px;
+            display: inline-block;
+            font-family: monospace;
+        }
+        
+        .result-card .deliberation-badge {
+            background: var(--accent-yellow);
+            color: var(--dark-blue);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-top: 10px;
+            animation: pulse-badge 2s infinite;
+        }
+        
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        
+        .result-card .info-line {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .result-card .info-line span {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .result-card .info-line i {
+            margin-right: 5px;
+            color: var(--primary-blue);
+        }
+        
+        /* Info étudiant dans la page */
+        .student-badge {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .student-badge .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-yellow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--primary-blue);
+            font-size: 1.1rem;
+        }
+        
+        .student-badge .info {
+            flex: 1;
+        }
+        
+        .student-badge .info .name {
+            font-weight: 700;
+            color: var(--dark-blue);
+            font-size: 0.95rem;
+        }
+        
+        .student-badge .info .details {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .student-badge .session-info {
+            background: var(--primary-blue);
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        /* Footer */
+        .footer-info {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 11px;
+            color: #888;
+        }
+        
+        .footer-info img {
+            border-radius: 50%;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 1rem; }
+            .page-header .back-btn { padding: 6px 12px; font-size: 0.8rem; }
+            .tab-btn { padding: 10px 12px; font-size: 0.7rem; }
+            .tab-content { padding: 15px; }
+            .result-card .icon-big { font-size: 60px; }
+            .result-card h3 { font-size: 1rem; }
+            .student-badge { padding: 10px 15px; }
+            .student-badge .session-info { font-size: 0.65rem; padding: 3px 10px; }
+            .result-card .info-line { gap: 15px; flex-direction: column; align-items: center; }
+        }
+        
+        @media (max-width: 480px) {
+            .tabs-nav { gap: 3px; }
+            .tab-btn { padding: 8px 10px; font-size: 0.65rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="etudiant.html">
+                <i class="bi bi-tree-fill"></i> FACULTÉ AGRONOMIQUE - UNILU
+            </a>
+            <div class="navbar-right">
+                <div class="profile-photo" id="profileBtn">
+                    <img src="t.png" width="60px" style="border-radius:60px;" alt="Photo">
+                </div>
+                <button class="btn btn-outline-light btn-sm" onclick="window.location.href='etudiant.html'">
+                    <i class="bi bi-house-fill"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <h1><i class="bi bi-journal-bookmark-fill me-2"></i>Mon Bulletin</h1>
+                <small style="opacity:0.7;">Consultez vos résultats académiques</small>
+            </div>
+            <button class="back-btn" onclick="window.location.href='etudiant.html'">
+                <i class="bi bi-arrow-left me-1"></i> Retour
+            </button>
+        </div>
+        
+        <!-- Infos étudiant -->
+        <div class="student-badge" id="studentBadge">
+            <div class="avatar" id="studentAvatar">E</div>
+            <div class="info">
+                <div class="name" id="studentName">Chargement...</div>
+                <div class="details" id="studentDetails">Matricule: ... | Promotion: ...</div>
+            </div>
+            <span class="session-info"><i class="bi bi-calendar3 me-1"></i>Année 2025-2026</span>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="tabs-container">
+            <nav class="tabs-nav" id="tabsNav">
+                <button class="tab-btn active" data-tab="mi-session">
+                    <i class="bi bi-clock-history tab-icon"></i> Mi-Session
+                </button>
+                <button class="tab-btn" data-tab="recours-ms">
+                    <i class="bi bi-arrow-repeat tab-icon"></i> Recours
+                </button>
+                <button class="tab-btn" data-tab="rattrapage-1">
+                    <i class="bi bi-arrow-counterclockwise tab-icon"></i> Rattrapage 1
+                </button>
+                <button class="tab-btn" data-tab="session-1">
+                    <i class="bi bi-calendar-check tab-icon"></i> Session 1
+                </button>
+                <button class="tab-btn" data-tab="recours-s1">
+                    <i class="bi bi-arrow-repeat tab-icon"></i> Recours
+                </button>
+                <button class="tab-btn" data-tab="rattrapage-2">
+                    <i class="bi bi-arrow-counterclockwise tab-icon"></i> Rattrapage
+                </button>
+                <button class="tab-btn" data-tab="recours-ratt">
+                    <i class="bi bi-arrow-repeat tab-icon"></i> Recours
+                </button>
+            </nav>
+        </div>
+        
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Mi-Session -->
+            <div class="tab-pane active" id="tab-mi-session">
+                <div class="result-card">
+                    <div class="icon-big"><i class="bi bi-clock-history"></i></div>
+                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
+                    <h3>Résultats non disponibles</h3>
+                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(MI_RECOURS)</strong>.</p>
+                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
+                    <div class="info-line">
+                        <span><i class="bi bi-tag"></i> Session: Mi-Session</span>
+                        <span><i class="bi bi-clock"></i> Mise à jour: 22/06/2026</span>
+                        <span><i class="bi bi-file-text"></i> Réf: MI_RECOURS</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recours Mi-Session -->
+            <div class="tab-pane" id="tab-recours-ms">
+                <div class="result-card">
+                    <div class="icon-big"><i class="bi bi-arrow-repeat"></i></div>
+                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
+                    <h3>Résultats non disponibles</h3>
+                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(RECOURS_MS)</strong>.</p>
+                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
+                    <div class="info-line">
+                        <span><i class="bi bi-tag"></i> Session: Recours Mi-Session</span>
+                        <span><i class="bi bi-clock"></i> Mise à jour: 22/06/2026</span>
+                        <span><i class="bi bi-file-text"></i> Réf: RECOURS_MS</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Rattrapage 1 -->
+            <div class="tab-pane" id="tab-rattrapage-1">
+                <div class="result-card">
+                    <div class="icon-big"><i class="bi bi-arrow-counterclockwise"></i></div>
+                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
+                    <h3>Résultats non disponibles</h3>
+                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(RATTRAPAGE_1)</strong>.</p>
+                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
+                    <div class="info-line">
+                        <span><i class="bi bi-tag"></i> Session: Rattrapage 1</span>
+                        <span><i class="bi bi-clock"></i> Mise à jour: 22/06/2026</span>
+                        <span><i class="bi bi-file-text"></i> Réf: RATTRAPAGE_1</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Session 1 -->
+            <div class="tab-pane" id="tab-session-1">
+                <div class="result-card">
+                    <div class="icon-big"><i class="bi bi-calendar-check"></i></div>
+                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
+                    <h3>Résultats non disponibles</h3>
+                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(SESSION_1)</strong>.</p>
+                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
+                    <div class="info-line">
+                        <span><i class="bi bi-tag"></i> Session: Session 1</span>
+                        <span><i class="bi bi-clock"></i> Mise à jour: 22/06/2026</span>
+                        <span><i class="bi bi-file-text"></i> Réf: SESSION_1</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recours Session 1 -->
+            <div class="tab-pane" id="tab-recours-s1">
+                <div class="result-card">
+                    <div class="icon-big"><i class="bi bi-arrow-repeat"></i></div>
+                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
+                    <h3>Résultats non disponibles</h3>
+                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(RECOURS_S1)</strong>.</p>
+                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
+                    <div class="info-line">
+                        <span><i class="bi bi-tag"></i> Session: Recours Session 1</span>
+                        <span><i class="bi bi-clock"></i> Mise à jour: 22/06/2026</span>
+                        <span><i class="bi bi-file-text"></i> Réf: RECOURS_S1</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Rattrapage 2 -->
+            <div class="tab-pane" id="tab-rattrapage-2">
+                <div class="result-card">
+                    <div class="icon-big"><i class="bi bi-arrow-counterclockwise"></i></div>
+                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
+                    <h3>Résultats non disponibles</h3>
+                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(RATTRAPAGE_2)</strong>.</p>
+                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
+                    <div class="info-line">
+                        <span><i class="bi bi-tag"></i> Session: Rattrapage 2</span>
+                        <span><i class="bi bi-clock"></i> Mise à jour: 22/06/2026</span>
+                        <span><i class="bi bi-file-text"></i> Réf: RATTRAPAGE_2</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recours Rattrapage -->
+            <div class="tab-pane" id="tab-recours-ratt">
+                <div class="result-card">
+                    <div class="icon-big"><i class="bi bi-arrow-repeat"></i></div>
+                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
+                    <h3>Résultats non disponibles</h3>
+                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(RECOURS_RATT)</strong>.</p>
+                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
+                    <div class="info-line">
+                        <span><i class="bi bi-tag"></i> Session: Recours Rattrapage</span>
+                        <span><i class="bi bi-clock"></i> Mise à jour: 22/06/2026</span>
+                        <span><i class="bi bi-file-text"></i> Réf: RECOURS_RATT</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer-info">
+            <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital<br>
+            <img src="t.png" width="40px" alt="HYBRILINK" onerror="this.style.display='none'">
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // ==================== FIREBASE ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
+            authDomain: "fsa-unilu.firebaseapp.com",
+            projectId: "fsa-unilu",
+            storageBucket: "fsa-unilu.firebasestorage.app",
+            messagingSenderId: "36551990738",
+            appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+        };
+        
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // ==================== VARIABLES ====================
+        let currentStudent = null;
+        let allPromotions = [];
+        
+        // ==================== SESSION ====================
+        function checkSession() {
+            const session = localStorage.getItem('session_etudiant');
+            if (!session) {
+                window.location.href = 'login-etudiant.html';
+                return false;
+            }
+            try {
+                const data = JSON.parse(session);
+                if (Date.now() > data.expires) {
+                    localStorage.removeItem('session_etudiant');
+                    window.location.href = 'login-etudiant.html';
+                    return false;
+                }
+                currentStudent = data;
+                return true;
+            } catch(e) {
+                window.location.href = 'login-etudiant.html';
+                return false;
+            }
+        }
+        
+        function getInitials(name) {
+            if (!name) return 'E';
+            const parts = name.trim().split(' ');
+            if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+            return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+        }
+        
+        // ==================== PROMOTIONS ====================
+        async function chargerPromotions() {
+            try {
+                const snapshot = await db.collection('promotions').get();
+                allPromotions = [];
+                snapshot.forEach(doc => allPromotions.push({ id: doc.id, ...doc.data() }));
+            } catch (error) {
+                console.error('Erreur promotions:', error);
+            }
+        }
+        
+        function getPromotionNom(promotionId) {
+            if (!promotionId) return 'Non définie';
+            const promo = allPromotions.find(p => p.id === promotionId);
+            return promo ? promo.nom : promotionId;
+        }
+        
+        // ==================== AFFICHAGE ETUDIANT ====================
+        async function loadStudentInfo() {
+            await chargerPromotions();
+            
+            const nameEl = document.getElementById('studentName');
+            const detailsEl = document.getElementById('studentDetails');
+            const avatarEl = document.getElementById('studentAvatar');
+            
+            if (currentStudent) {
+                nameEl.textContent = currentStudent.nom || 'Étudiant';
+                detailsEl.textContent = `Matricule: ${currentStudent.matricule || 'N/A'} | Promotion: ${getPromotionNom(currentStudent.promotion)}`;
+                avatarEl.textContent = getInitials(currentStudent.nom);
+            }
+        }
+        
+        // ==================== ONGLETS ====================
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const panes = {
+                'mi-session': document.getElementById('tab-mi-session'),
+                'recours-ms': document.getElementById('tab-recours-ms'),
+                'rattrapage-1': document.getElementById('tab-rattrapage-1'),
+                'session-1': document.getElementById('tab-session-1'),
+                'recours-s1': document.getElementById('tab-recours-s1'),
+                'rattrapage-2': document.getElementById('tab-rattrapage-2'),
+                'recours-ratt': document.getElementById('tab-recours-ratt')
+            };
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Retirer active de tous les onglets
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Cacher tous les panes
+                    Object.values(panes).forEach(pane => {
+                        if (pane) pane.classList.remove('active');
+                    });
+                    
+                    // Afficher le pane correspondant
+                    const tabId = this.dataset.tab;
+                    if (panes[tabId]) {
+                        panes[tabId].classList.add('active');
+                    }
+                });
+            });
+            
+            // Sur mobile, scroll vers l'onglet actif
+            const activeTab = document.querySelector('.tab-btn.active');
+            if (activeTab) {
+                setTimeout(() => {
+                    activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                }, 300);
+            }
+        }
+        
+        // ==================== INIT ====================
+        async function init() {
+            if (!checkSession()) return;
+            
+            await loadStudentInfo();
+            setupTabs();
+            
+            console.log('📄 Bulletin - Page chargée');
+            console.log('👤 Étudiant:', currentStudent?.nom);
+        }
+        
+        init();
+    </script>
+</body>
+</html>

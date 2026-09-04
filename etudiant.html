@@ -1,0 +1,3292 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <title>Dashboard Étudiant - Faculté Agronomique</title>
+
+    <meta name="theme-color" content="#003366">
+    <meta name="description" content="Espace étudiant - Faculté des Sciences Agronomiques UNILU">
+
+    <!-- ================================================================
+         PWA
+    ================================================================ -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FAC Agro">
+
+    <!-- ================================================================
+         BOOTSTRAP
+    ================================================================ -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+    >
+
+    <!-- ================================================================
+         FIREBASE
+    ================================================================ -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+
+    <!-- ================================================================
+         GESTIONNAIRE CENTRALISÉ DES NOTIFICATIONS
+         IMPORTANT : doit être chargé avant le script principal.
+    ================================================================ -->
+    <script src="notification-utils.js"></script>
+
+    <!-- ================================================================
+         ERUDA - CONSOLE SUR LE TÉLÉPHONE
+    ================================================================ -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+
+    <script>
+        if (window.eruda) {
+            eruda.init();
+            console.log('✅ Eruda console activée');
+        } else {
+            document.addEventListener('DOMContentLoaded', function () {
+                if (window.eruda) {
+                    eruda.init();
+                    console.log('✅ Eruda console activée');
+                }
+            });
+        }
+    </script>
+
+    <style>
+        /* ============================================================
+           RESET
+        ============================================================ */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #003366;
+            --dark-blue: #002244;
+            --accent-yellow: #ffb347;
+            --light-gray: #f0f2f5;
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+            --info-blue: #17a2b8;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--light-gray);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            padding-bottom: 20px;
+            min-height: 100vh;
+        }
+
+        /* ============================================================
+           NAVBAR
+        ============================================================ */
+
+        .navbar-custom {
+            background: var(--primary-blue);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            padding: 12px 0;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: white !important;
+            text-decoration: none;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================================
+           PROFIL
+        ============================================================ */
+
+        .profile-photo {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--accent-yellow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: visible;
+        }
+
+        .profile-photo img {
+            width: 45px !important;
+            height: 45px !important;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .profile-photo:hover {
+            transform: scale(1.05);
+        }
+
+        /* ============================================================
+           NOTIFICATION DOT
+        ============================================================ */
+
+        .notification-dot {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            background: var(--danger-red);
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none;
+            animation: pulse-dot 2s infinite;
+            z-index: 10;
+        }
+
+        @keyframes pulse-dot {
+            0% {
+                box-shadow: 0 0 0 0 rgba(220,53,69,0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 8px rgba(220,53,69,0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(220,53,69,0);
+            }
+        }
+
+        /* ============================================================
+           CARTE ÉTUDIANT
+        ============================================================ */
+
+        .etudiant-info-card {
+            background: linear-gradient(
+                135deg,
+                var(--primary-blue),
+                var(--dark-blue)
+            );
+
+            border-radius: 20px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            color: white;
+
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+
+            position: relative;
+            overflow: hidden;
+        }
+
+        .etudiant-info-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+
+        .etudiant-info-card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .etudiant-info-card p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 0.85rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .etudiant-info-card .badge-compte {
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .etudiant-info-card .info-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 60px;
+            opacity: 0.15;
+            z-index: 1;
+        }
+
+        /* ============================================================
+           CACHE STATUS
+        ============================================================ */
+
+        .cache-status {
+            font-size: 10px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .cache-status i {
+            font-size: 10px;
+        }
+
+        .cache-status .cached {
+            color: #28a745;
+        }
+
+        .cache-status .live {
+            color: #ffb347;
+        }
+
+        /* ============================================================
+           MENU
+        ============================================================ */
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .menu-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            position: relative;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+        }
+
+        .menu-card:active {
+            transform: translateY(0);
+        }
+
+        .menu-card .card-notif-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--danger-red);
+            color: white;
+            border-radius: 50%;
+            min-width: 22px;
+            height: 22px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            animation: bounce 0.5s ease;
+            z-index: 5;
+        }
+
+        @keyframes bounce {
+            0%,100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .menu-icon {
+            font-size: 40px;
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+        }
+
+        .menu-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 4px;
+        }
+
+        .menu-subtitle {
+            font-size: 10px;
+            color: #888;
+        }
+
+        /* ============================================================
+           PROFIL MODAL
+        ============================================================ */
+
+        .profile-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .profile-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            animation: modalFadeIn 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .btn-action {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .btn-action:hover {
+            background: var(--dark-blue);
+            transform: translateY(-2px);
+        }
+
+        /* ============================================================
+           TOAST
+        ============================================================ */
+
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 280px;
+            max-width: 350px;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-custom {
+            animation: slideInRight 0.3s ease-out;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            overflow: hidden;
+            padding: 12px 15px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast-custom .close-toast {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 18px;
+            cursor: pointer;
+            margin-left: auto;
+            opacity: 0.7;
+        }
+
+        .toast-custom .close-toast:hover {
+            opacity: 1;
+        }
+
+        /* ============================================================
+           FOOTER
+        ============================================================ */
+
+        .footer-info {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 11px;
+            color: #888;
+        }
+
+        /* ============================================================
+           MODE HORS LIGNE
+        ============================================================ */
+
+        .offline-badge {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: var(--accent-yellow);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            display: none;
+            z-index: 100;
+        }
+
+        .offline-badge.show {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* ============================================================
+           NOTIFICATIONS
+        ============================================================ */
+
+        .notification-permission-card {
+            display: none;
+            background: #fff8e1;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-yellow);
+        }
+
+        .notification-permission-card.show {
+            display: block;
+        }
+
+        .notification-permission-card h6 {
+            color: var(--primary-blue);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .notification-permission-card p {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 10px;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+
+        @media (max-width: 768px) {
+
+            .container {
+                max-width: 100%;
+            }
+
+            .navbar-brand {
+                font-size: 0.8rem;
+            }
+
+            .menu-grid {
+                grid-template-columns: repeat(
+                    auto-fill,
+                    minmax(130px, 1fr)
+                );
+                gap: 12px;
+            }
+
+            .menu-card {
+                padding: 15px 8px;
+            }
+
+            .menu-icon {
+                font-size: 32px;
+            }
+
+            .toast-notification {
+                right: 10px;
+                left: 10px;
+                min-width: auto;
+            }
+
+            .etudiant-info-card {
+                padding: 18px;
+            }
+        }
+
+        @media (max-width: 400px) {
+
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .navbar-right {
+                gap: 8px;
+            }
+
+            .navbar-brand {
+                max-width: 190px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ================================================================
+     NAVBAR
+================================================================ -->
+
+<nav class="navbar navbar-custom">
+    <div class="container">
+
+        <a class="navbar-brand" href="#">
+            <i class="bi bi-tree-fill"></i>
+            FACULTÉ AGRONOMIQUE - UNILU
+        </a>
+
+        <div class="navbar-right">
+
+            <div
+                class="profile-photo"
+                id="profileBtn"
+                title="Mon profil"
+            >
+                <img
+                    src="fsa.png"
+                    width="45"
+                    height="45"
+                    alt="Profil"
+                    onerror="this.style.display='none';"
+                >
+
+                <span
+                    class="notification-dot"
+                    id="notificationDot"
+                ></span>
+            </div>
+
+            <button
+                class="btn btn-outline-light btn-sm"
+                id="logoutBtn"
+                type="button"
+                title="Déconnexion"
+            >
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+
+        </div>
+    </div>
+</nav>
+
+<!-- ================================================================
+     CONTENU PRINCIPAL
+================================================================ -->
+
+<div class="container mt-4">
+
+    <!-- TOAST -->
+    <div
+        id="toastContainer"
+        class="toast-notification"
+        aria-live="polite"
+        aria-atomic="true"
+    ></div>
+
+    <!-- MODE HORS LIGNE -->
+    <div
+        class="offline-badge"
+        id="offlineBadge"
+    >
+        <i class="bi bi-wifi-off"></i>
+        Mode hors ligne
+    </div>
+
+    <!-- ============================================================
+         NOTIFICATION PERMISSION
+    ============================================================= -->
+
+    <div
+        id="notificationPermissionCard"
+        class="notification-permission-card"
+    >
+        <h6>
+            <i class="bi bi-bell-fill"></i>
+            Activer les notifications
+        </h6>
+
+        <p>
+            Activez les notifications pour recevoir les communiqués
+            importants de la Faculté.
+        </p>
+
+        <button
+            type="button"
+            class="btn btn-sm btn-primary"
+            id="enableNotificationsBtn"
+            style="background:#003366;border:none;border-radius:25px;padding:8px 20px;"
+        >
+            <i class="bi bi-bell"></i>
+            Activer
+        </button>
+    </div>
+
+    <!-- ============================================================
+         HOME
+    ============================================================= -->
+
+    <div id="homePage">
+
+        <!-- CARTE ÉTUDIANT -->
+
+        <div class="etudiant-info-card">
+
+            <div>
+
+                <h2 id="welcomeName">
+                    Bienvenue, Étudiant
+                </h2>
+
+                <p id="welcomeInfo">
+                    Faculté des Sciences Agronomiques
+                </p>
+
+                <span
+                    class="badge-compte"
+                    id="compteStatus"
+                >
+                    <i class="bi bi-check-circle-fill"></i>
+                    Compte Actif
+                </span>
+
+                <div
+                    class="cache-status"
+                    id="cacheStatus"
+                >
+                    <i class="bi bi-database"></i>
+
+                    <span id="cacheStatusText">
+                        Chargement...
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="info-icon">
+                <i class="bi bi-mortarboard-fill"></i>
+            </div>
+
+        </div>
+
+        <!-- ========================================================
+             MENU
+        ========================================================= -->
+
+        <div class="menu-grid">
+
+            <!-- PAIEMENT EN LIGNE -->
+
+            <div
+                class="menu-card"
+                data-page="paiement-ligne"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-credit-card-2-front-fill"></i>
+                </div>
+
+                <div class="menu-title">
+                    Paiement en ligne
+                </div>
+
+                <div class="menu-subtitle">
+                    Payez via Mobile Money
+                </div>
+            </div>
+
+            <!-- BULLETIN -->
+
+            <div
+                class="menu-card"
+                data-page="bulletin"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </div>
+
+                <div class="menu-title">
+                    Bulletin
+                </div>
+
+                <div class="menu-subtitle">
+                    Notes & Résultats
+                </div>
+            </div>
+
+            <!-- MOYENNE -->
+
+            <div
+                class="menu-card"
+                data-page="moyenne"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-calculator-fill"></i>
+                </div>
+
+                <div class="menu-title">
+                    Moyenne
+                </div>
+
+                <div class="menu-subtitle">
+                    Moyenne Générale
+                </div>
+            </div>
+
+            <!-- PAIEMENT -->
+
+            <div
+                class="menu-card"
+                data-page="paiement"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-credit-card-fill"></i>
+                </div>
+
+                <div class="menu-title">
+                    Paiement
+                </div>
+
+                <div class="menu-subtitle">
+                    Mes transactions
+                </div>
+            </div>
+
+            <!-- COMPLÉMENTS -->
+
+            <div
+                class="menu-card"
+                data-page="interro-ligne"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-question-circle-fill"></i>
+                </div>
+
+                <div class="menu-title">
+                    Mes compléments
+                </div>
+
+                <div class="menu-subtitle">
+                    Résultats /2
+                </div>
+            </div>
+
+            <!-- CARTES EXAMEN -->
+
+            <div
+                class="menu-card"
+                data-page="mes-recus"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-receipt-cutoff"></i>
+                </div>
+
+                <div class="menu-title">
+                    Cartes Examen
+                </div>
+
+                <div class="menu-subtitle">
+                    Accès examens
+                </div>
+            </div>
+
+            <!-- HORAIRES -->
+
+            <div
+                class="menu-card"
+                data-page="horaires"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-calendar-week-fill"></i>
+                </div>
+
+                <div class="menu-title">
+                    Horaires
+                </div>
+
+                <div class="menu-subtitle">
+                    Emploi du temps
+                </div>
+            </div>
+
+            <!-- MES COURS -->
+
+            <div
+                class="menu-card"
+                data-page="mes-cours"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-book-fill"></i>
+                </div>
+
+                <div class="menu-title">
+                    Mes Cours
+                </div>
+
+                <div class="menu-subtitle">
+                    Programmes & TD
+                </div>
+            </div>
+
+            <!-- COMMUNIQUÉS -->
+
+            <div
+                class="menu-card"
+                data-page="communiquer"
+                id="communiquesCard"
+            >
+
+                <span
+                    class="card-notif-badge"
+                    id="communiqueBadge"
+                >
+                    0
+                </span>
+
+                <div class="menu-icon">
+                    <i class="bi bi-megaphone-fill"></i>
+                </div>
+
+                <div class="menu-title">
+                    Communiqués
+                </div>
+
+                <div class="menu-subtitle">
+                    Messages & Infos
+                </div>
+
+            </div>
+
+            <!-- SUJET -->
+
+            <div
+                class="menu-card"
+                data-page="tp"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-laptop-fill"></i>
+                </div>
+
+                <div class="menu-title">
+                    SUJET
+                </div>
+
+                <div class="menu-subtitle">
+                    projet & feu vert
+                </div>
+            </div>
+
+            <!-- FICHE -->
+
+            <div
+                class="menu-card"
+                data-page="fiche"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-file-person-fill"></i>
+                </div>
+
+                <div class="menu-title">
+                    Fiche
+                </div>
+
+                <div class="menu-subtitle">
+                    Renseignements
+                </div>
+            </div>
+
+            <!-- CONDUITE -->
+
+            <div
+                class="menu-card"
+                data-page="conduite"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-flag-fill"></i>
+                </div>
+
+                <div class="menu-title">
+                    Conduite
+                </div>
+
+                <div class="menu-subtitle">
+                    Règlement
+                </div>
+            </div>
+
+            <!-- À PROPOS -->
+
+            <div
+                class="menu-card"
+                data-page="apropos"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-info-circle-fill"></i>
+                </div>
+
+                <div class="menu-title">
+                    À propos
+                </div>
+
+                <div class="menu-subtitle">
+                    Informations
+                </div>
+            </div>
+
+            <!-- PROFIL -->
+
+            <div
+                class="menu-card"
+                data-page="profil"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+
+                <div class="menu-title">
+                    Profil
+                </div>
+
+                <div class="menu-subtitle">
+                    Mon compte
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     MODAL PROFIL
+================================================================ -->
+
+<div
+    id="profileModal"
+    class="profile-modal"
+>
+
+    <div class="profile-modal-content">
+
+        <div class="text-center">
+
+            <i
+                class="bi bi-person-circle"
+                style="font-size:70px;color:var(--primary-blue);"
+            ></i>
+
+            <h4 id="profilNom"></h4>
+
+            <p id="profilMatricule"></p>
+
+            <p id="profilPromotion"></p>
+
+            <hr>
+
+            <h6>
+                Changer mot de passe
+            </h6>
+
+            <input
+                type="password"
+                class="form-control mb-2"
+                id="newPassword"
+                placeholder="Nouveau mot de passe"
+                autocomplete="new-password"
+            >
+
+            <input
+                type="password"
+                class="form-control mb-2"
+                id="confirmNewPassword"
+                placeholder="Confirmer"
+                autocomplete="new-password"
+            >
+
+            <button
+                class="btn-action"
+                id="changePasswordBtn"
+                type="button"
+            >
+                Modifier
+            </button>
+
+            <button
+                class="btn btn-secondary w-100 mt-2"
+                id="closeProfileBtn"
+                type="button"
+            >
+                Fermer
+            </button>
+
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     FOOTER
+================================================================ -->
+
+<div class="container">
+
+    <div class="footer-info">
+
+        <i class="bi bi-shield-check"></i>
+        HYBRILINK-TECH - Votre partenaire digital
+
+        <br>
+
+        <img
+            src="t.png"
+            width="40"
+            alt="HYBRILINK"
+            onerror="this.style.display='none'"
+        >
+
+    </div>
+
+</div>
+
+<script>
+
+/* ================================================================
+   FIREBASE CONFIG
+================================================================ */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBb82N2-5ns7qKjBAj5UvDW87s2PZ27F0",
+    authDomain: "fsa-unilu.firebaseapp.com",
+    projectId: "fsa-unilu",
+    storageBucket: "fsa-unilu.firebasestorage.app",
+    messagingSenderId: "36551990738",
+    appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+};
+
+/* Initialisation Firebase */
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+const db = firebase.firestore();
+
+/*
+ * Messaging est conservé ici pour compatibilité avec ton application.
+ * La gestion réelle du FCM est centralisée dans notification-utils.js.
+ */
+let messaging = null;
+
+try {
+    messaging = firebase.messaging();
+    console.log('[FCM] Firebase Messaging disponible');
+} catch (error) {
+    console.warn('[FCM] Firebase Messaging indisponible:', error);
+}
+
+
+/* ================================================================
+   CACHE MANAGER
+================================================================ */
+
+const CacheManager = {
+
+    PREFIX: 'fsa_cache_',
+
+    TTL: {
+
+        PROMOTIONS: 24 * 60 * 60 * 1000,
+
+        ETUDIANT: 12 * 60 * 60 * 1000,
+
+        COMMUNIQUES: 5 * 60 * 1000,
+
+        NOTES: 5 * 60 * 1000,
+
+        PAIEMENTS: 5 * 60 * 1000,
+
+        CARTES: 5 * 60 * 1000
+    },
+
+    set(key, data, ttlKey = null) {
+
+        try {
+
+            const ttl =
+                ttlKey && this.TTL[ttlKey]
+                    ? this.TTL[ttlKey]
+                    : this.TTL.PROMOTIONS;
+
+            const now = Date.now();
+
+            const cacheItem = {
+                data: data,
+                timestamp: now,
+                expires: now + ttl
+            };
+
+            localStorage.setItem(
+                this.PREFIX + key,
+                JSON.stringify(cacheItem)
+            );
+
+            return true;
+
+        } catch (e) {
+
+            console.warn('[CACHE] Erreur écriture:', e);
+
+            return false;
+        }
+    },
+
+    get(key) {
+
+        try {
+
+            const raw = localStorage.getItem(
+                this.PREFIX + key
+            );
+
+            if (!raw) {
+                return null;
+            }
+
+            const cacheItem = JSON.parse(raw);
+
+            if (
+                !cacheItem ||
+                typeof cacheItem.expires !== 'number'
+            ) {
+                this.remove(key);
+                return null;
+            }
+
+            if (Date.now() > cacheItem.expires) {
+
+                this.remove(key);
+
+                return null;
+            }
+
+            return cacheItem.data;
+
+        } catch (e) {
+
+            console.warn('[CACHE] Erreur lecture:', e);
+
+            return null;
+        }
+    },
+
+    remove(key) {
+
+        try {
+
+            localStorage.removeItem(
+                this.PREFIX + key
+            );
+
+        } catch (e) {
+
+            console.warn('[CACHE] Erreur suppression:', e);
+        }
+    },
+
+    cleanExpired() {
+
+        try {
+
+            const keys = Object.keys(localStorage);
+
+            let count = 0;
+
+            for (const key of keys) {
+
+                if (!key.startsWith(this.PREFIX)) {
+                    continue;
+                }
+
+                const raw = localStorage.getItem(key);
+
+                if (!raw) {
+                    continue;
+                }
+
+                try {
+
+                    const cacheItem = JSON.parse(raw);
+
+                    if (
+                        !cacheItem ||
+                        Date.now() > cacheItem.expires
+                    ) {
+
+                        localStorage.removeItem(key);
+
+                        count++;
+                    }
+
+                } catch (e) {
+
+                    localStorage.removeItem(key);
+
+                    count++;
+                }
+            }
+
+            return count;
+
+        } catch (e) {
+
+            console.warn('[CACHE] Nettoyage impossible:', e);
+
+            return 0;
+        }
+    }
+};
+
+CacheManager.cleanExpired();
+
+
+/* ================================================================
+   SESSION
+================================================================ */
+
+let currentStudent = null;
+
+let allPromotions = [];
+
+let unreadCount = 0;
+
+let snapshotUnsubscribe = null;
+
+/*
+ * Permet d'éviter de considérer les anciens communiqués
+ * comme de nouveaux communiqués au chargement initial.
+ */
+let communiquesRealtimeInitialized = false;
+
+
+/* ================================================================
+   VÉRIFICATION SESSION
+================================================================ */
+
+function checkSession() {
+
+    const session =
+        localStorage.getItem('session_etudiant');
+
+    if (!session) {
+
+        window.location.href =
+            'login-etudiant.html';
+
+        return false;
+    }
+
+    try {
+
+        const data = JSON.parse(session);
+
+        if (!data || !data.expires) {
+
+            localStorage.removeItem(
+                'session_etudiant'
+            );
+
+            window.location.href =
+                'login-etudiant.html';
+
+            return false;
+        }
+
+        if (Date.now() > Number(data.expires)) {
+
+            localStorage.removeItem(
+                'session_etudiant'
+            );
+
+            window.location.href =
+                'login-etudiant.html';
+
+            return false;
+        }
+
+        currentStudent = data;
+
+        return true;
+
+    } catch (e) {
+
+        console.error(
+            '[SESSION] Session invalide:',
+            e
+        );
+
+        localStorage.removeItem(
+            'session_etudiant'
+        );
+
+        window.location.href =
+            'login-etudiant.html';
+
+        return false;
+    }
+}
+
+
+/* ================================================================
+   TOAST
+================================================================ */
+
+function showToast(
+    message,
+    type = 'success'
+) {
+
+    const container =
+        document.getElementById(
+            'toastContainer'
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const colors = {
+
+        success: {
+            bg: '#28a745',
+            icon: 'check-circle-fill'
+        },
+
+        warning: {
+            bg: '#ffc107',
+            icon: 'exclamation-triangle-fill',
+            textColor: '#333'
+        },
+
+        danger: {
+            bg: '#dc3545',
+            icon: 'x-circle-fill'
+        },
+
+        info: {
+            bg: '#17a2b8',
+            icon: 'info-circle-fill'
+        }
+    };
+
+    const config =
+        colors[type] || colors.success;
+
+    const textColor =
+        config.textColor || 'white';
+
+    const toast =
+        document.createElement('div');
+
+    toast.className =
+        'toast-custom';
+
+    toast.style.background =
+        config.bg;
+
+    toast.style.color =
+        textColor;
+
+    toast.innerHTML = `
+        <i class="bi ${config.icon}"></i>
+        <span>${escapeHtml(message)}</span>
+        <button
+            class="close-toast"
+            type="button"
+            aria-label="Fermer"
+            onclick="this.parentElement.remove()"
+        >&times;</button>
+    `;
+
+    container.prepend(toast);
+
+    setTimeout(() => {
+
+        if (toast.parentNode) {
+            toast.remove();
+        }
+
+    }, 5000);
+}
+
+
+/* ================================================================
+   PROTECTION HTML
+================================================================ */
+
+function escapeHtml(text) {
+
+    if (
+        text === null ||
+        text === undefined
+    ) {
+        return '';
+    }
+
+    const div =
+        document.createElement('div');
+
+    div.textContent =
+        String(text);
+
+    return div.innerHTML;
+}
+
+
+/* ================================================================
+   NOTIFICATIONS
+================================================================ */
+
+/*
+ * Cette fonction ne demande pas automatiquement la permission.
+ *
+ * Si la permission est déjà accordée :
+ *      notificationManager.init()
+ * enregistre le token.
+ *
+ * Si la permission est "default" :
+ *      le bouton Activer utilise
+ *      requestPermissionAndRegister().
+ */
+
+async function enregistrerTokenFCM(
+    etudiantId,
+    etudiantNom,
+    promotion,
+    demanderPermission = false
+) {
+
+    try {
+
+        if (
+            !window.notificationManager
+        ) {
+
+            console.error(
+                '[FCM] NotificationManager introuvable'
+            );
+
+            return null;
+        }
+
+        if (
+            !etudiantId
+        ) {
+
+            console.error(
+                '[FCM] ID étudiant manquant'
+            );
+
+            return null;
+        }
+
+        let token = null;
+
+        /*
+         * Le bouton "Activer" passe par cette branche.
+         */
+        if (demanderPermission) {
+
+            token =
+                await window.notificationManager
+                    .requestPermissionAndRegister(
+                        etudiantId,
+                        etudiantNom,
+                        promotion
+                    );
+
+        } else {
+
+            /*
+             * Au démarrage, on ne demande jamais
+             * automatiquement l'autorisation.
+             */
+            token =
+                await window.notificationManager
+                    .init(
+                        etudiantId,
+                        etudiantNom,
+                        promotion
+                    );
+        }
+
+        if (token) {
+
+            console.log(
+                '[FCM] ✅ Token enregistré avec succès'
+            );
+
+            const card =
+                document.getElementById(
+                    'notificationPermissionCard'
+                );
+
+            if (card) {
+                card.classList.remove('show');
+            }
+
+            if (demanderPermission) {
+
+                showToast(
+                    '🔔 Notifications activées !',
+                    'success'
+                );
+            }
+
+        } else {
+
+            console.log(
+                '[FCM] ⚠️ Token non disponible'
+            );
+
+            checkNotificationStatus();
+        }
+
+        return token;
+
+    } catch (error) {
+
+        console.error(
+            '[FCM] ❌ Erreur:',
+            error
+        );
+
+        checkNotificationStatus();
+
+        return null;
+    }
+}
+
+
+/* ================================================================
+   STATUT NOTIFICATIONS
+================================================================ */
+
+function checkNotificationStatus() {
+
+    const card =
+        document.getElementById(
+            'notificationPermissionCard'
+        );
+
+    if (!card) {
+        return;
+    }
+
+    /*
+     * Navigateur sans Notification API.
+     */
+    if (
+        !('Notification' in window)
+    ) {
+
+        card.classList.remove('show');
+
+        return;
+    }
+
+    /*
+     * Permission accordée.
+     */
+    if (
+        Notification.permission === 'granted'
+    ) {
+
+        card.classList.remove('show');
+
+        return;
+    }
+
+    /*
+     * Permission refusée.
+     */
+    if (
+        Notification.permission === 'denied'
+    ) {
+
+        card.classList.remove('show');
+
+        return;
+    }
+
+    /*
+     * Permission encore inconnue.
+     */
+    if (
+        Notification.permission === 'default'
+    ) {
+
+        card.classList.add('show');
+    }
+}
+
+
+/* ================================================================
+   BOUTON ACTIVATION NOTIFICATIONS
+================================================================ */
+
+document
+    .getElementById('enableNotificationsBtn')
+    ?.addEventListener(
+        'click',
+        async function () {
+
+            if (!currentStudent) {
+
+                showToast(
+                    'Session étudiant introuvable.',
+                    'danger'
+                );
+
+                return;
+            }
+
+            const btn =
+                document.getElementById(
+                    'enableNotificationsBtn'
+                );
+
+            if (!btn) {
+                return;
+            }
+
+            const oldContent =
+                btn.innerHTML;
+
+            btn.disabled = true;
+
+            btn.innerHTML =
+                '<span class="spinner-border spinner-border-sm me-1"></span> Activation...';
+
+            try {
+
+                const token =
+                    await enregistrerTokenFCM(
+                        currentStudent.id,
+                        currentStudent.nom ||
+                            currentStudent.nomComplet ||
+                            '',
+                        currentStudent.promotion ||
+                            '',
+                        true
+                    );
+
+                if (!token) {
+
+                    /*
+                     * Si le navigateur refuse ou si
+                     * FCM n'est pas disponible.
+                     */
+                    if (
+                        'Notification' in window &&
+                        Notification.permission === 'denied'
+                    ) {
+
+                        showToast(
+                            'Les notifications sont bloquées dans les réglages du navigateur.',
+                            'warning'
+                        );
+
+                    } else {
+
+                        showToast(
+                            'Impossible d’activer les notifications.',
+                            'warning'
+                        );
+                    }
+                }
+
+            } catch (error) {
+
+                console.error(
+                    '[FCM] Activation:',
+                    error
+                );
+
+                showToast(
+                    'Erreur lors de l’activation des notifications.',
+                    'danger'
+                );
+
+            } finally {
+
+                btn.disabled = false;
+
+                btn.innerHTML =
+                    oldContent;
+            }
+        }
+    );
+
+
+/* ================================================================
+   COMMUNIQUÉS - LECTURE
+================================================================ */
+
+function getReadCommuniques() {
+
+    try {
+
+        const value =
+            localStorage.getItem(
+                'communiques_lus'
+            );
+
+        const parsed =
+            JSON.parse(value || '[]');
+
+        return Array.isArray(parsed)
+            ? parsed
+            : [];
+
+    } catch (e) {
+
+        return [];
+    }
+}
+
+
+/* ================================================================
+   MARQUER COMMUNIQUÉ LU
+================================================================ */
+
+function markCommuniqueAsRead(id) {
+
+    if (!id) {
+        return;
+    }
+
+    const readIds =
+        getReadCommuniques();
+
+    if (!readIds.includes(id)) {
+
+        readIds.push(id);
+
+        try {
+
+            localStorage.setItem(
+                'communiques_lus',
+                JSON.stringify(readIds)
+            );
+
+        } catch (e) {
+
+            console.warn(
+                '[COMMUNIQUES] Impossible de sauvegarder:',
+                e
+            );
+        }
+    }
+
+    updateNotificationBadgesFromCache();
+}
+
+
+/* ================================================================
+   BADGES NOTIFICATIONS
+================================================================ */
+
+function updateNotificationBadges(count) {
+
+    unreadCount =
+        Number(count) || 0;
+
+    const dot =
+        document.getElementById(
+            'notificationDot'
+        );
+
+    const badge =
+        document.getElementById(
+            'communiqueBadge'
+        );
+
+    if (dot) {
+
+        dot.style.display =
+            unreadCount > 0
+                ? 'block'
+                : 'none';
+    }
+
+    if (badge) {
+
+        if (unreadCount > 0) {
+
+            badge.textContent =
+                unreadCount > 99
+                    ? '99+'
+                    : String(unreadCount);
+
+            badge.style.display =
+                'flex';
+
+        } else {
+
+            badge.style.display =
+                'none';
+        }
+    }
+}
+
+
+/* ================================================================
+   BADGES DEPUIS CACHE
+================================================================ */
+
+function updateNotificationBadgesFromCache() {
+
+    if (!currentStudent) {
+        return;
+    }
+
+    const cacheKey =
+        'communiques_' +
+        currentStudent.id;
+
+    const cached =
+        CacheManager.get(cacheKey);
+
+    if (!Array.isArray(cached)) {
+
+        updateNotificationBadges(0);
+
+        return;
+    }
+
+    const readIds =
+        getReadCommuniques();
+
+    const count =
+        cached.filter(
+            comm =>
+                comm &&
+                comm.id &&
+                !readIds.includes(comm.id)
+        ).length;
+
+    updateNotificationBadges(count);
+}
+
+
+/* ================================================================
+   REALTIME COMMUNIQUÉS
+================================================================ */
+
+function setupRealtimeCommuniques() {
+
+    if (!currentStudent) {
+        return;
+    }
+
+    if (snapshotUnsubscribe) {
+
+        try {
+            snapshotUnsubscribe();
+        } catch (e) {
+            console.warn(
+                '[FIRESTORE] Désabonnement:',
+                e
+            );
+        }
+
+        snapshotUnsubscribe = null;
+    }
+
+    communiquesRealtimeInitialized = false;
+
+    const promo =
+        currentStudent.promotion;
+
+    const cacheKey =
+        'communiques_' +
+        currentStudent.id;
+
+    /*
+     * Affichage immédiat depuis le cache.
+     */
+    const cachedCommuniques =
+        CacheManager.get(cacheKey);
+
+    if (
+        Array.isArray(cachedCommuniques)
+    ) {
+
+        const readIds =
+            getReadCommuniques();
+
+        const count =
+            cachedCommuniques.filter(
+                comm =>
+                    comm &&
+                    comm.id &&
+                    !readIds.includes(comm.id)
+            ).length;
+
+        updateNotificationBadges(count);
+    }
+
+    const dateLimite =
+        new Date(
+            Date.now() -
+            24 * 60 * 60 * 1000
+        );
+
+    snapshotUnsubscribe =
+        db.collection('communiques')
+            .where(
+                'dateFin',
+                '>=',
+                firebase.firestore.Timestamp.fromDate(
+                    dateLimite
+                )
+            )
+            .orderBy(
+                'dateFin',
+                'asc'
+            )
+            .onSnapshot(
+
+                snapshot => {
+
+                    const maintenant =
+                        new Date();
+
+                    const readIds =
+                        getReadCommuniques();
+
+                    const communiquesList =
+                        [];
+
+                    /*
+                     * IMPORTANT :
+                     * docChanges() sur le premier snapshot
+                     * renvoie les documents existants en "added".
+                     *
+                     * On ne doit donc pas les traiter
+                     * comme de nouveaux communiqués.
+                     */
+                    let hasNew =
+                        communiquesRealtimeInitialized &&
+                        snapshot.docChanges()
+                            .some(
+                                change =>
+                                    change.type === 'added'
+                            );
+
+                    snapshot.forEach(doc => {
+
+                        const data =
+                            doc.data() || {};
+
+                        /*
+                         * Filtre promotion.
+                         */
+                        if (
+                            data.promotions &&
+                            Array.isArray(data.promotions) &&
+                            data.promotions.length > 0
+                        ) {
+
+                            if (
+                                !data.promotions.includes(
+                                    promo
+                                )
+                            ) {
+
+                                return;
+                            }
+                        }
+
+                        /*
+                         * Date de fin.
+                         */
+                        const dateFin =
+                            data.dateFin
+                                ? (
+                                    typeof data.dateFin.toDate === 'function'
+                                        ? data.dateFin.toDate()
+                                        : new Date(data.dateFin)
+                                )
+                                : null;
+
+                        if (
+                            dateFin &&
+                            !isNaN(dateFin.getTime()) &&
+                            dateFin < maintenant
+                        ) {
+
+                            return;
+                        }
+
+                        /*
+                         * Date de début.
+                         */
+                        const dateDebut =
+                            data.dateDebut
+                                ? (
+                                    typeof data.dateDebut.toDate === 'function'
+                                        ? data.dateDebut.toDate()
+                                        : new Date(data.dateDebut)
+                                )
+                                : null;
+
+                        if (
+                            dateDebut &&
+                            !isNaN(dateDebut.getTime()) &&
+                            dateDebut > maintenant
+                        ) {
+
+                            return;
+                        }
+
+                        communiquesList.push({
+                            id: doc.id,
+                            ...data
+                        });
+                    });
+
+                    /*
+                     * Sauvegarde cache.
+                     */
+                    CacheManager.set(
+                        cacheKey,
+                        communiquesList,
+                        'COMMUNIQUES'
+                    );
+
+                    /*
+                     * Nombre de non lus.
+                     */
+                    const newUnreadCount =
+                        communiquesList.filter(
+                            comm =>
+                                comm &&
+                                comm.id &&
+                                !readIds.includes(
+                                    comm.id
+                                )
+                        ).length;
+
+                    updateNotificationBadges(
+                        newUnreadCount
+                    );
+
+                    /*
+                     * Notification locale uniquement pour
+                     * l'interface si une nouvelle donnée
+                     * arrive pendant que l'étudiant n'est
+                     * pas sur la page.
+                     *
+                     * Le PUSH réel est envoyé par Cloud Functions.
+                     *
+                     * NE PAS appeler :
+                     * notificationManager.envoyerNotification()
+                     */
+                    if (
+                        hasNew &&
+                        newUnreadCount > 0 &&
+                        document.hidden
+                    ) {
+
+                        showToast(
+                            `📢 ${newUnreadCount} nouveau(x) communiqué(s)`,
+                            'info'
+                        );
+                    }
+
+                    communiquesRealtimeInitialized = true;
+
+                    console.log(
+                        '[FIRESTORE] Communiqués synchronisés:',
+                        communiquesList.length
+                    );
+                },
+
+                error => {
+
+                    console.error(
+                        '[FIRESTORE] Erreur communiqués:',
+                        error
+                    );
+
+                    updateNotificationBadgesFromCache();
+                }
+            );
+}
+
+
+/* ================================================================
+   PROMOTIONS
+================================================================ */
+
+async function chargerPromotions(
+    forceRefresh = false
+) {
+
+    const cacheKey =
+        'promotions';
+
+    if (!forceRefresh) {
+
+        const cached =
+            CacheManager.get(cacheKey);
+
+        if (
+            Array.isArray(cached) &&
+            cached.length > 0
+        ) {
+
+            allPromotions =
+                cached;
+
+            return allPromotions;
+        }
+    }
+
+    try {
+
+        const snapshot =
+            await db
+                .collection('promotions')
+                .get();
+
+        allPromotions = [];
+
+        snapshot.forEach(doc => {
+
+            allPromotions.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+
+        CacheManager.set(
+            cacheKey,
+            allPromotions,
+            'PROMOTIONS'
+        );
+
+        return allPromotions;
+
+    } catch (error) {
+
+        console.error(
+            '[PROMOTIONS] Erreur:',
+            error
+        );
+
+        const cached =
+            CacheManager.get(cacheKey);
+
+        if (
+            Array.isArray(cached) &&
+            cached.length > 0
+        ) {
+
+            allPromotions =
+                cached;
+
+            return allPromotions;
+        }
+
+        return [];
+    }
+}
+
+
+/* ================================================================
+   NOM PROMOTION
+================================================================ */
+
+function getPromotionNom(
+    promotionId
+) {
+
+    if (!promotionId) {
+        return 'Non définie';
+    }
+
+    const promo =
+        allPromotions.find(
+            p => p.id === promotionId
+        );
+
+    return promo
+        ? (
+            promo.nom ||
+            promo.name ||
+            promotionId
+        )
+        : promotionId;
+}
+
+
+/* ================================================================
+   ÉTUDIANT
+================================================================ */
+
+async function chargerEtudiant(
+    forceRefresh = false
+) {
+
+    if (!currentStudent) {
+        return null;
+    }
+
+    const cacheKey =
+        'etudiants_' +
+        currentStudent.id;
+
+    if (!forceRefresh) {
+
+        const cached =
+            CacheManager.get(cacheKey);
+
+        if (cached) {
+            return cached;
+        }
+    }
+
+    try {
+
+        const doc =
+            await db
+                .collection('etudiants')
+                .doc(currentStudent.id)
+                .get();
+
+        if (!doc.exists) {
+
+            console.warn(
+                '[ETUDIANT] Document introuvable:',
+                currentStudent.id
+            );
+
+            return null;
+        }
+
+        const data = {
+            id: doc.id,
+            ...doc.data()
+        };
+
+        CacheManager.set(
+            cacheKey,
+            data,
+            'ETUDIANT'
+        );
+
+        return data;
+
+    } catch (error) {
+
+        console.error(
+            '[ETUDIANT] Erreur:',
+            error
+        );
+
+        const cached =
+            CacheManager.get(cacheKey);
+
+        return cached || null;
+    }
+}
+
+
+/* ================================================================
+   MESSAGE BIENVENUE
+================================================================ */
+
+async function updateWelcomeMessage() {
+
+    await chargerPromotions();
+
+    const etudiantData =
+        await chargerEtudiant();
+
+    const nom =
+        (
+            etudiantData &&
+            (
+                etudiantData.nom ||
+                etudiantData.nomComplet
+            )
+        ) ||
+        currentStudent.nom ||
+        currentStudent.nomComplet ||
+        'Étudiant';
+
+    const matricule =
+        (
+            etudiantData &&
+            etudiantData.matricule
+        ) ||
+        currentStudent.matricule ||
+        'N/A';
+
+    const promotionId =
+        (
+            etudiantData &&
+            etudiantData.promotion
+        ) ||
+        currentStudent.promotion;
+
+    const promo =
+        getPromotionNom(
+            promotionId
+        );
+
+    const welcomeName =
+        document.getElementById(
+            'welcomeName'
+        );
+
+    const welcomeInfo =
+        document.getElementById(
+            'welcomeInfo'
+        );
+
+    if (welcomeName) {
+
+        welcomeName.textContent =
+            `Bonjour, ${nom}`;
+    }
+
+    if (welcomeInfo) {
+
+        welcomeInfo.textContent =
+            `Matricule: ${matricule} | ${promo}`;
+    }
+
+    /*
+     * Mise à jour du statut cache.
+     */
+    const cacheStatusText =
+        document.getElementById(
+            'cacheStatusText'
+        );
+
+    const cacheStatus =
+        document.getElementById(
+            'cacheStatus'
+        );
+
+    if (cacheStatusText) {
+
+        if (navigator.onLine) {
+
+            cacheStatusText.textContent =
+                'Données synchronisées';
+
+        } else {
+
+            cacheStatusText.textContent =
+                'Données hors ligne';
+        }
+    }
+
+    if (cacheStatus) {
+
+        const icon =
+            cacheStatus.querySelector('i');
+
+        if (icon) {
+
+            icon.classList.remove(
+                'cached',
+                'live'
+            );
+
+            icon.classList.add(
+                navigator.onLine
+                    ? 'live'
+                    : 'cached'
+            );
+        }
+    }
+}
+
+
+/* ================================================================
+   PROFIL
+================================================================ */
+
+async function loadProfileData() {
+
+    await chargerPromotions();
+
+    const etudiantData =
+        await chargerEtudiant();
+
+    const nom =
+        (
+            etudiantData &&
+            (
+                etudiantData.nom ||
+                etudiantData.nomComplet
+            )
+        ) ||
+        currentStudent.nom ||
+        currentStudent.nomComplet ||
+        'Étudiant';
+
+    const matricule =
+        (
+            etudiantData &&
+            etudiantData.matricule
+        ) ||
+        currentStudent.matricule ||
+        'N/A';
+
+    const promotionId =
+        (
+            etudiantData &&
+            etudiantData.promotion
+        ) ||
+        currentStudent.promotion;
+
+    const promo =
+        getPromotionNom(
+            promotionId
+        );
+
+    const profilNom =
+        document.getElementById(
+            'profilNom'
+        );
+
+    const profilMatricule =
+        document.getElementById(
+            'profilMatricule'
+        );
+
+    const profilPromotion =
+        document.getElementById(
+            'profilPromotion'
+        );
+
+    if (profilNom) {
+        profilNom.textContent = nom;
+    }
+
+    if (profilMatricule) {
+
+        profilMatricule.textContent =
+            `Matricule: ${matricule}`;
+    }
+
+    if (profilPromotion) {
+
+        profilPromotion.textContent =
+            `Promotion: ${promo}`;
+    }
+}
+
+
+/* ================================================================
+   OUVERTURE PROFIL
+================================================================ */
+
+document
+    .getElementById('profileBtn')
+    ?.addEventListener(
+        'click',
+        async function () {
+
+            try {
+
+                await loadProfileData();
+
+                const modal =
+                    document.getElementById(
+                        'profileModal'
+                    );
+
+                if (modal) {
+                    modal.style.display =
+                        'flex';
+                }
+
+            } catch (error) {
+
+                console.error(
+                    '[PROFIL] Erreur:',
+                    error
+                );
+
+                showToast(
+                    'Impossible de charger le profil.',
+                    'danger'
+                );
+            }
+        }
+    );
+
+
+/* ================================================================
+   FERMER PROFIL
+================================================================ */
+
+function closeProfileModal() {
+
+    const modal =
+        document.getElementById(
+            'profileModal'
+        );
+
+    if (modal) {
+        modal.style.display =
+            'none';
+    }
+
+    const newPassword =
+        document.getElementById(
+            'newPassword'
+        );
+
+    const confirmNewPassword =
+        document.getElementById(
+            'confirmNewPassword'
+        );
+
+    if (newPassword) {
+        newPassword.value = '';
+    }
+
+    if (confirmNewPassword) {
+        confirmNewPassword.value = '';
+    }
+}
+
+window.closeProfileModal =
+    closeProfileModal;
+
+document
+    .getElementById('closeProfileBtn')
+    ?.addEventListener(
+        'click',
+        closeProfileModal
+    );
+
+
+/* ================================================================
+   FERMER MODAL EN CLIQUANT À L'EXTÉRIEUR
+================================================================ */
+
+document
+    .getElementById('profileModal')
+    ?.addEventListener(
+        'click',
+        function (e) {
+
+            if (e.target === this) {
+
+                closeProfileModal();
+            }
+        }
+    );
+
+
+/* ================================================================
+   CHANGEMENT MOT DE PASSE
+================================================================ */
+
+document
+    .getElementById('changePasswordBtn')
+    ?.addEventListener(
+        'click',
+        async function () {
+
+            const newPwd =
+                document.getElementById(
+                    'newPassword'
+                )?.value.trim();
+
+            const confirmPwd =
+                document.getElementById(
+                    'confirmNewPassword'
+                )?.value.trim();
+
+            if (!newPwd || !confirmPwd) {
+
+                showToast(
+                    'Remplissez tous les champs',
+                    'warning'
+                );
+
+                return;
+            }
+
+            if (newPwd !== confirmPwd) {
+
+                showToast(
+                    'Les mots de passe sont différents',
+                    'warning'
+                );
+
+                return;
+            }
+
+            if (newPwd.length < 4) {
+
+                showToast(
+                    'Minimum 4 caractères',
+                    'warning'
+                );
+
+                return;
+            }
+
+            if (
+                !currentStudent ||
+                !currentStudent.id
+            ) {
+
+                showToast(
+                    'Session invalide',
+                    'danger'
+                );
+
+                return;
+            }
+
+            const btn =
+                document.getElementById(
+                    'changePasswordBtn'
+                );
+
+            if (btn) {
+                btn.disabled = true;
+            }
+
+            try {
+
+                await db
+                    .collection('etudiants')
+                    .doc(currentStudent.id)
+                    .update({
+                        motDePasse: newPwd
+                    });
+
+                CacheManager.remove(
+                    'etudiants_' +
+                    currentStudent.id
+                );
+
+                showToast(
+                    '✅ Mot de passe modifié',
+                    'success'
+                );
+
+                closeProfileModal();
+
+            } catch (error) {
+
+                console.error(
+                    '[PASSWORD] Erreur:',
+                    error
+                );
+
+                showToast(
+                    '❌ Erreur: ' +
+                    (error.message ||
+                        'Modification impossible'),
+                    'danger'
+                );
+
+            } finally {
+
+                if (btn) {
+                    btn.disabled = false;
+                }
+            }
+        }
+    );
+
+
+/* ================================================================
+   DÉCONNEXION
+================================================================ */
+
+document
+    .getElementById('logoutBtn')
+    ?.addEventListener(
+        'click',
+        async function () {
+
+            if (
+                !confirm(
+                    'Voulez-vous vous déconnecter ?'
+                )
+            ) {
+
+                return;
+            }
+
+            try {
+
+                /*
+                 * Supprime le token FCM local/remote
+                 * via le gestionnaire centralisé.
+                 */
+                if (
+                    window.notificationManager
+                ) {
+
+                    await window
+                        .notificationManager
+                        .reset();
+                }
+
+            } catch (error) {
+
+                console.warn(
+                    '[FCM] Reset déconnexion:',
+                    error
+                );
+            }
+
+            /*
+             * Suppression session.
+             */
+            localStorage.removeItem(
+                'session_etudiant'
+            );
+
+            localStorage.removeItem(
+                'communiques_lus'
+            );
+
+            /*
+             * Nettoyage cache étudiant.
+             */
+            if (
+                currentStudent &&
+                currentStudent.id
+            ) {
+
+                CacheManager.remove(
+                    'etudiants_' +
+                    currentStudent.id
+                );
+
+                CacheManager.remove(
+                    'communiques_' +
+                    currentStudent.id
+                );
+            }
+
+            /*
+             * Arrêt listener Firestore.
+             */
+            if (snapshotUnsubscribe) {
+
+                try {
+                    snapshotUnsubscribe();
+                } catch (e) {}
+
+                snapshotUnsubscribe =
+                    null;
+            }
+
+            /*
+             * Retour login.
+             */
+            window.location.href =
+                'login-etudiant.html';
+        }
+    );
+
+
+/* ================================================================
+   NAVIGATION
+================================================================ */
+
+document
+    .querySelectorAll('.menu-card')
+    .forEach(card => {
+
+        card.addEventListener(
+            'click',
+            function () {
+
+                const page =
+                    this.dataset.page;
+
+                if (!page) {
+                    return;
+                }
+
+                /*
+                 * Paiement en ligne
+                 */
+                if (
+                    page === 'paiement-ligne'
+                ) {
+
+                    window.location.href =
+                        'paiement-ligne.html';
+
+                    return;
+                }
+
+                /*
+                 * Toutes les autres pages.
+                 */
+                window.location.href =
+                    `${page}.html`;
+            }
+        );
+    });
+
+
+/* ================================================================
+   MODE HORS LIGNE
+================================================================ */
+
+function setupOfflineDetection() {
+
+    const offlineBadge =
+        document.getElementById(
+            'offlineBadge'
+        );
+
+    if (!offlineBadge) {
+        return;
+    }
+
+    function updateStatus() {
+
+        if (!navigator.onLine) {
+
+            offlineBadge.classList.add(
+                'show'
+            );
+
+        } else {
+
+            offlineBadge.classList.remove(
+                'show'
+            );
+        }
+
+        /*
+         * Mise à jour du statut cache.
+         */
+        const cacheStatusText =
+            document.getElementById(
+                'cacheStatusText'
+            );
+
+        if (cacheStatusText) {
+
+            cacheStatusText.textContent =
+                navigator.onLine
+                    ? 'Connexion en ligne'
+                    : 'Données disponibles hors ligne';
+        }
+    }
+
+    window.addEventListener(
+        'online',
+        updateStatus
+    );
+
+    window.addEventListener(
+        'offline',
+        updateStatus
+    );
+
+    updateStatus();
+}
+
+
+/* ================================================================
+   SERVICE WORKER
+================================================================ */
+
+/*
+ * IMPORTANT :
+ *
+ * Le projet utilise maintenant UN SEUL Service Worker :
+ *
+ *      /Espace-etudiant/sw.js
+ *
+ * Le Service Worker Firebase séparé :
+ *
+ *      firebase-messaging-sw.js
+ *
+ * ne doit plus être enregistré.
+ */
+
+async function registerServiceWorker() {
+
+    if (
+        !('serviceWorker' in navigator)
+    ) {
+
+        console.warn(
+            '[SW] Service Worker non supporté'
+        );
+
+        return null;
+    }
+
+    try {
+
+        /*
+         * Utilise le gestionnaire centralisé.
+         */
+        if (
+            typeof window.registerAppServiceWorker ===
+            'function'
+        ) {
+
+            const registration =
+                await window.registerAppServiceWorker();
+
+            if (registration) {
+
+                console.log(
+                    '[SW] ✅ Service Worker principal enregistré'
+                );
+            }
+
+            return registration;
+        }
+
+        /*
+         * Fallback si notification-utils.js
+         * n'est pas disponible.
+         */
+        const registration =
+            await navigator.serviceWorker.register(
+                './sw.js',
+                {
+                    scope:
+                        '/Espace-etudiant/'
+                }
+            );
+
+        console.log(
+            '[SW] ✅ Service Worker enregistré en fallback'
+        );
+
+        return registration;
+
+    } catch (error) {
+
+        console.error(
+            '[SW] ❌ Erreur:',
+            error
+        );
+
+        return null;
+    }
+}
+
+
+/* ================================================================
+   ÉVÉNEMENTS DE NOTIFICATION DU GESTIONNAIRE CENTRALISÉ
+================================================================ */
+
+window.addEventListener(
+    'fsa:notification',
+    function (event) {
+
+        try {
+
+            const detail =
+                event.detail || {};
+
+            console.log(
+                '[FCM] Notification reçue au premier plan:',
+                detail
+            );
+
+            /*
+             * Ici on ne recrée PAS une deuxième notification.
+             *
+             * notification-utils.js s'occupe déjà
+             * de l'affichage de la notification/du toast.
+             *
+             * On peut simplement mettre à jour le badge
+             * des communiqués lorsqu'il s'agit d'un communiqué.
+             */
+            const type =
+                detail.type ||
+                detail.data?.type ||
+                '';
+
+            if (
+                type === 'communique'
+            ) {
+
+                updateNotificationBadgesFromCache();
+            }
+
+        } catch (error) {
+
+            console.warn(
+                '[FCM] Traitement événement:',
+                error
+            );
+        }
+    }
+);
+
+
+/* ================================================================
+   INITIALISATION
+================================================================ */
+
+async function init() {
+
+    /*
+     * 1. Vérification session.
+     */
+    if (!checkSession()) {
+        return;
+    }
+
+    console.log(
+        '🚀 Dashboard Étudiant'
+    );
+
+    console.log(
+        '👤 Étudiant:',
+        currentStudent.nom ||
+        currentStudent.nomComplet ||
+        currentStudent.id
+    );
+
+    /*
+     * 2. Nettoyage cache.
+     */
+    CacheManager.cleanExpired();
+
+    /*
+     * 3. Promotions.
+     */
+    await chargerPromotions();
+
+    /*
+     * 4. Service Worker principal.
+     */
+    await registerServiceWorker();
+
+    /*
+     * 5. Détection hors ligne.
+     */
+    setupOfflineDetection();
+
+    /*
+     * 6. Communiqués temps réel.
+     */
+    setupRealtimeCommuniques();
+
+    /*
+     * 7. Message de bienvenue.
+     */
+    await updateWelcomeMessage();
+
+    /*
+     * 8. Initialisation FCM.
+     *
+     * IMPORTANT :
+     * cette fonction ne demande PAS la permission
+     * si l'étudiant ne l'a jamais donnée.
+     *
+     * Le bouton "Activer" s'en charge.
+     */
+    await enregistrerTokenFCM(
+        currentStudent.id,
+        currentStudent.nom ||
+            currentStudent.nomComplet ||
+            '',
+        currentStudent.promotion ||
+            '',
+        false
+    );
+
+    /*
+     * 9. Affichage carte permission.
+     */
+    checkNotificationStatus();
+
+    /*
+     * 10. État final.
+     */
+    console.log(
+        '✅ Dashboard prêt'
+    );
+
+    if (
+        window.notificationManager
+    ) {
+
+        console.log(
+            '🔔 NotificationManager actif:',
+            window.notificationManager.isActive()
+        );
+
+    } else {
+
+        console.warn(
+            '⚠️ NotificationManager indisponible'
+        );
+    }
+}
+
+
+/* ================================================================
+   DOM READY
+================================================================ */
+
+if (
+    document.readyState === 'loading'
+) {
+
+    document.addEventListener(
+        'DOMContentLoaded',
+        init
+    );
+
+} else {
+
+    init();
+}
+
+
+/* ================================================================
+   NETTOYAGE À LA FERMETURE DE LA PAGE
+================================================================ */
+
+window.addEventListener(
+    'beforeunload',
+    function () {
+
+        /*
+         * Ne pas supprimer la session ici.
+         *
+         * Le Service Worker et Firebase doivent
+         * continuer à fonctionner normalement.
+         */
+    }
+);
+
+
+/* ================================================================
+   EXPORTS UTILES
+================================================================ */
+
+window.showToast =
+    showToast;
+
+window.markCommuniqueAsRead =
+    markCommuniqueAsRead;
+
+window.updateNotificationBadges =
+    updateNotificationBadges;
+
+window.updateNotificationBadgesFromCache =
+    updateNotificationBadgesFromCache;
+
+window.checkNotificationStatus =
+    checkNotificationStatus;
+
+window.enregistrerTokenFCM =
+    enregistrerTokenFCM;
+
+window.chargerEtudiant =
+    chargerEtudiant;
+
+window.chargerPromotions =
+    chargerPromotions;
+
+window.getPromotionNom =
+    getPromotionNom;
+
+</script>
+
+</body>
+</html>

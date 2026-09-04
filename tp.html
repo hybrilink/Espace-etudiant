@@ -1,0 +1,3577 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mon Projet - Faculté Agronomique</title>
+    <meta name="theme-color" content="#003366">
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- ==================== FIREBASE ==================== -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+
+    <!-- ==================== PDF ==================== -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!--
+        Génération QR Code :
+        Le contenu envoyé au QR reste volontairement très court.
+    -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        :root {
+            --primary-blue: #003366;
+            --dark-blue: #002244;
+            --accent-yellow: #ffb347;
+            --light-gray: #f0f2f5;
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--light-gray);
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+
+        .navbar-custom {
+            background: var(--primary-blue);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1rem;
+            color: white !important;
+        }
+
+        .btn-back {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 18px;
+            border-radius: 25px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateX(-3px);
+            color: white;
+        }
+
+        .container-custom {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 15px 40px;
+        }
+
+        .submission-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+
+        .submission-card h3 {
+            color: var(--primary-blue);
+            font-weight: 700;
+            margin-bottom: 5px;
+            font-size: 1.4rem;
+        }
+
+        .submission-card .subtitle {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--primary-blue);
+            font-size: 0.9rem;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 12px;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.2rem rgba(0,51,102,0.15);
+        }
+
+        .btn-submit {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background: var(--dark-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,51,102,0.3);
+        }
+
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .director-card {
+            background: linear-gradient(135deg, #1a5c2a, #0d3b17);
+            border-radius: 20px;
+            padding: 25px 30px;
+            color: white;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .director-card::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+        }
+
+        .director-card h4 {
+            font-weight: 700;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .director-card h4 i {
+            color: var(--accent-yellow);
+        }
+
+        .director-info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .director-info-item i {
+            color: var(--accent-yellow);
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .progress-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+
+        .progress-section h4 {
+            color: var(--primary-blue);
+            font-weight: 700;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .progress {
+            height: 30px;
+            border-radius: 15px;
+            background: #e9ecef;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            transition: width 0.6s ease, background 0.6s ease;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+        }
+
+        .progress-bar.stage-1 {
+            background: #dc3545;
+        }
+
+        .progress-bar.stage-2 {
+            background: #fd7e14;
+        }
+
+        .progress-bar.stage-3 {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .progress-bar.stage-4 {
+            background: var(--success-green);
+        }
+
+        .btn-download-fv {
+            background: var(--success-green);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-download-fv:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40,167,69,0.3);
+        }
+
+        .btn-download-fv:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .already-submitted-card {
+            background: #fff8e1;
+            border: 2px solid #ffcc02;
+            border-radius: 20px;
+            padding: 25px 30px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .already-submitted-card i {
+            font-size: 50px;
+            color: var(--accent-yellow);
+            margin-bottom: 10px;
+        }
+
+        .already-submitted-card h5 {
+            color: var(--primary-blue);
+            font-weight: 700;
+        }
+
+        .alert-info-custom {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-top: 15px;
+            color: #1565c0;
+            font-size: 0.9rem;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #e0e0e0;
+            border-top: 5px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container-custom {
+                padding: 15px 10px 30px;
+            }
+
+            .submission-card,
+            .director-card,
+            .progress-section {
+                padding: 20px 15px;
+                border-radius: 15px;
+            }
+
+            .submission-card h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar navbar-custom">
+        <div class="container">
+
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-laptop-fill"></i>
+                MON PROJET DE FIN D'ÉTUDES
+            </a>
+
+            <a href="etudiant.html" class="btn-back">
+                <i class="bi bi-arrow-left"></i>
+                Retour
+            </a>
+
+        </div>
+    </nav>
+
+    <!-- ==================== CONTENU ==================== -->
+    <div class="container-custom" id="mainContent">
+
+        <div id="loadingIndicator" class="text-center mt-5">
+
+            <div class="spinner"></div>
+
+            <p class="text-muted mt-3">
+                Chargement de votre espace projet...
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- ==================== LOADING OVERLAY ==================== -->
+    <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+
+        <div class="loading-spinner">
+
+            <div class="spinner"></div>
+
+            <p class="mb-0" id="loadingText">
+                Traitement en cours...
+            </p>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        // ================================================================
+        // FIREBASE
+        // ================================================================
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBb82N-5ns7qKjBAj5UvDW87s2PZ27F0",
+            authDomain: "fsa-unilu.firebaseapp.com",
+            projectId: "fsa-unilu",
+            storageBucket: "fsa-unilu.firebasestorage.app",
+            messagingSenderId: "36551990738",
+            appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        const db = firebase.firestore();
+
+
+        // ================================================================
+        // CHARGEMENT DE NOTIFICATION-UTILS.JS
+        // ================================================================
+
+        function loadNotificationUtils() {
+
+            return new Promise((resolve) => {
+
+                if (typeof window.notificationManager !== 'undefined') {
+                    resolve(true);
+                    return;
+                }
+
+                const existingScript =
+                    document.querySelector(
+                        'script[data-notification-utils="true"]'
+                    );
+
+                if (existingScript) {
+
+                    if (
+                        typeof window.notificationManager !==
+                        'undefined'
+                    ) {
+                        resolve(true);
+                        return;
+                    }
+
+                    existingScript.addEventListener(
+                        'load',
+                        () => resolve(true),
+                        { once: true }
+                    );
+
+                    existingScript.addEventListener(
+                        'error',
+                        () => resolve(false),
+                        { once: true }
+                    );
+
+                    return;
+                }
+
+                const script =
+                    document.createElement('script');
+
+                script.src = './notification-utils.js';
+
+                script.async = false;
+
+                script.dataset.notificationUtils = 'true';
+
+                script.onload = () => {
+
+                    console.log(
+                        '✅ notification-utils.js chargé'
+                    );
+
+                    resolve(true);
+                };
+
+                script.onerror = () => {
+
+                    console.warn(
+                        '⚠️ Impossible de charger notification-utils.js'
+                    );
+
+                    resolve(false);
+                };
+
+                document.head.appendChild(script);
+            });
+        }
+
+
+        // ================================================================
+        // LISTE DES DÉPARTEMENTS
+        // ================================================================
+
+        const DEPARTEMENTS = [
+            "Agronomie Générale",
+            "Économie Agricole",
+            "Sciences du Sol",
+            "Protection des Végétaux",
+            "Zootechnie",
+            "Génie Rural"
+        ];
+
+
+        // ================================================================
+        // SESSION
+        // ================================================================
+
+        let currentStudent = null;
+
+        function checkSession() {
+
+            const session =
+                localStorage.getItem(
+                    'session_etudiant'
+                );
+
+            if (!session) {
+
+                window.location.href =
+                    'login-etudiant.html';
+
+                return false;
+            }
+
+            try {
+
+                const data =
+                    JSON.parse(session);
+
+                if (
+                    !data ||
+                    !data.expires ||
+                    Date.now() > data.expires
+                ) {
+
+                    localStorage.removeItem(
+                        'session_etudiant'
+                    );
+
+                    window.location.href =
+                        'login-etudiant.html';
+
+                    return false;
+                }
+
+                if (!data.id) {
+
+                    console.error(
+                        'Session invalide : identifiant étudiant absent.'
+                    );
+
+                    localStorage.removeItem(
+                        'session_etudiant'
+                    );
+
+                    window.location.href =
+                        'login-etudiant.html';
+
+                    return false;
+                }
+
+                currentStudent = data;
+
+                return true;
+
+            } catch (e) {
+
+                console.error(
+                    'Session invalide:',
+                    e
+                );
+
+                localStorage.removeItem(
+                    'session_etudiant'
+                );
+
+                window.location.href =
+                    'login-etudiant.html';
+
+                return false;
+            }
+        }
+
+
+        // ================================================================
+        // FONCTIONS UTILITAIRES
+        // ================================================================
+
+        function showLoading(
+            show,
+            message = 'Traitement en cours...'
+        ) {
+
+            const overlay =
+                document.getElementById(
+                    'loadingOverlay'
+                );
+
+            const text =
+                document.getElementById(
+                    'loadingText'
+                );
+
+            if (overlay) {
+
+                overlay.style.display =
+                    show ? 'flex' : 'none';
+            }
+
+            if (text) {
+
+                text.textContent =
+                    message;
+            }
+        }
+
+
+        function escapeHtml(text) {
+
+            if (
+                text === null ||
+                text === undefined
+            ) {
+                return '';
+            }
+
+            const div =
+                document.createElement('div');
+
+            div.textContent =
+                String(text);
+
+            return div.innerHTML;
+        }
+
+
+        function showToast(
+            message,
+            type = 'success'
+        ) {
+
+            const existing =
+                document.querySelector(
+                    '.toast-custom'
+                );
+
+            if (existing) {
+                existing.remove();
+            }
+
+            const colors = {
+
+                success: {
+                    bg: '#28a745',
+                    icon: 'check-circle-fill'
+                },
+
+                warning: {
+                    bg: '#ffc107',
+                    icon: 'exclamation-triangle-fill',
+                    textColor: '#333'
+                },
+
+                danger: {
+                    bg: '#dc3545',
+                    icon: 'x-circle-fill'
+                },
+
+                info: {
+                    bg: '#17a2b8',
+                    icon: 'info-circle-fill'
+                }
+            };
+
+            const config =
+                colors[type] ||
+                colors.success;
+
+            const textColor =
+                config.textColor ||
+                'white';
+
+            const toastHtml = `
+                <div class="toast-custom"
+                     style="
+                        position:fixed;
+                        top:20px;
+                        right:20px;
+                        z-index:10000;
+                        background:${config.bg};
+                        color:${textColor};
+                        padding:15px 20px;
+                        border-radius:12px;
+                        box-shadow:0 5px 20px rgba(0,0,0,0.2);
+                        animation:slideInRight 0.3s ease-out;
+                        max-width:350px;
+                        font-weight:500;
+                     ">
+
+                    <i class="bi bi-${config.icon} me-2"></i>
+                    ${message}
+
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML(
+                'beforeend',
+                toastHtml
+            );
+
+            setTimeout(() => {
+
+                const t =
+                    document.querySelector(
+                        '.toast-custom'
+                    );
+
+                if (t) {
+                    t.remove();
+                }
+
+            }, 4000);
+        }
+
+
+        function getDepartementName(
+            deptValue
+        ) {
+
+            if (
+                DEPARTEMENTS.includes(
+                    deptValue
+                )
+            ) {
+                return deptValue;
+            }
+
+            return deptValue ||
+                'Non défini';
+        }
+
+
+        // ================================================================
+        // DONNÉES
+        // ================================================================
+
+        let studentProject = null;
+
+        let directorInfo = null;
+
+        let allPromotions = [];
+
+
+        // ================================================================
+        // CHARGER LE PROJET DE L'ÉTUDIANT
+        // ================================================================
+
+        async function loadStudentProject() {
+
+            try {
+
+                const snapshot =
+                    await db.collection('projets')
+                        .where(
+                            'etudiantId',
+                            '==',
+                            currentStudent.id
+                        )
+                        .limit(1)
+                        .get();
+
+                if (!snapshot.empty) {
+
+                    studentProject = {
+                        id: snapshot.docs[0].id,
+                        ...snapshot.docs[0].data()
+                    };
+
+                } else {
+
+                    studentProject = null;
+                }
+
+                return studentProject;
+
+            } catch (error) {
+
+                console.error(
+                    'Erreur chargement projet:',
+                    error
+                );
+
+                return null;
+            }
+        }
+
+
+        // ================================================================
+        // CHARGER LE DIRECTEUR
+        // ================================================================
+
+        async function loadDirectorInfo(
+            directorId
+        ) {
+
+            if (!directorId) {
+
+                directorInfo = null;
+
+                return null;
+            }
+
+            try {
+
+                const doc =
+                    await db.collection(
+                        'utilisateurs'
+                    )
+                    .doc(directorId)
+                    .get();
+
+                if (doc.exists) {
+
+                    directorInfo = {
+                        id: doc.id,
+                        ...doc.data()
+                    };
+
+                    return directorInfo;
+                }
+
+                directorInfo = null;
+
+                return null;
+
+            } catch (error) {
+
+                console.error(
+                    'Erreur chargement directeur:',
+                    error
+                );
+
+                directorInfo = null;
+
+                return null;
+            }
+        }
+
+
+        // ================================================================
+        // CHARGER LES PROMOTIONS
+        // ================================================================
+
+        async function loadPromotions() {
+
+            try {
+
+                const snapshot =
+                    await db.collection(
+                        'promotions'
+                    ).get();
+
+                allPromotions = [];
+
+                snapshot.forEach(doc => {
+
+                    allPromotions.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+
+                });
+
+                return allPromotions;
+
+            } catch (error) {
+
+                console.error(
+                    'Erreur chargement promotions:',
+                    error
+                );
+
+                allPromotions = [];
+
+                return [];
+            }
+        }
+
+
+        function getPromotionName(
+            promotionId
+        ) {
+
+            if (!promotionId) {
+                return 'Non définie';
+            }
+
+            const promo =
+                allPromotions.find(
+                    p => p.id === promotionId
+                );
+
+            return promo
+                ? (promo.nom || promotionId)
+                : promotionId;
+        }
+
+
+        // ================================================================
+        // AFFICHAGE DU FORMULAIRE
+        // ================================================================
+
+        function renderSubmissionForm() {
+
+            let options =
+                '<option value="">-- Sélectionnez un département --</option>';
+
+            DEPARTEMENTS.forEach(dept => {
+
+                options += `
+                    <option value="${escapeHtml(dept)}">
+                        ${escapeHtml(dept)}
+                    </option>
+                `;
+            });
+
+            return `
+                <div class="submission-card">
+
+                    <h3>
+                        <i class="bi bi-pencil-square me-2"></i>
+                        Soumission du Sujet de Projet
+                    </h3>
+
+                    <p class="subtitle">
+
+                        Veuillez remplir ce formulaire
+                        pour soumettre votre sujet de
+                        projet de fin d'études.
+
+                        <strong>
+                            Cette action est irréversible.
+                        </strong>
+
+                    </p>
+
+                    <div class="alert-info-custom mb-3">
+
+                        <i class="bi bi-info-circle-fill me-2"></i>
+
+                        <strong>Important :</strong>
+
+                        Vous ne pourrez soumettre votre sujet
+                        qu'une seule fois.
+
+                        Assurez-vous que toutes les informations
+                        sont correctes avant de valider.
+
+                    </div>
+
+                    <form id="projectForm">
+
+                        <div class="mb-3">
+
+                            <label
+                                for="departement"
+                                class="form-label">
+
+                                <i class="bi bi-building me-1"></i>
+                                Département *
+
+                            </label>
+
+                            <select
+                                class="form-select"
+                                id="departement"
+                                required>
+
+                                ${options}
+
+                            </select>
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label
+                                for="sujetProjet"
+                                class="form-label">
+
+                                <i class="bi bi-journal-text me-1"></i>
+                                Sujet de votre projet *
+
+                            </label>
+
+                            <textarea
+                                class="form-control"
+                                id="sujetProjet"
+                                rows="6"
+                                placeholder="Décrivez votre sujet de projet en détail..."
+                                required
+                                minlength="20"></textarea>
+
+                            <div class="form-text">
+
+                                <i class="bi bi-info-circle"></i>
+
+                                Minimum 20 caractères.
+                                Soyez précis dans la description
+                                de votre sujet.
+
+                            </div>
+
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="btn-submit"
+                            id="submitBtn">
+
+                            <i class="bi bi-send-fill me-2"></i>
+
+                            Soumettre mon sujet
+
+                        </button>
+
+                    </form>
+
+                </div>
+            `;
+        }
+
+
+        // ================================================================
+        // AFFICHAGE PROJET SOUMIS
+        // ================================================================
+
+        function renderSubmittedProject() {
+
+            const deptName =
+                getDepartementName(
+                    studentProject.departementId
+                );
+
+            const promotionName =
+                getPromotionName(
+                    studentProject.promotion ||
+                    currentStudent.promotion
+                );
+
+            let dateSoumissionText =
+                'Date inconnue';
+
+            if (
+                studentProject.dateSoumission
+            ) {
+
+                try {
+
+                    const dateValue =
+                        studentProject.dateSoumission.toDate
+                            ? studentProject.dateSoumission.toDate()
+                            : studentProject.dateSoumission;
+
+                    dateSoumissionText =
+                        new Date(
+                            dateValue
+                        ).toLocaleDateString(
+                            'fr-FR'
+                        );
+
+                } catch (e) {
+
+                    console.warn(
+                        'Date de soumission invalide:',
+                        e
+                    );
+                }
+            }
+
+            let html = `
+
+                <div class="already-submitted-card">
+
+                    <i class="bi bi-check-circle-fill"></i>
+
+                    <h5>
+                        Votre sujet a été soumis avec succès
+                    </h5>
+
+                    <p class="text-muted mb-0">
+
+                        Soumis le :
+                        ${escapeHtml(dateSoumissionText)}
+
+                    </p>
+
+                </div>
+
+
+                <div class="submission-card">
+
+                    <h3>
+
+                        <i class="bi bi-file-text-fill me-2"></i>
+
+                        Détails de votre sujet
+
+                    </h3>
+
+                    <hr>
+
+
+                    <p>
+
+                        <strong>
+
+                            <i class="bi bi-building me-2"></i>
+
+                            Département :
+
+                        </strong>
+
+                        ${escapeHtml(deptName)}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+
+                            <i class="bi bi-mortarboard-fill me-2"></i>
+
+                            Promotion :
+
+                        </strong>
+
+                        ${escapeHtml(promotionName)}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+
+                            <i class="bi bi-journal-text me-2"></i>
+
+                            Sujet :
+
+                        </strong>
+
+                    </p>
+
+
+                    <div
+                        style="
+                            background:#f8f9fa;
+                            padding:15px;
+                            border-radius:10px;
+                            border-left:4px solid var(--primary-blue);
+                            margin-bottom:15px;
+                        ">
+
+                        ${escapeHtml(
+                            studentProject.sujet
+                        )}
+
+                    </div>
+
+
+                    ${
+                        studentProject.sujetReformule
+                        ? `
+
+                            <p>
+
+                                <strong>
+
+                                    <i class="bi bi-pencil-square me-2"></i>
+
+                                    Sujet reformulé par le directeur :
+
+                                </strong>
+
+                            </p>
+
+
+                            <div
+                                style="
+                                    background:#fff8e1;
+                                    padding:15px;
+                                    border-radius:10px;
+                                    border-left:4px solid var(--accent-yellow);
+                                    margin-bottom:15px;
+                                ">
+
+                                ${escapeHtml(
+                                    studentProject.sujetReformule
+                                )}
+
+                            </div>
+
+                          `
+                        : ''
+                    }
+
+
+                    <p>
+
+                        <strong>
+
+                            <i class="bi bi-calendar-check me-2"></i>
+
+                            Date de soumission :
+
+                        </strong>
+
+                        ${
+                            studentProject.dateSoumission
+                            ? escapeHtml(
+                                new Date(
+                                    studentProject.dateSoumission.toDate
+                                    ? studentProject.dateSoumission.toDate()
+                                    : studentProject.dateSoumission
+                                ).toLocaleDateString(
+                                    'fr-FR',
+                                    {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric'
+                                    }
+                                )
+                            )
+                            : 'N/A'
+                        }
+
+                    </p>
+
+                </div>
+            `;
+
+
+            // ============================================================
+            // DIRECTEUR
+            // ============================================================
+
+            if (directorInfo) {
+
+                html += `
+
+                    <div class="director-card">
+
+                        <h4>
+
+                            <i class="bi bi-person-badge-fill me-2"></i>
+
+                            Votre Directeur de Projet
+
+                        </h4>
+
+
+                        <div class="director-info-item">
+
+                            <i class="bi bi-person-fill"></i>
+
+                            <span>
+
+                                ${escapeHtml(
+                                    directorInfo.nomComplet ||
+                                    directorInfo.nom ||
+                                    'Non renseigné'
+                                )}
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="director-info-item">
+
+                            <i class="bi bi-envelope-fill"></i>
+
+                            <span>
+
+                                ${escapeHtml(
+                                    directorInfo.email ||
+                                    'Non renseigné'
+                                )}
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="director-info-item">
+
+                            <i class="bi bi-telephone-fill"></i>
+
+                            <span>
+
+                                ${escapeHtml(
+                                    directorInfo.telephone ||
+                                    'Non renseigné'
+                                )}
+
+                            </span>
+
+                        </div>
+
+
+                        ${
+                            directorInfo.departement
+                            ? `
+
+                                <div class="director-info-item">
+
+                                    <i class="bi bi-building"></i>
+
+                                    <span>
+
+                                        Département:
+
+                                        ${escapeHtml(
+                                            directorInfo.departement
+                                        )}
+
+                                    </span>
+
+                                </div>
+
+                              `
+                            : ''
+                        }
+
+                    </div>
+                `;
+
+            } else if (
+                studentProject.directeurId
+            ) {
+
+                html += `
+
+                    <div
+                        class="director-card"
+                        style="
+                            background:
+                            linear-gradient(
+                                135deg,
+                                #6c757d,
+                                #495057
+                            );
+                        ">
+
+                        <h4>
+
+                            <i class="bi bi-hourglass-split me-2"></i>
+
+                            Directeur en attente d'assignation
+
+                        </h4>
+
+
+                        <p class="mb-0 opacity-75">
+
+                            Un directeur vous sera assigné
+                            prochainement.
+
+                        </p>
+
+                    </div>
+                `;
+            }
+
+
+            // ============================================================
+            // PROGRESSION
+            // ============================================================
+
+            const etape =
+                Math.max(
+                    0,
+                    Math.min(
+                        4,
+                        Number(
+                            studentProject.etape || 0
+                        )
+                    )
+                );
+
+            const pourcentage =
+                etape * 25;
+
+
+            let stageClass = '';
+
+
+            if (pourcentage <= 25) {
+
+                stageClass =
+                    'stage-1';
+
+            } else if (
+                pourcentage <= 50
+            ) {
+
+                stageClass =
+                    'stage-2';
+
+            } else if (
+                pourcentage <= 75
+            ) {
+
+                stageClass =
+                    'stage-3';
+
+            } else {
+
+                stageClass =
+                    'stage-4';
+            }
+
+
+            html += `
+
+                <div class="progress-section">
+
+                    <h4>
+
+                        <i class="bi bi-bar-chart-fill me-2"></i>
+
+                        Progression Feu Vert
+
+                    </h4>
+
+
+                    <div class="progress">
+
+                        <div
+                            class="progress-bar ${stageClass}"
+                            role="progressbar"
+                            style="width:${pourcentage}%;"
+                            aria-valuenow="${pourcentage}"
+                            aria-valuemin="0"
+                            aria-valuemax="100">
+
+                            ${pourcentage}%
+
+                        </div>
+
+                    </div>
+
+
+                    ${
+                        pourcentage === 100
+                        ? `
+
+                            <div class="mt-4 text-center">
+
+                                <div
+                                    class="alert alert-success"
+                                    style="border-radius:12px;">
+
+                                    <i class="bi bi-trophy-fill me-2"></i>
+
+                                    <strong>
+                                        Félicitations !
+                                    </strong>
+
+                                    Votre projet a obtenu
+                                    le Feu Vert !
+
+                                </div>
+
+
+                                <button
+                                    class="btn-download-fv"
+                                    id="downloadFeuVertBtn"
+                                    onclick="downloadFeuVert()">
+
+                                    <i class="bi bi-download"></i>
+
+                                    Télécharger le Feu Vert (PDF)
+
+                                </button>
+
+                            </div>
+
+                          `
+                        : `
+
+                            <div class="alert-info-custom mt-3">
+
+                                <i class="bi bi-info-circle-fill me-2"></i>
+
+                                Votre directeur validera chaque étape.
+
+                                Le bouton de téléchargement
+                                apparaîtra lorsque vous atteindrez
+                                100%.
+
+                            </div>
+
+                          `
+                    }
+
+                </div>
+            `;
+
+
+            return html;
+        }
+
+
+        // ================================================================
+        // RENDRE LA PAGE
+        // ================================================================
+
+        async function renderPage() {
+
+            const container =
+                document.getElementById(
+                    'mainContent'
+                );
+
+            const loadingIndicator =
+                document.getElementById(
+                    'loadingIndicator'
+                );
+
+            if (loadingIndicator) {
+
+                loadingIndicator.style.display =
+                    'none';
+            }
+
+
+            await loadPromotions();
+
+            await loadStudentProject();
+
+
+            if (studentProject) {
+
+                if (
+                    studentProject.directeurId
+                ) {
+
+                    await loadDirectorInfo(
+                        studentProject.directeurId
+                    );
+
+                } else {
+
+                    directorInfo = null;
+                }
+
+
+                container.innerHTML =
+                    renderSubmittedProject();
+
+            } else {
+
+                directorInfo = null;
+
+                container.innerHTML =
+                    renderSubmissionForm();
+
+                setupFormListener();
+            }
+        }
+
+
+        // ================================================================
+        // SOUMISSION DU SUJET
+        // ================================================================
+
+        function setupFormListener() {
+
+            const form =
+                document.getElementById(
+                    'projectForm'
+                );
+
+            if (!form) return;
+
+
+            form.addEventListener(
+                'submit',
+                async (e) => {
+
+                    e.preventDefault();
+
+
+                    const departement =
+                        document.getElementById(
+                            'departement'
+                        ).value;
+
+
+                    const sujet =
+                        document.getElementById(
+                            'sujetProjet'
+                        ).value.trim();
+
+
+                    if (!departement) {
+
+                        showToast(
+                            'Veuillez sélectionner un département',
+                            'warning'
+                        );
+
+                        return;
+                    }
+
+
+                    if (
+                        !sujet ||
+                        sujet.length < 20
+                    ) {
+
+                        showToast(
+                            'Le sujet doit contenir au moins 20 caractères',
+                            'warning'
+                        );
+
+                        return;
+                    }
+
+
+                    if (
+                        !confirm(
+                            '⚠️ ATTENTION : Cette action est IRRÉVERSIBLE.\n\n' +
+                            'Une fois soumis, vous ne pourrez plus modifier votre sujet.\n\n' +
+                            'Êtes-vous sûr de vouloir continuer ?'
+                        )
+                    ) {
+
+                        return;
+                    }
+
+
+                    showLoading(
+                        true,
+                        'Soumission de votre sujet...'
+                    );
+
+
+                    try {
+
+                        // Vérification supplémentaire
+                        // contre une double soumission.
+
+                        const existing =
+                            await db.collection(
+                                'projets'
+                            )
+                            .where(
+                                'etudiantId',
+                                '==',
+                                currentStudent.id
+                            )
+                            .limit(1)
+                            .get();
+
+
+                        if (!existing.empty) {
+
+                            showLoading(false);
+
+                            showToast(
+                                'Vous avez déjà soumis un sujet de projet.',
+                                'warning'
+                            );
+
+                            await renderPage();
+
+                            return;
+                        }
+
+
+                        const projectData = {
+
+                            etudiantId:
+                                currentStudent.id,
+
+                            etudiantNom:
+                                currentStudent.nom || '',
+
+                            etudiantMatricule:
+                                currentStudent.matricule || '',
+
+                            promotion:
+                                currentStudent.promotion || '',
+
+                            departementId:
+                                departement,
+
+                            sujet:
+                                sujet,
+
+                            dateSoumission:
+                                firebase.firestore
+                                    .FieldValue
+                                    .serverTimestamp(),
+
+                            directeurId:
+                                null,
+
+                            etape:
+                                0,
+
+                            statut:
+                                'soumis'
+                        };
+
+
+                        const docRef =
+                            await db.collection(
+                                'projets'
+                            ).add(
+                                projectData
+                            );
+
+
+                        showLoading(false);
+
+
+                        showToast(
+                            '✅ Votre sujet a été soumis avec succès !',
+                            'success'
+                        );
+
+
+                        setTimeout(
+                            async () => {
+
+                                await renderPage();
+
+                            },
+                            1500
+                        );
+
+
+                    } catch (error) {
+
+                        showLoading(false);
+
+
+                        console.error(
+                            'Erreur soumission:',
+                            error
+                        );
+
+
+                        showToast(
+                            '❌ Erreur lors de la soumission : ' +
+                            (error.message ||
+                                'Erreur inconnue'),
+                            'danger'
+                        );
+                    }
+
+                }
+            );
+        }
+
+
+        // ================================================================
+        // FEU VERT
+        //
+        // IMPORTANT :
+        //
+        // 1. feu.png doit être dans le même dossier que Projet.html.
+        //
+        // 2. Les données sont dessinées UNIQUEMENT dans les zones
+        //    prévues du modèle feu.png.
+        //
+        // 3. Le QR contient uniquement un identifiant court.
+        //
+        // 4. Aucun ajout du nom/signature du doyen.
+        //
+        // 5. Les coordonnées restent basées sur feu.png en 1024 x 1536.
+        // ================================================================
+
+
+        function safeString(
+            value,
+            fallback = ''
+        ) {
+
+            if (
+                value === null ||
+                value === undefined
+            ) {
+                return fallback;
+            }
+
+            return String(
+                value
+            ).trim() || fallback;
+        }
+
+
+        function normalizeForDocument(
+            value
+        ) {
+
+            return safeString(value)
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+
+        function getAcademicYear() {
+
+            return safeString(
+
+                studentProject?.anneeAcademique ||
+
+                currentStudent?.anneeAcademique ||
+
+                currentStudent?.anneeAcademiqueId ||
+
+                '2026-2027'
+            );
+        }
+
+
+        function getStudentFullName() {
+
+            return normalizeForDocument(
+
+                currentStudent?.nomComplet ||
+
+                currentStudent?.nom ||
+
+                studentProject?.etudiantNom ||
+
+                'Étudiant'
+            );
+        }
+
+
+        function getStudentMatricule() {
+
+            return normalizeForDocument(
+
+                currentStudent?.matricule ||
+
+                studentProject?.etudiantMatricule ||
+
+                'N/A'
+            );
+        }
+
+
+        function getDirectorName() {
+
+            return normalizeForDocument(
+
+                directorInfo?.nomComplet ||
+
+                directorInfo?.nom ||
+
+                studentProject?.directeurNom ||
+
+                'Non renseigné'
+            );
+        }
+
+
+        function getDirectorEmail() {
+
+            return normalizeForDocument(
+
+                directorInfo?.email ||
+
+                studentProject?.directeurEmail ||
+
+                'Non renseigné'
+            );
+        }
+
+
+        function getDirectorDepartment() {
+
+            return normalizeForDocument(
+
+                directorInfo?.departement ||
+
+                studentProject?.directeurDepartement ||
+
+                'Non renseigné'
+            );
+        }
+
+
+        function getProjectSubject() {
+
+            return normalizeForDocument(
+
+                studentProject?.sujetReformule ||
+
+                studentProject?.sujet ||
+
+                'Non renseigné'
+            );
+        }
+
+
+        // ================================================================
+        // CODE DOCUMENT
+        // ================================================================
+
+        function makeDocumentCode() {
+
+            const matricule =
+                getStudentMatricule()
+                    .replace(
+                        /[^A-Za-z0-9]/g,
+                        ''
+                    )
+                    .slice(
+                        0,
+                        18
+                    ) ||
+                'ETUDIANT';
+
+
+            const date =
+                new Date();
+
+
+            const dd =
+                String(
+                    date.getDate()
+                ).padStart(
+                    2,
+                    '0'
+                );
+
+
+            const mm =
+                String(
+                    date.getMonth() + 1
+                ).padStart(
+                    2,
+                    '0'
+                );
+
+
+            const yyyy =
+                date.getFullYear();
+
+
+            return `FV-FSA-${matricule}-${dd}${mm}${yyyy}`;
+        }
+
+
+        // ================================================================
+        // PAYLOAD QR COURT
+        // ================================================================
+
+        function makeShortQrPayload(
+            documentCode
+        ) {
+
+            const matricule =
+                getStudentMatricule()
+                    .replace(
+                        /[^A-Za-z0-9]/g,
+                        ''
+                    )
+                    .slice(
+                        -8
+                    );
+
+
+            const projectId =
+                safeString(
+                    studentProject?.id,
+                    'PROJECT'
+                )
+                .replace(
+                    /[^A-Za-z0-9]/g,
+                    ''
+                )
+                .slice(
+                    0,
+                    8
+                );
+
+
+            const date =
+                new Date();
+
+
+            const stamp =
+                String(
+                    date.getFullYear()
+                ) +
+
+                String(
+                    date.getMonth() + 1
+                ).padStart(
+                    2,
+                    '0'
+                ) +
+
+                String(
+                    date.getDate()
+                ).padStart(
+                    2,
+                    '0'
+                );
+
+
+            /*
+             * Payload volontairement très court.
+             *
+             * Exemple :
+             *
+             * FV|4119320ET|Ab12Cd34|20260904
+             *
+             * NE JAMAIS mettre :
+             *
+             * JSON.stringify(studentProject)
+             *
+             * dans le QR.
+             */
+
+            return `FV|${matricule}|${projectId}|${stamp}`;
+        }
+
+
+        // ================================================================
+        // AJUSTEMENT AUTOMATIQUE DU TEXTE
+        // ================================================================
+
+        function fitText(
+            ctx,
+            text,
+            maxWidth,
+            startSize,
+            minSize = 10
+        ) {
+
+            let size =
+                startSize;
+
+
+            while (
+                size > minSize
+            ) {
+
+                ctx.font =
+                    `600 ${size}px Arial`;
+
+
+                if (
+                    ctx.measureText(
+                        text
+                    ).width <= maxWidth
+                ) {
+
+                    return size;
+                }
+
+
+                size -= 1;
+            }
+
+
+            ctx.font =
+                `600 ${minSize}px Arial`;
+
+
+            return minSize;
+        }
+
+
+        // ================================================================
+        // TEXTE AJUSTÉ
+        // ================================================================
+
+        function drawFittedText(
+            ctx,
+            text,
+            x,
+            y,
+            maxWidth,
+            startSize = 22,
+            minSize = 10,
+            color = '#123f78',
+            align = 'left'
+        ) {
+
+            text =
+                normalizeForDocument(
+                    text
+                );
+
+
+            if (!text) return;
+
+
+            const size =
+                fitText(
+                    ctx,
+                    text,
+                    maxWidth,
+                    startSize,
+                    minSize
+                );
+
+
+            ctx.save();
+
+
+            ctx.font =
+                `600 ${size}px Arial`;
+
+
+            ctx.fillStyle =
+                color;
+
+
+            ctx.textAlign =
+                align;
+
+
+            ctx.textBaseline =
+                'middle';
+
+
+            ctx.fillText(
+                text,
+                x,
+                y
+            );
+
+
+            ctx.restore();
+        }
+
+
+        // ================================================================
+        // TEXTE SUR PLUSIEURS LIGNES
+        // ================================================================
+
+        function drawWrappedText(
+            ctx,
+            text,
+            x,
+            y,
+            maxWidth,
+            lineHeight,
+            maxLines,
+            startSize = 18,
+            minSize = 10
+        ) {
+
+            text =
+                normalizeForDocument(
+                    text
+                );
+
+
+            if (!text) return;
+
+
+            let size =
+                startSize;
+
+
+            let lines = [];
+
+
+            while (
+                size >= minSize
+            ) {
+
+                ctx.font =
+                    `600 ${size}px Arial`;
+
+
+                const words =
+                    text.split(
+                        /\s+/
+                    );
+
+
+                const testLines = [];
+
+
+                let line = '';
+
+
+                for (
+                    const word of words
+                ) {
+
+                    const test =
+                        line
+                            ? `${line} ${word}`
+                            : word;
+
+
+                    if (
+                        ctx.measureText(
+                            test
+                        ).width <= maxWidth
+                    ) {
+
+                        line =
+                            test;
+
+                    } else {
+
+                        if (line) {
+                            testLines.push(
+                                line
+                            );
+                        }
+
+                        line =
+                            word;
+                    }
+                }
+
+
+                if (line) {
+
+                    testLines.push(
+                        line
+                    );
+                }
+
+
+                if (
+                    testLines.length <=
+                    maxLines
+                ) {
+
+                    lines =
+                        testLines;
+
+                    break;
+                }
+
+
+                size -= 1;
+            }
+
+
+            if (!lines.length) {
+
+                ctx.font =
+                    `600 ${minSize}px Arial`;
+
+                lines = [text];
+
+                size =
+                    minSize;
+            }
+
+
+            ctx.save();
+
+
+            ctx.font =
+                `600 ${size}px Arial`;
+
+
+            ctx.fillStyle =
+                '#123f78';
+
+
+            ctx.textAlign =
+                'left';
+
+
+            ctx.textBaseline =
+                'top';
+
+
+            lines
+                .slice(
+                    0,
+                    maxLines
+                )
+                .forEach(
+                    (
+                        line,
+                        index
+                    ) => {
+
+                        ctx.fillText(
+                            line,
+                            x,
+                            y +
+                            index *
+                            lineHeight
+                        );
+                    }
+                );
+
+
+            ctx.restore();
+        }
+
+
+        // ================================================================
+        // CHARGEMENT IMAGE
+        // ================================================================
+
+        function loadImage(url) {
+
+            return new Promise(
+                (
+                    resolve,
+                    reject
+                ) => {
+
+                    const img =
+                        new Image();
+
+
+                    img.onload =
+                        () => resolve(
+                            img
+                        );
+
+
+                    img.onerror =
+                        () => {
+
+                            reject(
+                                new Error(
+                                    `Impossible de charger l'image : ${url}`
+                                )
+                            );
+                        };
+
+
+                    img.src =
+                        url;
+                }
+            );
+        }
+
+
+        // ================================================================
+        // ATTENTE
+        // ================================================================
+
+        function wait(ms) {
+
+            return new Promise(
+                resolve =>
+                    setTimeout(
+                        resolve,
+                        ms
+                    )
+            );
+        }
+
+
+        // ================================================================
+        // GÉNÉRATION QR
+        // ================================================================
+
+        async function createQRCodeDataUrl(
+            text,
+            size = 112
+        ) {
+
+            if (
+                typeof QRCode ===
+                'undefined'
+            ) {
+
+                throw new Error(
+                    'La bibliothèque QR Code n’est pas chargée.'
+                );
+            }
+
+
+            const holder =
+                document.createElement(
+                    'div'
+                );
+
+
+            holder.style.position =
+                'fixed';
+
+
+            holder.style.left =
+                '-10000px';
+
+
+            holder.style.top =
+                '-10000px';
+
+
+            holder.style.width =
+                `${size}px`;
+
+
+            holder.style.height =
+                `${size}px`;
+
+
+            holder.style.background =
+                '#ffffff';
+
+
+            document.body.appendChild(
+                holder
+            );
+
+
+            try {
+
+                new QRCode(
+                    holder,
+                    {
+                        text: text,
+                        width: size,
+                        height: size,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel:
+                            QRCode.CorrectLevel.M
+                    }
+                );
+
+
+                for (
+                    let i = 0;
+                    i < 20;
+                    i++
+                ) {
+
+                    const canvas =
+                        holder.querySelector(
+                            'canvas'
+                        );
+
+
+                    if (canvas) {
+
+                        return canvas.toDataURL(
+                            'image/png'
+                        );
+                    }
+
+
+                    const img =
+                        holder.querySelector(
+                            'img'
+                        );
+
+
+                    if (
+                        img &&
+                        img.complete &&
+                        img.naturalWidth > 0
+                    ) {
+
+                        const c =
+                            document.createElement(
+                                'canvas'
+                            );
+
+
+                        c.width =
+                            size;
+
+
+                        c.height =
+                            size;
+
+
+                        const cctx =
+                            c.getContext(
+                                '2d'
+                            );
+
+
+                        cctx.fillStyle =
+                            '#ffffff';
+
+
+                        cctx.fillRect(
+                            0,
+                            0,
+                            size,
+                            size
+                        );
+
+
+                        cctx.drawImage(
+                            img,
+                            0,
+                            0,
+                            size,
+                            size
+                        );
+
+
+                        return c.toDataURL(
+                            'image/png'
+                        );
+                    }
+
+
+                    await wait(50);
+                }
+
+
+                throw new Error(
+                    'Le QR Code n’a pas pu être généré.'
+                );
+
+
+            } finally {
+
+                holder.remove();
+            }
+        }
+
+
+        // ================================================================
+        // TÉLÉCHARGEMENT FEU VERT
+        // ================================================================
+
+        async function downloadFeuVert() {
+
+            const button =
+                document.getElementById(
+                    'downloadFeuVertBtn'
+                );
+
+
+            try {
+
+                if (
+                    !studentProject ||
+                    Number(
+                        studentProject.etape ||
+                        0
+                    ) < 4
+                ) {
+
+                    showToast(
+                        'Le feu vert n’est pas encore disponible.',
+                        'warning'
+                    );
+
+                    return;
+                }
+
+
+                if (
+                    !window.jspdf ||
+                    !window.jspdf.jsPDF
+                ) {
+
+                    throw new Error(
+                        'La bibliothèque PDF n’est pas chargée.'
+                    );
+                }
+
+
+                if (button) {
+
+                    button.disabled =
+                        true;
+
+                    button.innerHTML =
+                        '<i class="bi bi-hourglass-split"></i> Génération...';
+                }
+
+
+                showLoading(
+                    true,
+                    'Génération de votre Feu Vert...'
+                );
+
+
+                // ========================================================
+                // 1. CHARGEMENT DU FOND
+                // ========================================================
+
+                const background =
+                    await loadImage(
+                        'feu.png'
+                    );
+
+
+                // ========================================================
+                // 2. CANVAS EXACTEMENT À LA TAILLE DU FOND
+                // ========================================================
+
+                const canvas =
+                    document.createElement(
+                        'canvas'
+                    );
+
+
+                canvas.width =
+                    background.naturalWidth ||
+                    background.width;
+
+
+                canvas.height =
+                    background.naturalHeight ||
+                    background.height;
+
+
+                const ctx =
+                    canvas.getContext(
+                        '2d'
+                    );
+
+
+                if (!ctx) {
+
+                    throw new Error(
+                        'Canvas non disponible sur ce navigateur.'
+                    );
+                }
+
+
+                ctx.imageSmoothingEnabled =
+                    true;
+
+
+                ctx.imageSmoothingQuality =
+                    'high';
+
+
+                ctx.drawImage(
+                    background,
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height
+                );
+
+
+                // ========================================================
+                // 3. DONNÉES
+                // ========================================================
+
+                const nom =
+                    getStudentFullName();
+
+
+                const matricule =
+                    getStudentMatricule();
+
+
+                const promotion =
+                    getPromotionName(
+                        studentProject.promotion ||
+                        currentStudent.promotion
+                    );
+
+
+                const annee =
+                    getAcademicYear();
+
+
+                const departement =
+                    getDepartementName(
+                        studentProject.departementId
+                    );
+
+
+                const sujet =
+                    getProjectSubject();
+
+
+                const directeur =
+                    getDirectorName();
+
+
+                const email =
+                    getDirectorEmail();
+
+
+                const directeurDept =
+                    getDirectorDepartment();
+
+
+                const documentCode =
+                    makeDocumentCode();
+
+
+                const qrPayload =
+                    makeShortQrPayload(
+                        documentCode
+                    );
+
+
+                console.log(
+                    '📄 Code Feu Vert:',
+                    documentCode
+                );
+
+
+                console.log(
+                    '🔳 Payload QR:',
+                    qrPayload
+                );
+
+
+                // ========================================================
+                // 4. COORDONNÉES FEU.PNG
+                //
+                // Fond prévu en 1024 x 1536.
+                // ========================================================
+
+
+                // ---------- N° DOCUMENT ----------
+
+                drawFittedText(
+                    ctx,
+                    documentCode,
+                    800,
+                    417,
+                    185,
+                    15,
+                    9,
+                    '#123f78',
+                    'left'
+                );
+
+
+                // ---------- ÉTUDIANT ----------
+
+                drawFittedText(
+                    ctx,
+                    nom,
+                    275,
+                    513,
+                    690,
+                    21,
+                    12
+                );
+
+
+                drawFittedText(
+                    ctx,
+                    matricule,
+                    275,
+                    551,
+                    690,
+                    21,
+                    12
+                );
+
+
+                drawFittedText(
+                    ctx,
+                    promotion,
+                    275,
+                    590,
+                    690,
+                    20,
+                    11
+                );
+
+
+                drawFittedText(
+                    ctx,
+                    annee,
+                    275,
+                    628,
+                    690,
+                    20,
+                    11
+                );
+
+
+                // ---------- PROJET ----------
+
+                drawFittedText(
+                    ctx,
+                    departement,
+                    275,
+                    751,
+                    690,
+                    19,
+                    10
+                );
+
+
+                drawWrappedText(
+                    ctx,
+                    sujet,
+                    275,
+                    783,
+                    685,
+                    23,
+                    2,
+                    18,
+                    10
+                );
+
+
+                // ---------- DIRECTEUR ----------
+
+                drawFittedText(
+                    ctx,
+                    directeur,
+                    275,
+                    940,
+                    690,
+                    19,
+                    10
+                );
+
+
+                drawFittedText(
+                    ctx,
+                    email,
+                    275,
+                    978,
+                    690,
+                    18,
+                    9
+                );
+
+
+                drawFittedText(
+                    ctx,
+                    directeurDept,
+                    275,
+                    1013,
+                    690,
+                    18,
+                    9
+                );
+
+
+                // ---------- DATE ----------
+
+                const now =
+                    new Date();
+
+
+                const dateText =
+                    now.toLocaleDateString(
+                        'fr-FR',
+                        {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                        }
+                    );
+
+
+                drawFittedText(
+                    ctx,
+                    dateText,
+                    230,
+                    1210,
+                    180,
+                    15,
+                    9
+                );
+
+
+                // ========================================================
+                // 5. QR CODE
+                // ========================================================
+
+                const qrDataUrl =
+                    await createQRCodeDataUrl(
+                        qrPayload,
+                        112
+                    );
+
+
+                const qrImage =
+                    await loadImage(
+                        qrDataUrl
+                    );
+
+
+                // Fond blanc de sécurité.
+
+                ctx.save();
+
+
+                ctx.fillStyle =
+                    '#ffffff';
+
+
+                ctx.fillRect(
+                    858,
+                    1255,
+                    112,
+                    112
+                );
+
+
+                ctx.drawImage(
+                    qrImage,
+                    858,
+                    1255,
+                    112,
+                    112
+                );
+
+
+                ctx.restore();
+
+
+                // Code sous le QR.
+
+                drawFittedText(
+                    ctx,
+                    documentCode,
+                    914,
+                    1378,
+                    145,
+                    10,
+                    7,
+                    '#123f78',
+                    'center'
+                );
+
+
+                // ========================================================
+                // 6. IMAGE FINALE
+                // ========================================================
+
+                const finalDataUrl =
+                    canvas.toDataURL(
+                        'image/jpeg',
+                        0.94
+                    );
+
+
+                // ========================================================
+                // 7. PDF A4
+                // ========================================================
+
+                const {
+                    jsPDF
+                } =
+                    window.jspdf;
+
+
+                const pdf =
+                    new jsPDF(
+                        {
+                            orientation:
+                                'portrait',
+
+                            unit:
+                                'mm',
+
+                            format:
+                                'a4',
+
+                            compress:
+                                true
+                        }
+                    );
+
+
+                pdf.addImage(
+                    finalDataUrl,
+                    'JPEG',
+                    0,
+                    0,
+                    210,
+                    297,
+                    undefined,
+                    'FAST'
+                );
+
+
+                pdf.setProperties(
+                    {
+                        title:
+                            'Feu Vert - Projet de Fin d’Études',
+
+                        subject:
+                            'Feuille de Fin d’Études',
+
+                        author:
+                            'Faculté des Sciences Agronomiques - UNILU',
+
+                        creator:
+                            'HYBRILINK-TECH',
+
+                        keywords:
+                            'Feu Vert, FSAE, UNILU, Projet de Fin d’Études'
+                    }
+                );
+
+
+                // ========================================================
+                // 8. NOM DU FICHIER
+                // ========================================================
+
+                const safeMatricule =
+                    matricule
+                        .replace(
+                            /[^\w-]+/g,
+                            '_'
+                        )
+                        .replace(
+                            /^_+|_+$/g,
+                            ''
+                        ) ||
+                    'etudiant';
+
+
+                pdf.save(
+                    `Feu_Vert_${safeMatricule}.pdf`
+                );
+
+
+                showLoading(false);
+
+
+                showToast(
+                    '✅ Feu Vert généré et téléchargé avec succès !',
+                    'success'
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    'Erreur génération Feu Vert:',
+                    error
+                );
+
+
+                showLoading(false);
+
+
+                showToast(
+                    '❌ Impossible de générer le Feu Vert : ' +
+                    (
+                        error.message ||
+                        'erreur inconnue'
+                    ),
+                    'danger'
+                );
+
+
+            } finally {
+
+                if (button) {
+
+                    button.disabled =
+                        false;
+
+                    button.innerHTML =
+                        '<i class="bi bi-download"></i> Télécharger le Feu Vert (PDF)';
+                }
+            }
+        }
+
+
+        // ================================================================
+        // SERVICE WORKER CENTRAL
+        // ================================================================
+
+        async function registerServiceWorker() {
+
+            if (
+                !('serviceWorker' in navigator)
+            ) {
+
+                console.warn(
+                    '⚠️ Service Worker non supporté.'
+                );
+
+                return null;
+            }
+
+
+            try {
+
+                /*
+                 * PRIORITÉ :
+                 *
+                 * notification-utils.js fournit maintenant
+                 * la fonction centrale :
+                 *
+                 * window.registerAppServiceWorker()
+                 *
+                 * On l'utilise afin d'éviter plusieurs
+                 * Service Workers concurrents.
+                 */
+
+                if (
+                    typeof window.registerAppServiceWorker ===
+                    'function'
+                ) {
+
+                    const registration =
+                        await window.registerAppServiceWorker();
+
+
+                    console.log(
+                        '✅ Service Worker central utilisé.',
+                        registration
+                    );
+
+
+                    return registration;
+                }
+
+
+                /*
+                 * FALLBACK :
+                 *
+                 * Si notification-utils.js n'est pas disponible,
+                 * on enregistre directement sw.js.
+                 *
+                 * Aucun SAVE_STUDENT_SESSION ici.
+                 */
+
+                const scope =
+                    '/Espace-etudiant/';
+
+
+                let registration =
+                    await navigator.serviceWorker
+                        .getRegistration(
+                            scope
+                        );
+
+
+                if (!registration) {
+
+                    registration =
+                        await navigator.serviceWorker
+                            .register(
+                                './sw.js',
+                                {
+                                    scope:
+                                        scope
+                                }
+                            );
+                }
+
+
+                console.log(
+                    '✅ Service Worker fallback enregistré.',
+                    registration
+                );
+
+
+                return registration;
+
+            } catch (error) {
+
+                console.error(
+                    '❌ Erreur Service Worker:',
+                    error
+                );
+
+                return null;
+            }
+        }
+
+
+        // ================================================================
+        // INITIALISATION NOTIFICATIONS
+        // ================================================================
+
+        async function initializeNotifications() {
+
+            try {
+
+                const loaded =
+                    await loadNotificationUtils();
+
+
+                if (!loaded) {
+
+                    console.warn(
+                        '⚠️ Gestionnaire de notifications indisponible.'
+                    );
+
+                    return;
+                }
+
+
+                if (
+                    window.notificationManager &&
+                    currentStudent?.id
+                ) {
+
+                    await window.notificationManager.init(
+                        currentStudent.id,
+                        currentStudent.nom || '',
+                        currentStudent.promotion || ''
+                    );
+
+
+                    console.log(
+                        '🔔 Notification Manager initialisé pour l’étudiant.'
+                    );
+
+                } else {
+
+                    console.warn(
+                        '⚠️ notificationManager non disponible.'
+                    );
+                }
+
+
+            } catch (error) {
+
+                console.warn(
+                    '⚠️ Initialisation notifications impossible:',
+                    error
+                );
+            }
+        }
+
+
+        // ================================================================
+        // INITIALISATION
+        // ================================================================
+
+        async function init() {
+
+            if (!checkSession()) {
+                return;
+            }
+
+
+            console.log(
+                '🚀 Page Projet Étudiant - Initialisation'
+            );
+
+
+            console.log(
+                '👤 Étudiant:',
+                currentStudent.nom
+            );
+
+
+            console.log(
+                '🆔 ID étudiant:',
+                currentStudent.id
+            );
+
+
+            console.log(
+                '📋 Départements disponibles:',
+                DEPARTEMENTS
+            );
+
+
+            // ============================================================
+            // ANIMATION TOAST
+            // ============================================================
+
+            const style =
+                document.createElement(
+                    'style'
+                );
+
+
+            style.textContent = `
+
+                @keyframes slideInRight {
+
+                    from {
+                        transform:
+                            translateX(100%);
+
+                        opacity:
+                            0;
+                    }
+
+                    to {
+                        transform:
+                            translateX(0);
+
+                        opacity:
+                            1;
+                    }
+                }
+
+            `;
+
+
+            document.head.appendChild(
+                style
+            );
+
+
+            // ============================================================
+            // NOTIFICATIONS
+            // ============================================================
+
+            await initializeNotifications();
+
+
+            // ============================================================
+            // SERVICE WORKER CENTRAL
+            // ============================================================
+
+            await registerServiceWorker();
+
+
+            // ============================================================
+            // PAGE
+            // ============================================================
+
+            await renderPage();
+
+
+            // ============================================================
+            // ÉCOUTE TEMPS RÉEL DU PROJET
+            // ============================================================
+
+            try {
+
+                const snapshot =
+                    await db.collection(
+                        'projets'
+                    )
+                    .where(
+                        'etudiantId',
+                        '==',
+                        currentStudent.id
+                    )
+                    .limit(1)
+                    .get();
+
+
+                if (!snapshot.empty) {
+
+                    const projectId =
+                        snapshot.docs[0].id;
+
+
+                    db.collection(
+                        'projets'
+                    )
+                    .doc(projectId)
+                    .onSnapshot(
+
+                        async (doc) => {
+
+                            if (!doc.exists) {
+                                return;
+                            }
+
+
+                            const oldEtape =
+                                studentProject
+                                    ? Number(
+                                        studentProject.etape ||
+                                        0
+                                    )
+                                    : 0;
+
+
+                            const oldDirecteurId =
+                                studentProject
+                                    ? studentProject.directeurId
+                                    : null;
+
+
+                            const oldSujetReformule =
+                                studentProject
+                                    ? studentProject.sujetReformule ||
+                                      ''
+                                    : '';
+
+
+                            studentProject = {
+
+                                id:
+                                    doc.id,
+
+                                ...doc.data()
+                            };
+
+
+                            const newEtape =
+                                Number(
+                                    studentProject.etape ||
+                                    0
+                                );
+
+
+                            // =================================================
+                            // ÉTAPE MODIFIÉE
+                            // =================================================
+
+                            if (
+                                newEtape !==
+                                oldEtape
+                            ) {
+
+                                const newPourcentage =
+                                    Math.max(
+                                        0,
+                                        Math.min(
+                                            100,
+                                            newEtape *
+                                            25
+                                        )
+                                    );
+
+
+                                showToast(
+
+                                    `🎉 Progression mise à jour : ${newPourcentage}% - ` +
+
+                                    (
+                                        newEtape >= 4
+
+                                            ? 'Feu Vert obtenu !'
+
+                                            : 'Étape ' +
+                                              newEtape +
+                                              ' validée'
+                                    ),
+
+                                    'info'
+                                );
+
+
+                                await renderPage();
+                            }
+
+
+                            // =================================================
+                            // DIRECTEUR MODIFIÉ
+                            // =================================================
+
+                            if (
+
+                                studentProject.directeurId !==
+                                oldDirecteurId
+
+                                &&
+
+                                studentProject.directeurId
+
+                            ) {
+
+                                await loadDirectorInfo(
+                                    studentProject.directeurId
+                                );
+
+
+                                showToast(
+                                    '👨‍🏫 Un directeur de projet vous a été assigné !',
+                                    'info'
+                                );
+
+
+                                await renderPage();
+                            }
+
+
+                            // =================================================
+                            // SUJET REFORMULÉ
+                            // =================================================
+
+                            const newSujetReformule =
+                                studentProject.sujetReformule ||
+                                '';
+
+
+                            if (
+                                newSujetReformule &&
+                                newSujetReformule !==
+                                oldSujetReformule
+                            ) {
+
+                                showToast(
+                                    '✏️ Votre sujet a été reformulé par votre directeur.',
+                                    'info'
+                                );
+
+
+                                await renderPage();
+                            }
+
+                        },
+
+
+                        (error) => {
+
+                            console.error(
+                                'Erreur écoute projet:',
+                                error
+                            );
+                        }
+                    );
+                }
+
+
+            } catch (error) {
+
+                console.error(
+                    'Erreur initialisation écoute temps réel:',
+                    error
+                );
+            }
+
+
+            console.log(
+                '✅ Page Projet Étudiant prête'
+            );
+        }
+
+
+        // ================================================================
+        // LANCEMENT
+        // ================================================================
+
+        init();
+
+    </script>
+
+</body>
+</html>

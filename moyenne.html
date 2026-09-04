@@ -1,0 +1,2446 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mes Notes - Étudiant</title>
+    <meta name="theme-color" content="#003366">
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FAC Agro">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+
+    <!-- Console mobile -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>
+        try {
+            eruda.init();
+        } catch (e) {
+            console.warn('Eruda non disponible:', e);
+        }
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #003366;
+            --dark-blue: #002244;
+            --accent-yellow: #ffb347;
+            --light-gray: #f0f2f5;
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+        }
+
+        body {
+            background: var(--light-gray);
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 20px;
+        }
+
+        .navbar-custom {
+            background: var(--primary-blue);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            padding: 12px 0;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .back-btn {
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            background: #ff9800;
+            transform: translateY(-2px);
+            color: var(--primary-blue);
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .profile-photo {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--accent-yellow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .profile-photo i {
+            font-size: 28px;
+            color: var(--primary-blue);
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            background: var(--danger-red);
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(220,53,69,0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 8px rgba(220,53,69,0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(220,53,69,0);
+            }
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            animation: fadeIn 0.5s ease;
+            margin-bottom: 30px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section-header h4 {
+            color: var(--primary-blue);
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .stat-cours-evalues {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #f0f4f8;
+            border-radius: 12px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .stat-cours-evalues i {
+            font-size: 24px;
+        }
+
+        .stat-cours-evalues strong {
+            font-size: 22px;
+        }
+
+        .notes-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            font-size: 14px;
+        }
+
+        .notes-table thead th {
+            background: var(--primary-blue);
+            color: white;
+            padding: 12px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .notes-table tbody td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .notes-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .notes-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .notes-table tfoot td {
+            padding: 12px 10px;
+            font-weight: bold;
+            background: #f0f4f8;
+            border-top: 2px solid var(--primary-blue);
+            text-align: center;
+        }
+
+        .cours-nom-cell {
+            text-align: left !important;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .cours-nom-cell i {
+            margin-right: 8px;
+        }
+
+        .note-simple {
+            font-weight: 600;
+            color: #222;
+            font-size: 14px;
+        }
+
+        .moyenne-badge {
+            display: inline-block;
+            padding: 3px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 16px;
+            min-width: 40px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .moyenne-badge.reussite {
+            background-color: #28a745;
+            color: white;
+            box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);
+        }
+
+        .moyenne-badge.echec {
+            background-color: #dc3545;
+            color: white;
+            box-shadow: 0 2px 10px rgba(220, 53, 69, 0.3);
+        }
+
+        .moyenne-generale-badge {
+            display: inline-block;
+            padding: 4px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .moyenne-generale-badge.reussite {
+            background-color: #28a745;
+            color: white;
+            box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);
+        }
+
+        .moyenne-generale-badge.echec {
+            background-color: #dc3545;
+            color: white;
+            box-shadow: 0 2px 10px rgba(220, 53, 69, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .empty-state i {
+            font-size: 70px;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 280px;
+        }
+
+        .toast-custom {
+            animation: slideInRight 0.2s ease-out;
+            margin-bottom: 8px;
+            padding: 10px 15px;
+            border-radius: 12px;
+            color: white;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .toast-custom i {
+            font-size: 18px;
+        }
+
+        .toast-custom .close-toast {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: auto;
+            opacity: 0.7;
+        }
+
+        .toast-custom .close-toast:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .footer-info {
+            text-align: center;
+            margin-top: auto;
+            padding: 20px 0;
+            border-top: 1px solid #e0e0e0;
+            font-size: 11px;
+            color: #888;
+        }
+
+        .footer-info img {
+            border-radius: 20px;
+            vertical-align: middle;
+        }
+
+        .offline-badge {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: var(--accent-yellow);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            display: none;
+            z-index: 100;
+        }
+
+        .offline-badge.show {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .notification-permission-card {
+            display: none;
+            background: #fff8e1;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-yellow);
+        }
+
+        .notification-permission-card.show {
+            display: block;
+        }
+
+        .notification-permission-card h6 {
+            color: var(--primary-blue);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .notification-permission-card p {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .content-card {
+                padding: 20px;
+            }
+
+            .notes-table thead th,
+            .notes-table tbody td {
+                padding: 8px 6px;
+                font-size: 12px;
+            }
+
+            .moyenne-badge {
+                font-size: 14px;
+                padding: 2px 12px;
+            }
+
+            .note-simple {
+                font-size: 12px;
+            }
+
+            .toast-custom {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ================================================================
+         NAVBAR
+    ================================================================ -->
+    <nav class="navbar navbar-custom">
+        <div class="container">
+
+            <a class="navbar-brand text-white" href="#">
+                <i class="bi bi-tree-fill"></i>
+                FACULTÉ AGRONOMIQUE - UNILU
+            </a>
+
+            <div class="navbar-right">
+
+                <div class="profile-photo" id="profileBtn">
+                    <i class="bi bi-person-circle"></i>
+                    <span class="notification-dot" id="notificationDot"></span>
+                </div>
+
+                <a href="etudiant.html" class="back-btn">
+                    <i class="bi bi-house-door-fill"></i>
+                    Accueil
+                </a>
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- ================================================================
+         CONTENU
+    ================================================================ -->
+    <div class="container mt-4" style="flex: 1;">
+
+        <div id="toastContainer" class="toast-notification"></div>
+
+        <div class="offline-badge" id="offlineBadge">
+            <i class="bi bi-wifi-off"></i>
+            Mode hors ligne
+        </div>
+
+        <!-- ============================================================
+             NOTIFICATION PERMISSION
+        ============================================================ -->
+        <div id="notificationPermissionCard" class="notification-permission-card">
+
+            <h6>
+                <i class="bi bi-bell-fill"></i>
+                Activer les notifications
+            </h6>
+
+            <p>
+                Recevez une notification dès qu'une nouvelle note est publiée.
+            </p>
+
+            <button
+                type="button"
+                class="btn btn-sm btn-primary"
+                id="enableNotificationsBtn"
+                style="background:#003366;border:none;border-radius:25px;padding:8px 20px;"
+            >
+                <i class="bi bi-bell"></i>
+                Activer
+            </button>
+
+        </div>
+
+        <!-- ============================================================
+             TABLEAU DES NOTES
+        ============================================================ -->
+        <div class="content-card">
+
+            <div class="section-header">
+
+                <h4>
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                    Mes Notes
+                </h4>
+
+                <span
+                    class="cache-status"
+                    id="cacheStatus"
+                    style="font-size:11px;color:#888;"
+                >
+                    <i class="bi bi-database"></i>
+                    <span id="cacheStatusText">Prêt</span>
+                </span>
+
+            </div>
+
+            <div class="stat-cours-evalues">
+
+                <i class="bi bi-book-fill"></i>
+
+                <span>
+                    Cours évalués :
+                    <strong id="statCoursEvalues">0</strong>
+                </span>
+
+            </div>
+
+            <div id="notesContainer">
+
+                <div class="text-center py-5">
+
+                    <div
+                        style="
+                            width:40px;
+                            height:40px;
+                            border:4px solid #e0e0e0;
+                            border-top-color:var(--primary-blue);
+                            border-radius:50%;
+                            animation:spin 0.8s linear infinite;
+                            margin:0 auto;
+                        "
+                    ></div>
+
+                    <p class="mt-3 text-muted">
+                        Chargement de vos notes...
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================================================================
+         FOOTER
+    ================================================================ -->
+    <div class="container">
+
+        <div class="footer-info">
+
+            <i class="bi bi-shield-check"></i>
+            HYBRILINK-TECH - Votre partenaire digital
+            <br>
+
+            <img
+                src="t.png"
+                width="40px"
+                alt="HYBRILINK"
+                onerror="this.style.display='none'"
+            >
+
+        </div>
+
+    </div>
+
+    <!-- ================================================================
+         PROFIL MODAL
+    ================================================================ -->
+    <div
+        id="profileModal"
+        class="profile-modal"
+        style="
+            display:none;
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:rgba(0,0,0,0.5);
+            align-items:center;
+            justify-content:center;
+            z-index:2000;
+        "
+    >
+
+        <div
+            class="profile-modal-content"
+            style="
+                background:white;
+                border-radius:20px;
+                padding:30px;
+                max-width:400px;
+                width:90%;
+            "
+        >
+
+            <div class="text-center">
+
+                <i
+                    class="bi bi-person-circle"
+                    style="font-size:70px;color:var(--primary-blue);"
+                ></i>
+
+                <h4 id="profilNom"></h4>
+
+                <p id="profilMatricule"></p>
+
+                <p id="profilPromotion"></p>
+
+                <hr>
+
+                <h6>Changer mot de passe</h6>
+
+                <input
+                    type="password"
+                    class="form-control mb-2"
+                    id="newPassword"
+                    placeholder="Nouveau mot de passe"
+                    autocomplete="new-password"
+                >
+
+                <input
+                    type="password"
+                    class="form-control mb-2"
+                    id="confirmNewPassword"
+                    placeholder="Confirmer"
+                    autocomplete="new-password"
+                >
+
+                <button
+                    class="btn-action"
+                    id="changePasswordBtn"
+                    style="
+                        background:var(--primary-blue);
+                        color:white;
+                        border:none;
+                        padding:10px 20px;
+                        border-radius:10px;
+                        cursor:pointer;
+                        width:100%;
+                    "
+                >
+                    Modifier
+                </button>
+
+                <button
+                    class="btn btn-secondary w-100 mt-2"
+                    onclick="closeProfileModal()"
+                >
+                    Fermer
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         FIREBASE CONFIGURATION
+    ================================================================ -->
+    <script>
+        // ================================================================
+        // 1. FIREBASE CONFIG
+        // ================================================================
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbQ2N-5ns7qKjBAj5UvDW87s2PZ27F0",
+            authDomain: "fsa-unilu.firebaseapp.com",
+            projectId: "fsa-unilu",
+            storageBucket: "fsa-unilu.firebasestorage.app",
+            messagingSenderId: "36551990738",
+            appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        const db = firebase.firestore();
+
+        let messaging = null;
+
+        try {
+            messaging = firebase.messaging();
+        } catch (error) {
+            console.warn(
+                '[FCM] Messaging non disponible sur cet appareil:',
+                error
+            );
+        }
+    </script>
+
+    <!-- ================================================================
+         NOTIFICATION UTILS CENTRALISÉ
+         Un seul Service Worker : sw.js
+    ================================================================ -->
+    <script src="./notification-utils.js"></script>
+
+    <!-- ================================================================
+         APPLICATION
+    ================================================================ -->
+    <script>
+
+        // ================================================================
+        // 2. VARIABLES
+        // ================================================================
+
+        let currentStudent = null;
+        let allCotations = [];
+        let allPromotions = [];
+        let unsubscribe = null;
+
+        // ================================================================
+        // 3. SESSION ÉTUDIANT
+        // ================================================================
+
+        function checkSession() {
+
+            const session = localStorage.getItem('session_etudiant');
+
+            if (!session) {
+
+                window.location.href = 'login-etudiant.html';
+
+                return false;
+            }
+
+            try {
+
+                const data = JSON.parse(session);
+
+                if (!data || !data.expires) {
+
+                    localStorage.removeItem('session_etudiant');
+
+                    window.location.href = 'login-etudiant.html';
+
+                    return false;
+                }
+
+                if (Date.now() > data.expires) {
+
+                    localStorage.removeItem('session_etudiant');
+
+                    window.location.href = 'login-etudiant.html';
+
+                    return false;
+                }
+
+                if (!data.id) {
+
+                    localStorage.removeItem('session_etudiant');
+
+                    window.location.href = 'login-etudiant.html';
+
+                    return false;
+                }
+
+                currentStudent = data;
+
+                return true;
+
+            } catch (error) {
+
+                console.error(
+                    '[SESSION] Session invalide:',
+                    error
+                );
+
+                localStorage.removeItem('session_etudiant');
+
+                window.location.href = 'login-etudiant.html';
+
+                return false;
+            }
+        }
+
+        // ================================================================
+        // 4. TOAST
+        // ================================================================
+
+        function showToast(message, type = 'success') {
+
+            const container =
+                document.getElementById('toastContainer');
+
+            if (!container) return;
+
+            const toast =
+                document.createElement('div');
+
+            toast.className = 'toast-custom';
+
+            const colors = {
+
+                success: {
+                    bg: '#28a745',
+                    icon: 'bi-check-circle-fill'
+                },
+
+                warning: {
+                    bg: '#ffc107',
+                    icon: 'bi-exclamation-triangle-fill',
+                    textColor: '#333'
+                },
+
+                danger: {
+                    bg: '#dc3545',
+                    icon: 'bi-x-circle-fill'
+                },
+
+                info: {
+                    bg: '#17a2b8',
+                    icon: 'bi-info-circle-fill'
+                }
+
+            };
+
+            const config =
+                colors[type] || colors.success;
+
+            const textColor =
+                config.textColor || 'white';
+
+            toast.style.background = config.bg;
+            toast.style.color = textColor;
+
+            const icon =
+                document.createElement('i');
+
+            icon.className =
+                `bi ${config.icon}`;
+
+            const span =
+                document.createElement('span');
+
+            span.textContent = message;
+
+            const close =
+                document.createElement('button');
+
+            close.className = 'close-toast';
+            close.innerHTML = '&times;';
+            close.setAttribute('aria-label', 'Fermer');
+
+            close.addEventListener('click', () => {
+                toast.remove();
+            });
+
+            toast.appendChild(icon);
+            toast.appendChild(span);
+            toast.appendChild(close);
+
+            container.prepend(toast);
+
+            setTimeout(() => {
+
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+
+            }, 5000);
+        }
+
+        // ================================================================
+        // 5. ESCAPE HTML
+        // ================================================================
+
+        function escapeHtml(text) {
+
+            if (
+                text === undefined ||
+                text === null
+            ) {
+                return '';
+            }
+
+            const div =
+                document.createElement('div');
+
+            div.textContent = String(text);
+
+            return div.innerHTML;
+        }
+
+        // ================================================================
+        // 6. STATUT DU CACHE
+        // ================================================================
+
+        function updateCacheStatus(
+            status,
+            message
+        ) {
+
+            const el =
+                document.getElementById(
+                    'cacheStatusText'
+                );
+
+            if (!el) return;
+
+            const statusMap = {
+
+                cached: '📦 Cache',
+
+                live: '🔄 Temps réel',
+
+                offline: '⚠️ Hors ligne',
+
+                error: '❌ Erreur'
+            };
+
+            el.textContent =
+                message ||
+                statusMap[status] ||
+                status;
+        }
+
+        // ================================================================
+        // 7. NOTIFICATIONS CENTRALISÉES
+        // ================================================================
+
+        async function initialiserNotifications() {
+
+            try {
+
+                if (
+                    !window.notificationManager ||
+                    typeof window.notificationManager.init !== 'function'
+                ) {
+
+                    console.warn(
+                        '[NOTIFICATIONS] notificationManager indisponible.'
+                    );
+
+                    return;
+                }
+
+                await window.notificationManager.init(
+
+                    currentStudent.id,
+
+                    currentStudent.nom || '',
+
+                    currentStudent.promotion || ''
+
+                );
+
+                console.log(
+                    '[NOTIFICATIONS] ✅ Gestionnaire initialisé.'
+                );
+
+                mettreAJourEtatNotification();
+
+            } catch (error) {
+
+                console.error(
+                    '[NOTIFICATIONS] Erreur initialisation:',
+                    error
+                );
+            }
+        }
+
+        // ================================================================
+        // 8. ÉTAT DES NOTIFICATIONS
+        // ================================================================
+
+        function mettreAJourEtatNotification() {
+
+            const card =
+                document.getElementById(
+                    'notificationPermissionCard'
+                );
+
+            if (!card) return;
+
+            if (!('Notification' in window)) {
+
+                card.classList.remove('show');
+
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+
+                card.classList.remove('show');
+
+                return;
+            }
+
+            if (Notification.permission === 'denied') {
+
+                card.classList.remove('show');
+
+                return;
+            }
+
+            /*
+             * Permission "default".
+             * La carte peut être affichée pour permettre
+             * à l'étudiant d'activer explicitement les notifications.
+             */
+
+            card.classList.add('show');
+        }
+
+        // ================================================================
+        // 9. BOUTON ACTIVER NOTIFICATIONS
+        // ================================================================
+
+        document
+            .getElementById('enableNotificationsBtn')
+            ?.addEventListener(
+                'click',
+                async function() {
+
+                    if (!currentStudent) {
+                        return;
+                    }
+
+                    const btn =
+                        document.getElementById(
+                            'enableNotificationsBtn'
+                        );
+
+                    if (!btn) return;
+
+                    btn.disabled = true;
+
+                    btn.innerHTML =
+                        '<span class="spinner-border spinner-border-sm me-1"></span> Activation...';
+
+                    try {
+
+                        if (
+                            !window.notificationManager ||
+                            typeof window.notificationManager
+                                .requestPermissionAndRegister !== 'function'
+                        ) {
+
+                            throw new Error(
+                                'Gestionnaire de notifications indisponible.'
+                            );
+                        }
+
+                        const token =
+                            await window
+                                .notificationManager
+                                .requestPermissionAndRegister();
+
+                        if (token) {
+
+                            showToast(
+                                '🔔 Notifications activées !',
+                                'success'
+                            );
+
+                        } else {
+
+                            if (
+                                'Notification' in window &&
+                                Notification.permission === 'denied'
+                            ) {
+
+                                showToast(
+                                    '⚠️ Notifications bloquées. Autorisez-les dans les réglages du navigateur.',
+                                    'warning'
+                                );
+
+                            } else {
+
+                                showToast(
+                                    '⚠️ Impossible d’activer les notifications.',
+                                    'warning'
+                                );
+                            }
+                        }
+
+                    } catch (error) {
+
+                        console.error(
+                            '[NOTIFICATIONS] Erreur:',
+                            error
+                        );
+
+                        showToast(
+                            '⚠️ Erreur lors de l’activation des notifications.',
+                            'warning'
+                        );
+
+                    } finally {
+
+                        btn.disabled = false;
+
+                        btn.innerHTML =
+                            '<i class="bi bi-bell"></i> Activer';
+
+                        mettreAJourEtatNotification();
+                    }
+
+                }
+            );
+
+        // ================================================================
+        // 10. PROMOTIONS
+        // ================================================================
+
+        async function chargerPromotions(
+            forceRefresh = false
+        ) {
+
+            try {
+
+                const snapshot =
+                    await db
+                        .collection('promotions')
+                        .get();
+
+                allPromotions = [];
+
+                snapshot.forEach(doc => {
+
+                    allPromotions.push({
+
+                        id: doc.id,
+
+                        ...doc.data()
+
+                    });
+
+                });
+
+                return allPromotions;
+
+            } catch (error) {
+
+                console.error(
+                    '[PROMOTIONS] Erreur:',
+                    error
+                );
+
+                return [];
+            }
+        }
+
+        // ================================================================
+        // 11. NOM PROMOTION
+        // ================================================================
+
+        function getPromotionNom(
+            promotionId
+        ) {
+
+            if (!promotionId) {
+                return 'Non définie';
+            }
+
+            const promo =
+                allPromotions.find(
+                    p => p.id === promotionId
+                );
+
+            return promo
+                ? promo.nom
+                : promotionId;
+        }
+
+        // ================================================================
+        // 12. VÉRIFICATION RÉUSSITE
+        // ================================================================
+
+        function estReussite(valeur) {
+
+            if (
+                valeur === undefined ||
+                valeur === null ||
+                isNaN(valeur)
+            ) {
+
+                return false;
+            }
+
+            return Number(valeur) >= 5;
+        }
+
+        // ================================================================
+        // 13. NOTE SIMPLE
+        // ================================================================
+
+        function getNoteSimple(valeur) {
+
+            if (
+                valeur === undefined ||
+                valeur === null ||
+                valeur === '' ||
+                isNaN(valeur)
+            ) {
+
+                return `
+                    <span
+                        class="note-simple"
+                        style="opacity:0.3;"
+                    >-</span>
+                `;
+            }
+
+            const nombre =
+                Number(valeur);
+
+            return `
+                <span class="note-simple">
+                    ${nombre.toFixed(1)}
+                </span>
+            `;
+        }
+
+        // ================================================================
+        // 14. BADGE MOYENNE
+        // ================================================================
+
+        function getMoyenneBadge(valeur) {
+
+            if (
+                valeur === undefined ||
+                valeur === null ||
+                valeur === '' ||
+                isNaN(valeur)
+            ) {
+
+                return `
+                    <span
+                        class="moyenne-badge"
+                        style="
+                            opacity:0.3;
+                            background:#ccc;
+                            color:white;
+                        "
+                    >-</span>
+                `;
+            }
+
+            const nombre =
+                Number(valeur);
+
+            const reussite =
+                estReussite(nombre);
+
+            const classe =
+                reussite
+                    ? 'reussite'
+                    : 'echec';
+
+            return `
+                <span class="moyenne-badge ${classe}">
+                    ${nombre.toFixed(1)}
+                </span>
+            `;
+        }
+
+        // ================================================================
+        // 15. AFFICHAGE DES NOTES
+        // ================================================================
+
+        function afficherNotes(
+            fromCache = false
+        ) {
+
+            const container =
+                document.getElementById(
+                    'notesContainer'
+                );
+
+            const stat =
+                document.getElementById(
+                    'statCoursEvalues'
+                );
+
+            if (!container) return;
+
+            if (stat) {
+                stat.textContent =
+                    allCotations.length;
+            }
+
+            if (allCotations.length === 0) {
+
+                container.innerHTML = `
+
+                    <div class="empty-state">
+
+                        <i class="bi bi-journal-x"></i>
+
+                        <h5>
+                            Aucune note disponible
+                        </h5>
+
+                        <p>
+                            Vos notes apparaîtront ici
+                            dès que vos professeurs
+                            les publieront.
+                        </p>
+
+                        ${
+                            fromCache
+                                ? `
+                                    <p class="text-muted small">
+                                        <i class="bi bi-database"></i>
+                                        Données en cache
+                                    </p>
+                                `
+                                : ''
+                        }
+
+                    </div>
+                `;
+
+                return;
+            }
+
+            const totalMoyenne =
+                allCotations.reduce(
+                    (s, c) =>
+                        s +
+                        (
+                            Number(c.moyenne) || 0
+                        ),
+                    0
+                );
+
+            const moyenneGenerale =
+                allCotations.length > 0
+                    ? totalMoyenne /
+                      allCotations.length
+                    : 0;
+
+            let html = `
+
+                <div class="table-responsive">
+
+                    <table class="notes-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th style="width:40px;">
+                                    N°
+                                </th>
+
+                                <th>
+                                    Cours
+                                </th>
+
+                                <th style="width:80px;">
+                                    Présence /2
+                                </th>
+
+                                <th style="width:60px;">
+                                    TD /2
+                                </th>
+
+                                <th style="width:60px;">
+                                    TP /2
+                                </th>
+
+                                <th style="width:80px;">
+                                    Interro /4
+                                </th>
+
+                                <th style="width:80px;">
+                                    Moyenne /10
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+            `;
+
+            allCotations.forEach(
+                (c, i) => {
+
+                    const moyenne =
+                        Number(c.moyenne) || 0;
+
+                    const presence =
+                        Number(c.presence) || 0;
+
+                    const td =
+                        Number(c.td) || 0;
+
+                    const tp =
+                        Number(c.tp) || 0;
+
+                    const interro =
+                        Number(c.interro) || 0;
+
+                    html += `
+
+                        <tr>
+
+                            <td
+                                style="
+                                    text-align:center;
+                                    color:#888;
+                                    font-weight:bold;
+                                "
+                            >
+                                ${i + 1}
+                            </td>
+
+                            <td class="cours-nom-cell">
+
+                                <i class="bi bi-book-fill"></i>
+
+                                ${escapeHtml(
+                                    c.coursNom ||
+                                    'Cours'
+                                )}
+
+                            </td>
+
+                            <td>
+                                ${getNoteSimple(
+                                    presence
+                                )}
+                            </td>
+
+                            <td>
+                                ${getNoteSimple(
+                                    td
+                                )}
+                            </td>
+
+                            <td>
+                                ${getNoteSimple(
+                                    tp
+                                )}
+                            </td>
+
+                            <td>
+                                ${getNoteSimple(
+                                    interro
+                                )}
+                            </td>
+
+                            <td>
+                                ${getMoyenneBadge(
+                                    moyenne
+                                )}
+                            </td>
+
+                        </tr>
+                    `;
+                }
+            );
+
+            const moyenneGenClasse =
+                moyenneGenerale >= 5
+                    ? 'reussite'
+                    : 'echec';
+
+            html += `
+
+                        </tbody>
+
+                        <tfoot>
+
+                            <tr>
+
+                                <td
+                                    colspan="6"
+                                    style="
+                                        text-align:right;
+                                        font-weight:bold;
+                                        color:var(--primary-blue);
+                                    "
+                                >
+
+                                    <i class="bi bi-calculator-fill"></i>
+
+                                    Moyenne Générale
+
+                                </td>
+
+                                <td>
+
+                                    <span
+                                        class="
+                                            moyenne-generale-badge
+                                            ${moyenneGenClasse}
+                                        "
+                                    >
+                                        ${moyenneGenerale.toFixed(2)}
+                                    </span>
+
+                                </td>
+
+                            </tr>
+
+                        </tfoot>
+
+                    </table>
+
+                </div>
+            `;
+
+            container.innerHTML = html;
+
+            if (fromCache) {
+
+                updateCacheStatus(
+                    'cached'
+                );
+
+            } else {
+
+                updateCacheStatus(
+                    'live',
+                    '🔄 Temps réel (' +
+                    allCotations.length +
+                    ' notes)'
+                );
+            }
+        }
+
+        // ================================================================
+        // 16. CONVERSION DATE FIRESTORE
+        // ================================================================
+
+        function getTimestampMillis(
+            value
+        ) {
+
+            if (!value) {
+                return 0;
+            }
+
+            try {
+
+                if (
+                    typeof value.toDate === 'function'
+                ) {
+
+                    return value
+                        .toDate()
+                        .getTime();
+                }
+
+                if (
+                    typeof value.toMillis === 'function'
+                ) {
+
+                    return value.toMillis();
+                }
+
+                if (
+                    value.seconds !== undefined
+                ) {
+
+                    return Number(value.seconds) *
+                        1000;
+                }
+
+                if (
+                    value._seconds !== undefined
+                ) {
+
+                    return Number(value._seconds) *
+                        1000;
+                }
+
+                if (
+                    typeof value === 'string'
+                ) {
+
+                    const time =
+                        new Date(value)
+                            .getTime();
+
+                    return isNaN(time)
+                        ? 0
+                        : time;
+                }
+
+                if (
+                    typeof value === 'number'
+                ) {
+
+                    return value;
+                }
+
+            } catch (error) {
+
+                console.warn(
+                    '[DATE] Conversion impossible:',
+                    error
+                );
+            }
+
+            return 0;
+        }
+
+        // ================================================================
+        // 17. ÉCOUTEUR TEMPS RÉEL
+        // ================================================================
+
+        function setupRealtimeListener() {
+
+            if (unsubscribe) {
+
+                try {
+                    unsubscribe();
+                } catch (e) {}
+
+                unsubscribe = null;
+            }
+
+            if (
+                !currentStudent ||
+                !currentStudent.id
+            ) {
+
+                console.error(
+                    '[NOTES] ID étudiant manquant.'
+                );
+
+                return;
+            }
+
+            console.log(
+                '🔄 Écoute en temps réel des notes...'
+            );
+
+            unsubscribe =
+                db
+                    .collection('cotations')
+                    .where(
+                        'etudiantId',
+                        '==',
+                        currentStudent.id
+                    )
+                    .onSnapshot(
+
+                        snapshot => {
+
+                            console.log(
+                                '📥 Snapshot reçu, taille:',
+                                snapshot.size
+                            );
+
+                            const cotationsTemp = [];
+
+                            const nouvellesNotes = [];
+
+                            snapshot.docChanges()
+                                .forEach(change => {
+
+                                    /*
+                                     * IMPORTANT :
+                                     * Une modification d'une note
+                                     * ne doit pas déclencher une
+                                     * notification comme une nouvelle
+                                     * note.
+                                     */
+
+                                    if (
+                                        change.type === 'added'
+                                    ) {
+
+                                        const data =
+                                            change.doc.data();
+
+                                        const nouvelle = {
+
+                                            id: change.doc.id,
+
+                                            ...data
+
+                                        };
+
+                                        nouvellesNotes
+                                            .push(
+                                                nouvelle
+                                            );
+
+                                        console.log(
+                                            '📝 NOTE AJOUTÉE:',
+                                            data.coursNom,
+                                            data.moyenne
+                                        );
+                                    }
+
+                                });
+
+                            snapshot.forEach(doc => {
+
+                                const data =
+                                    doc.data();
+
+                                cotationsTemp.push({
+
+                                    id: doc.id,
+
+                                    coursNom:
+                                        data.coursNom ||
+                                        'Sans titre',
+
+                                    presence:
+                                        data.presence ??
+                                        0,
+
+                                    td:
+                                        data.td ??
+                                        0,
+
+                                    tp:
+                                        data.tp ??
+                                        0,
+
+                                    interro:
+                                        data.interro ??
+                                        0,
+
+                                    moyenne:
+                                        data.moyenne ??
+                                        0,
+
+                                    dateCreation:
+                                        data.dateCreation,
+
+                                    createur:
+                                        data.createur ||
+                                        ''
+
+                                });
+
+                            });
+
+                            cotationsTemp.sort(
+                                (a, b) => {
+
+                                    const dateA =
+                                        getTimestampMillis(
+                                            a.dateCreation
+                                        );
+
+                                    const dateB =
+                                        getTimestampMillis(
+                                            b.dateCreation
+                                        );
+
+                                    return dateB -
+                                        dateA;
+                                }
+                            );
+
+                            allCotations =
+                                cotationsTemp;
+
+                            /*
+                             * Afficher immédiatement les notes.
+                             */
+
+                            afficherNotes(false);
+
+                            /*
+                             * Les notifications push sont désormais
+                             * gérées par notification-utils.js + sw.js.
+                             *
+                             * On NE fait donc plus :
+                             *
+                             * envoyerNotificationPush(...)
+                             *
+                             * depuis cette page.
+                             */
+
+                            if (
+                                nouvellesNotes.length > 0
+                            ) {
+
+                                nouvellesNotes.forEach(
+                                    note => {
+
+                                        const coursNom =
+                                            note.coursNom ||
+                                            'Cours';
+
+                                        const moyenne =
+                                            Number(
+                                                note.moyenne
+                                            ) || 0;
+
+                                        const noteAffichee =
+                                            moyenne.toFixed(1);
+
+                                        /*
+                                         * Notification visuelle
+                                         * uniquement lorsque l'application
+                                         * est actuellement ouverte.
+                                         *
+                                         * Le vrai Push en arrière-plan
+                                         * est géré côté serveur + sw.js.
+                                         */
+
+                                        showToast(
+                                            `📝 ${coursNom} : ${noteAffichee}/10`,
+                                            'info'
+                                        );
+
+                                        /*
+                                         * Petit signal visuel.
+                                         */
+
+                                        const dot =
+                                            document.getElementById(
+                                                'notificationDot'
+                                            );
+
+                                        if (dot) {
+
+                                            dot.style.display =
+                                                'block';
+
+                                            setTimeout(
+                                                () => {
+
+                                                    dot.style.display =
+                                                        'none';
+
+                                                },
+                                                6000
+                                            );
+                                        }
+
+                                    }
+                                );
+                            }
+
+                        },
+
+                        error => {
+
+                            console.error(
+                                '❌ Erreur listener:',
+                                error
+                            );
+
+                            updateCacheStatus(
+                                'offline',
+                                '⚠️ Hors ligne'
+                            );
+
+                            /*
+                             * Firestore peut encore fournir des
+                             * données en cache selon la configuration.
+                             */
+                        }
+                    );
+        }
+
+        // ================================================================
+        // 18. PROFIL
+        // ================================================================
+
+        async function loadProfileData() {
+
+            await chargerPromotions();
+
+            const promoNom =
+                getPromotionNom(
+                    currentStudent.promotion
+                );
+
+            const profilNom =
+                document.getElementById(
+                    'profilNom'
+                );
+
+            const profilMatricule =
+                document.getElementById(
+                    'profilMatricule'
+                );
+
+            const profilPromotion =
+                document.getElementById(
+                    'profilPromotion'
+                );
+
+            if (profilNom) {
+
+                profilNom.textContent =
+                    currentStudent.nom || '';
+            }
+
+            if (profilMatricule) {
+
+                profilMatricule.textContent =
+                    `Matricule: ${
+                        currentStudent.matricule || ''
+                    }`;
+            }
+
+            if (profilPromotion) {
+
+                profilPromotion.textContent =
+                    `Promotion: ${promoNom}`;
+            }
+        }
+
+        // ================================================================
+        // 19. OUVERTURE PROFIL
+        // ================================================================
+
+        document
+            .getElementById('profileBtn')
+            ?.addEventListener(
+                'click',
+                async () => {
+
+                    try {
+
+                        await loadProfileData();
+
+                        const modal =
+                            document.getElementById(
+                                'profileModal'
+                            );
+
+                        if (modal) {
+
+                            modal.style.display =
+                                'flex';
+                        }
+
+                    } catch (error) {
+
+                        console.error(
+                            '[PROFIL] Erreur:',
+                            error
+                        );
+
+                        showToast(
+                            'Impossible de charger le profil.',
+                            'danger'
+                        );
+                    }
+
+                }
+            );
+
+        // ================================================================
+        // 20. FERMER PROFIL
+        // ================================================================
+
+        window.closeProfileModal =
+            () => {
+
+                const modal =
+                    document.getElementById(
+                        'profileModal'
+                    );
+
+                if (modal) {
+
+                    modal.style.display =
+                        'none';
+                }
+
+                const newPassword =
+                    document.getElementById(
+                        'newPassword'
+                    );
+
+                const confirmPassword =
+                    document.getElementById(
+                        'confirmNewPassword'
+                    );
+
+                if (newPassword) {
+                    newPassword.value = '';
+                }
+
+                if (confirmPassword) {
+                    confirmPassword.value = '';
+                }
+            };
+
+        // ================================================================
+        // 21. FERMER EN CLIQUANT À L'EXTÉRIEUR
+        // ================================================================
+
+        document
+            .getElementById('profileModal')
+            ?.addEventListener(
+                'click',
+                function(e) {
+
+                    if (e.target === this) {
+
+                        closeProfileModal();
+                    }
+
+                }
+            );
+
+        // ================================================================
+        // 22. CHANGER MOT DE PASSE
+        // ================================================================
+
+        document
+            .getElementById('changePasswordBtn')
+            ?.addEventListener(
+                'click',
+                async function() {
+
+                    const newPwd =
+                        document.getElementById(
+                            'newPassword'
+                        )?.value || '';
+
+                    const confirmPwd =
+                        document.getElementById(
+                            'confirmNewPassword'
+                        )?.value || '';
+
+                    if (
+                        !newPwd ||
+                        !confirmPwd
+                    ) {
+
+                        showToast(
+                            'Remplissez tous les champs',
+                            'warning'
+                        );
+
+                        return;
+                    }
+
+                    if (
+                        newPwd !== confirmPwd
+                    ) {
+
+                        showToast(
+                            'Mots de passe différents',
+                            'warning'
+                        );
+
+                        return;
+                    }
+
+                    if (
+                        newPwd.length < 4
+                    ) {
+
+                        showToast(
+                            'Minimum 4 caractères',
+                            'warning'
+                        );
+
+                        return;
+                    }
+
+                    const btn = this;
+
+                    const texteOriginal =
+                        btn.textContent;
+
+                    btn.disabled = true;
+
+                    btn.innerHTML =
+                        '<span class="spinner-border spinner-border-sm me-1"></span> Modification...';
+
+                    try {
+
+                        await db
+                            .collection('etudiants')
+                            .doc(currentStudent.id)
+                            .update({
+
+                                motDePasse:
+                                    newPwd
+
+                            });
+
+                        showToast(
+                            '✅ Mot de passe modifié',
+                            'success'
+                        );
+
+                        closeProfileModal();
+
+                    } catch (error) {
+
+                        console.error(
+                            '[PASSWORD] Erreur:',
+                            error
+                        );
+
+                        showToast(
+                            '❌ Erreur: ' +
+                            (
+                                error.message ||
+                                'Modification impossible'
+                            ),
+                            'danger'
+                        );
+
+                    } finally {
+
+                        btn.disabled = false;
+
+                        btn.textContent =
+                            texteOriginal;
+                    }
+
+                }
+            );
+
+        // ================================================================
+        // 23. DÉCONNEXION
+        // ================================================================
+
+        document
+            .getElementById('logoutBtn')
+            ?.addEventListener(
+                'click',
+                () => {
+
+                    if (
+                        !confirm(
+                            'Se déconnecter ?'
+                        )
+                    ) {
+
+                        return;
+                    }
+
+                    localStorage.removeItem(
+                        'session_etudiant'
+                    );
+
+                    localStorage.removeItem(
+                        'communiques_lus'
+                    );
+
+                    if (unsubscribe) {
+
+                        try {
+                            unsubscribe();
+                        } catch (e) {}
+
+                        unsubscribe = null;
+                    }
+
+                    window.location.href =
+                        'login-etudiant.html';
+                }
+            );
+
+        // ================================================================
+        // 24. SERVICE WORKER CENTRALISÉ
+        // ================================================================
+
+        async function registerServiceWorker() {
+
+            if (
+                typeof window.registerAppServiceWorker ===
+                'function'
+            ) {
+
+                try {
+
+                    const registration =
+                        await window
+                            .registerAppServiceWorker();
+
+                    console.log(
+                        '✅ SW centralisé:',
+                        registration?.scope || 'actif'
+                    );
+
+                    return registration;
+
+                } catch (error) {
+
+                    console.error(
+                        '❌ Erreur SW centralisé:',
+                        error
+                    );
+
+                    return null;
+                }
+            }
+
+            /*
+             * Fallback si notification-utils.js
+             * n'est momentanément pas chargé.
+             */
+
+            if (
+                !('serviceWorker' in navigator)
+            ) {
+
+                console.warn(
+                    '[SW] Service Worker non supporté.'
+                );
+
+                return null;
+            }
+
+            try {
+
+                const registration =
+                    await navigator.serviceWorker
+                        .register(
+                            './sw.js',
+                            {
+                                scope:
+                                    '/Espace-etudiant/'
+                            }
+                        );
+
+                console.log(
+                    '✅ SW principal:',
+                    registration.scope
+                );
+
+                return registration;
+
+            } catch (error) {
+
+                console.error(
+                    '❌ Erreur enregistrement SW:',
+                    error
+                );
+
+                return null;
+            }
+        }
+
+        // ================================================================
+        // 25. MODE HORS LIGNE
+        // ================================================================
+
+        function setupOfflineDetection() {
+
+            const offlineBadge =
+                document.getElementById(
+                    'offlineBadge'
+                );
+
+            function updateStatus() {
+
+                if (!offlineBadge) {
+                    return;
+                }
+
+                if (!navigator.onLine) {
+
+                    offlineBadge.classList.add(
+                        'show'
+                    );
+
+                    updateCacheStatus(
+                        'offline'
+                    );
+
+                } else {
+
+                    offlineBadge.classList.remove(
+                        'show'
+                    );
+
+                    /*
+                     * Ne pas écraser "Temps réel"
+                     * si Firestore est déjà connecté.
+                     */
+
+                    if (
+                        allCotations.length === 0
+                    ) {
+
+                        updateCacheStatus(
+                            'live',
+                            '🔄 En ligne'
+                        );
+                    }
+                }
+            }
+
+            window.addEventListener(
+                'online',
+                updateStatus
+            );
+
+            window.addEventListener(
+                'offline',
+                updateStatus
+            );
+
+            updateStatus();
+        }
+
+        // ================================================================
+        // 26. INITIALISATION
+        // ================================================================
+
+        async function init() {
+
+            if (!checkSession()) {
+                return;
+            }
+
+            console.log(
+                '🚀 Page Notes - Étudiant'
+            );
+
+            console.log(
+                '👤 Étudiant:',
+                currentStudent.nom
+            );
+
+            console.log(
+                '🆔 ID:',
+                currentStudent.id
+            );
+
+            /*
+             * Enregistrer le Service Worker central.
+             */
+
+            await registerServiceWorker();
+
+            /*
+             * Initialiser le système de notifications.
+             *
+             * IMPORTANT :
+             * Cette fonction ne force pas la demande
+             * de permission. L'étudiant doit cliquer
+             * sur "Activer" lorsque nécessaire.
+             */
+
+            await initialiserNotifications();
+
+            /*
+             * Charger les promotions.
+             */
+
+            await chargerPromotions();
+
+            /*
+             * Écouter les notes en temps réel.
+             */
+
+            setupRealtimeListener();
+
+            /*
+             * Gestion hors ligne.
+             */
+
+            setupOfflineDetection();
+
+            /*
+             * Afficher l'état de permission.
+             */
+
+            mettreAJourEtatNotification();
+
+            console.log(
+                '✅ Page Mes Notes prête.'
+            );
+        }
+
+        // ================================================================
+        // 27. NETTOYAGE
+        // ================================================================
+
+        window.addEventListener(
+            'beforeunload',
+            () => {
+
+                if (unsubscribe) {
+
+                    try {
+                        unsubscribe();
+                    } catch (e) {}
+
+                    unsubscribe = null;
+                }
+            }
+        );
+
+        // ================================================================
+        // 28. LANCEMENT
+        // ================================================================
+
+        init();
+
+    </script>
+
+</body>
+</html>

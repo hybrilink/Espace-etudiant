@@ -1,0 +1,3024 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mes Paiements - Faculté Agronomique</title>
+    <meta name="theme-color" content="#003366">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root { 
+            --primary-blue: #003366; 
+            --dark-blue: #002244; 
+            --accent-yellow: #ffb347; 
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+            --warning-orange: #fd7e14;
+        }
+        
+        body {
+            background: #f0f2f5;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        .navbar-custom { 
+            background: var(--primary-blue); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            padding: 12px 0;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        
+        .profile-photo { 
+            width: 45px;
+            height: 45px;
+            border-radius: 50%; 
+            background: var(--accent-yellow); 
+            display: flex;
+            align-items: center;
+            justify-content: center; 
+            cursor: pointer; 
+            position: relative;
+        }
+
+        .profile-photo i {
+            font-size: 28px;
+            color: var(--primary-blue);
+        }
+        
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .notification-dot {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            background: var(--danger-red);
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(220,53,69,0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 8px rgba(220,53,69,0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(220,53,69,0);
+            }
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .btn-back {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            background: var(--dark-blue);
+            transform: translateY(-2px);
+            color: white;
+        }
+        
+        .btn-refresh {
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-refresh:hover {
+            background: #ff9800;
+            transform: scale(1.02);
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .statut-paye {
+            color: var(--success-green);
+            font-weight: bold;
+        }
+
+        .statut-attente {
+            color: var(--warning-orange);
+            font-weight: bold;
+        }
+        
+        .paiements-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .paiements-table th {
+            background: var(--primary-blue);
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 13px;
+        }
+        
+        .paiements-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+        
+        .paiements-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .payment-status-card {
+            background: #e8f4fd;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-blue);
+        }
+        
+        .total-card {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .total-card .total-amount {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .fiche-badge {
+            display: inline-block;
+            background: #ffe8e8;
+            color: var(--danger-red);
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin: 2px;
+            font-size: 11px;
+            border: 1px solid var(--danger-red);
+        }
+        
+        .fiche-badge::before {
+            content: "📄 ";
+            font-weight: normal;
+        }
+        
+        .nouveau-paiement {
+            animation: highlightPulse 0.5s ease-in-out;
+        }
+        
+        @keyframes highlightPulse {
+            0% {
+                background: #fff3e0;
+            }
+
+            100% {
+                background: white;
+            }
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state i {
+            font-size: 70px;
+            color: var(--primary-blue);
+            opacity: 0.3;
+            margin-bottom: 20px;
+        }
+        
+        .footer-info {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 280px;
+            max-width: 350px;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .toast {
+            animation: slideInRight 0.3s ease-out;
+            margin-bottom: 10px;
+            border-radius: 12px;
+        }
+        
+        .profile-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .profile-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .btn-action {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .btn-action:hover {
+            background: var(--dark-blue);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--primary-blue);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .total-paye-card {
+            background: linear-gradient(135deg, var(--success-green), #1e7e34);
+            border-radius: 15px;
+            padding: 15px 20px;
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .total-paye-card .label {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .total-paye-card .amount {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        .cache-status {
+            font-size: 10px;
+            color: #888;
+            padding: 5px 0;
+            text-align: right;
+        }
+
+        .cache-status .cached {
+            color: #28a745;
+        }
+
+        .cache-status .live {
+            color: #ffb347;
+        }
+
+        .cache-status .offline {
+            color: #dc3545;
+        }
+        
+        @media (max-width: 768px) {
+            .content-card {
+                padding: 15px;
+                overflow-x: auto;
+            }
+
+            .paiements-table {
+                font-size: 11px;
+            }
+
+            .paiements-table th,
+            .paiements-table td {
+                padding: 8px 10px;
+            }
+
+            .toast-notification {
+                right: 10px;
+                left: 10px;
+                min-width: auto;
+            }
+
+            .total-paye-card .amount {
+                font-size: 24px;
+            }
+        }
+        
+        @media print {
+            .navbar-custom,
+            .page-header,
+            .footer-info,
+            .btn-refresh,
+            .btn-back,
+            .profile-photo,
+            #logoutBtn,
+            .toast-notification {
+                display: none;
+            }
+
+            .content-card {
+                padding: 0;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-custom">
+        <div class="container">
+
+            <a class="navbar-brand text-white" href="etudiant.html">
+                <i class="bi bi-tree-fill"></i>
+                FACULTÉ AGRONOMIQUE - UNILU
+            </a>
+
+            <div class="navbar-right">
+
+                <div class="profile-photo" id="profileBtn">
+                    <i class="bi bi-person-circle"></i>
+                    <span class="notification-dot" id="notificationDot"></span>
+                </div>
+
+                <button class="btn btn-outline-light btn-sm" id="logoutBtn">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
+
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+
+        <div id="toastContainer" class="toast-notification"></div>
+        
+        <div class="page-header">
+
+            <h4>
+                <i class="bi bi-credit-card-fill me-2"
+                   style="color: var(--primary-blue);"></i>
+                Mes Paiements
+            </h4>
+
+            <div>
+
+                <span class="cache-status me-2" id="cacheStatus">
+                    <i class="bi bi-database"></i>
+                    <span id="cacheStatusText">Prêt</span>
+                </span>
+
+                <button class="btn-refresh me-2" id="refreshBtn">
+                    <i class="bi bi-arrow-repeat"></i>
+                    Actualiser
+                </button>
+
+                <a href="etudiant.html" class="btn-back">
+                    <i class="bi bi-house-door-fill"></i>
+                    Accueil
+                </a>
+
+            </div>
+        </div>
+        
+        <div class="content-card">
+
+            <div id="paiementsContainer">
+
+                <div class="text-center py-5">
+
+                    <div class="loading-spinner"></div>
+
+                    <p class="mt-3 text-muted">
+                        Chargement de vos paiements...
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+        
+        <div class="footer-info">
+
+            <i class="bi bi-shield-check"></i>
+            HYBRILINK-TECH - Votre partenaire digital
+            <br>
+
+            <img src="t.png"
+                 width="40px"
+                 alt="HYBRILINK"
+                 onerror="this.style.display='none'">
+
+        </div>
+
+    </div>
+    
+    <!-- MODAL PROFIL -->
+    <div id="profileModal" class="profile-modal">
+
+        <div class="profile-modal-content">
+
+            <div class="text-center">
+
+                <i class="bi bi-person-circle"
+                   style="font-size:70px;color:var(--primary-blue);"></i>
+
+                <h4 id="profilNom"></h4>
+
+                <p id="profilMatricule"></p>
+
+                <p id="profilPromotion"></p>
+
+                <hr>
+
+                <h6>Changer mot de passe</h6>
+
+                <input type="password"
+                       class="form-control mb-2"
+                       id="newPassword"
+                       placeholder="Nouveau mot de passe">
+
+                <input type="password"
+                       class="form-control mb-2"
+                       id="confirmNewPassword"
+                       placeholder="Confirmer">
+
+                <button class="btn-action" id="changePasswordBtn">
+                    Modifier
+                </button>
+
+                <button class="btn btn-secondary w-100 mt-2"
+                        onclick="closeProfileModal()">
+                    Fermer
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        // ================================================================
+        // 1. SYSTÈME DE CACHE LOCAL AVANCÉ
+        // ================================================================
+
+        const CacheManager = {
+
+            PREFIX: 'fsa_cache_',
+
+            TTL: {
+                PAIEMENTS: 5 * 60 * 1000,
+                ETUDIANTS: 12 * 60 * 60 * 1000,
+                PROMOTIONS: 24 * 60 * 60 * 1000,
+                ANNEES: 24 * 60 * 60 * 1000
+            },
+
+            set(key, data, ttlKey = null) {
+
+                try {
+
+                    const ttl = ttlKey
+                        ? this.TTL[ttlKey]
+                        : this.TTL.PAIEMENTS;
+
+                    const cacheItem = {
+                        data: data,
+                        timestamp: Date.now(),
+                        expires: Date.now() + ttl
+                    };
+
+                    localStorage.setItem(
+                        this.PREFIX + key,
+                        JSON.stringify(cacheItem)
+                    );
+
+                    return true;
+
+                } catch (e) {
+
+                    console.error('Erreur sauvegarde cache:', e);
+                    return false;
+
+                }
+            },
+
+            get(key) {
+
+                try {
+
+                    const raw = localStorage.getItem(
+                        this.PREFIX + key
+                    );
+
+                    if (!raw) return null;
+
+                    const cacheItem = JSON.parse(raw);
+
+                    if (
+                        !cacheItem ||
+                        typeof cacheItem.expires !== 'number'
+                    ) {
+                        this.remove(key);
+                        return null;
+                    }
+
+                    if (Date.now() > cacheItem.expires) {
+
+                        this.remove(key);
+                        return null;
+
+                    }
+
+                    return cacheItem.data;
+
+                } catch (e) {
+
+                    return null;
+
+                }
+            },
+
+            remove(key) {
+
+                try {
+
+                    localStorage.removeItem(
+                        this.PREFIX + key
+                    );
+
+                } catch (e) {
+
+                    console.error('Erreur suppression cache:', e);
+
+                }
+
+            },
+
+            cleanExpired() {
+
+                try {
+
+                    const keys = Object.keys(localStorage);
+
+                    let count = 0;
+
+                    for (const key of keys) {
+
+                        if (!key.startsWith(this.PREFIX)) {
+                            continue;
+                        }
+
+                        const raw = localStorage.getItem(key);
+
+                        if (!raw) continue;
+
+                        try {
+
+                            const cacheItem = JSON.parse(raw);
+
+                            if (
+                                !cacheItem ||
+                                typeof cacheItem.expires !== 'number' ||
+                                Date.now() > cacheItem.expires
+                            ) {
+
+                                localStorage.removeItem(key);
+                                count++;
+
+                            }
+
+                        } catch (e) {
+
+                            localStorage.removeItem(key);
+                            count++;
+
+                        }
+
+                    }
+
+                    return count;
+
+                } catch (e) {
+
+                    return 0;
+
+                }
+
+            },
+
+            isValid(key) {
+
+                try {
+
+                    const raw = localStorage.getItem(
+                        this.PREFIX + key
+                    );
+
+                    if (!raw) return false;
+
+                    const cacheItem = JSON.parse(raw);
+
+                    if (
+                        !cacheItem ||
+                        typeof cacheItem.expires !== 'number'
+                    ) {
+                        return false;
+                    }
+
+                    return Date.now() <= cacheItem.expires;
+
+                } catch (e) {
+
+                    return false;
+
+                }
+
+            }
+
+        };
+
+        CacheManager.cleanExpired();
+
+
+        // ================================================================
+        // 2. FIREBASE
+        // ================================================================
+
+        const firebaseConfig = {
+
+            apiKey: "AIzaSyBbQ2N-5ns7qKjBAj5UvDW87s2PZ27F0",
+            authDomain: "fsa-unilu.firebaseapp.com",
+            projectId: "fsa-unilu",
+            storageBucket: "fsa-unilu.firebasestorage.app",
+            messagingSenderId: "36551990738",
+            appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        const db = firebase.firestore();
+
+        // Firebase Messaging
+        let messaging = null;
+
+        try {
+
+            if (
+                firebase.messaging &&
+                typeof firebase.messaging === 'function'
+            ) {
+
+                messaging = firebase.messaging();
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                'Firebase Messaging non disponible sur cette page:',
+                error
+            );
+
+        }
+
+
+        // ================================================================
+        // 3. CHARGEMENT DU GESTIONNAIRE DE NOTIFICATIONS
+        // ================================================================
+
+        /*
+         * Le fichier notification-utils.js est chargé plus bas.
+         *
+         * Il centralise :
+         * - le Service Worker ;
+         * - Firebase Cloud Messaging ;
+         * - l'enregistrement du token ;
+         * - les notifications foreground ;
+         * - la gestion des anciennes registrations.
+         */
+
+
+        // ================================================================
+        // 4. VARIABLES
+        // ================================================================
+
+        let currentStudent = null;
+        let allPromotions = [];
+        let allAnnees = [];
+        let allTransactions = [];
+        let snapshotUnsubscribe = null;
+
+
+        // ================================================================
+        // 5. SESSION
+        // ================================================================
+
+        function checkSession() {
+
+            const session =
+                localStorage.getItem('session_etudiant');
+
+            if (!session) {
+
+                window.location.href =
+                    'login-etudiant.html';
+
+                return false;
+
+            }
+
+            try {
+
+                const sessionData = JSON.parse(session);
+
+                if (
+                    !sessionData ||
+                    !sessionData.expires ||
+                    Date.now() > sessionData.expires
+                ) {
+
+                    localStorage.removeItem(
+                        'session_etudiant'
+                    );
+
+                    window.location.href =
+                        'login-etudiant.html';
+
+                    return false;
+
+                }
+
+                if (!sessionData.id) {
+
+                    localStorage.removeItem(
+                        'session_etudiant'
+                    );
+
+                    window.location.href =
+                        'login-etudiant.html';
+
+                    return false;
+
+                }
+
+                currentStudent = sessionData;
+
+                return true;
+
+            } catch (e) {
+
+                console.error(
+                    'Session invalide:',
+                    e
+                );
+
+                localStorage.removeItem(
+                    'session_etudiant'
+                );
+
+                window.location.href =
+                    'login-etudiant.html';
+
+                return false;
+
+            }
+
+        }
+
+
+        // ================================================================
+        // 6. FONCTIONS UTILITAIRES
+        // ================================================================
+
+        function showToast(
+            message,
+            type = 'success'
+        ) {
+
+            const container =
+                document.getElementById(
+                    'toastContainer'
+                );
+
+            if (!container) return;
+
+            const colors = {
+
+                success: {
+                    bg: '#28a745',
+                    icon: 'check-circle-fill'
+                },
+
+                warning: {
+                    bg: '#ffc107',
+                    icon: 'exclamation-triangle-fill',
+                    textColor: '#333'
+                },
+
+                danger: {
+                    bg: '#dc3545',
+                    icon: 'x-circle-fill'
+                },
+
+                info: {
+                    bg: '#17a2b8',
+                    icon: 'info-circle-fill'
+                }
+
+            };
+
+            const config =
+                colors[type] || colors.success;
+
+            const textColor =
+                config.textColor || 'white';
+
+            const toastHtml = `
+                <div class="toast"
+                     style="background:${config.bg};color:${textColor};">
+                    <div class="toast-body">
+                        <i class="bi bi-${config.icon} me-2"></i>
+                        ${escapeHtml(message)}
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML(
+                'afterbegin',
+                toastHtml
+            );
+
+            const firstToast =
+                container.firstElementChild;
+
+            setTimeout(() => {
+
+                if (firstToast) {
+                    firstToast.remove();
+                }
+
+            }, 4000);
+
+        }
+
+
+        function escapeHtml(text) {
+
+            if (
+                text === null ||
+                text === undefined
+            ) {
+                return '';
+            }
+
+            const div =
+                document.createElement('div');
+
+            div.textContent =
+                String(text);
+
+            return div.innerHTML;
+
+        }
+
+
+        function formatDate(date) {
+
+            if (!date) return '-';
+
+            try {
+
+                if (
+                    date &&
+                    typeof date.toDate === 'function'
+                ) {
+
+                    date = date.toDate();
+
+                } else if (
+                    date &&
+                    typeof date.seconds === 'number'
+                ) {
+
+                    date =
+                        new Date(
+                            date.seconds * 1000
+                        );
+
+                } else if (
+                    typeof date === 'string' ||
+                    typeof date === 'number'
+                ) {
+
+                    date = new Date(date);
+
+                }
+
+                if (
+                    !(date instanceof Date) ||
+                    isNaN(date.getTime())
+                ) {
+
+                    return '-';
+
+                }
+
+                return date.toLocaleDateString(
+                    'fr-FR',
+                    {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    }
+                );
+
+            } catch (e) {
+
+                return '-';
+
+            }
+
+        }
+
+
+        function formatDateTime(date) {
+
+            if (!date) return '-';
+
+            try {
+
+                if (
+                    date &&
+                    typeof date.toDate === 'function'
+                ) {
+
+                    date = date.toDate();
+
+                } else if (
+                    date &&
+                    typeof date.seconds === 'number'
+                ) {
+
+                    date =
+                        new Date(
+                            date.seconds * 1000
+                        );
+
+                } else if (
+                    typeof date === 'string' ||
+                    typeof date === 'number'
+                ) {
+
+                    date = new Date(date);
+
+                }
+
+                if (
+                    !(date instanceof Date) ||
+                    isNaN(date.getTime())
+                ) {
+
+                    return '-';
+
+                }
+
+                return date.toLocaleString(
+                    'fr-FR',
+                    {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }
+                );
+
+            } catch (e) {
+
+                return '-';
+
+            }
+
+        }
+
+
+        function getTransactionDateValue(date) {
+
+            try {
+
+                if (!date) return 0;
+
+                if (
+                    date &&
+                    typeof date.toDate === 'function'
+                ) {
+
+                    return date.toDate().getTime();
+
+                }
+
+                if (
+                    date &&
+                    typeof date.seconds === 'number'
+                ) {
+
+                    return date.seconds * 1000;
+
+                }
+
+                if (
+                    typeof date === 'string' ||
+                    typeof date === 'number'
+                ) {
+
+                    const parsed =
+                        new Date(date).getTime();
+
+                    return isNaN(parsed)
+                        ? 0
+                        : parsed;
+
+                }
+
+            } catch (e) {
+
+                return 0;
+
+            }
+
+            return 0;
+
+        }
+
+
+        function updateCacheStatus(
+            status,
+            message
+        ) {
+
+            const el =
+                document.getElementById(
+                    'cacheStatusText'
+                );
+
+            if (!el) return;
+
+            const statusMap = {
+
+                cached: '📦 Cache',
+                live: '🔄 Temps réel',
+                offline: '⚠️ Hors ligne',
+                error: '❌ Erreur'
+
+            };
+
+            el.textContent =
+                message ||
+                statusMap[status] ||
+                status;
+
+        }
+
+
+        // ================================================================
+        // 7. CHARGEMENT DES PROMOTIONS
+        // ================================================================
+
+        async function chargerPromotions(
+            forceRefresh = false
+        ) {
+
+            const cacheKey =
+                'promotions';
+
+            if (!forceRefresh) {
+
+                const cached =
+                    CacheManager.get(cacheKey);
+
+                if (
+                    cached &&
+                    Array.isArray(cached) &&
+                    cached.length > 0
+                ) {
+
+                    allPromotions = cached;
+
+                    return allPromotions;
+
+                }
+
+            }
+
+            try {
+
+                const snapshot =
+                    await db
+                        .collection('promotions')
+                        .get();
+
+                allPromotions = [];
+
+                snapshot.forEach(doc => {
+
+                    allPromotions.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+
+                });
+
+                CacheManager.set(
+                    cacheKey,
+                    allPromotions,
+                    'PROMOTIONS'
+                );
+
+                return allPromotions;
+
+            } catch (error) {
+
+                console.error(
+                    'Erreur chargement promotions:',
+                    error
+                );
+
+                const cached =
+                    CacheManager.get(cacheKey);
+
+                if (
+                    cached &&
+                    Array.isArray(cached) &&
+                    cached.length > 0
+                ) {
+
+                    allPromotions = cached;
+
+                    return allPromotions;
+
+                }
+
+                return [];
+
+            }
+
+        }
+
+
+        // ================================================================
+        // 8. CHARGEMENT DES ANNÉES ACADÉMIQUES
+        // ================================================================
+
+        async function chargerAnnees(
+            forceRefresh = false
+        ) {
+
+            const cacheKey =
+                'anneesAcademiques';
+
+            if (!forceRefresh) {
+
+                const cached =
+                    CacheManager.get(cacheKey);
+
+                if (
+                    cached &&
+                    Array.isArray(cached) &&
+                    cached.length > 0
+                ) {
+
+                    allAnnees = cached;
+
+                    return allAnnees;
+
+                }
+
+            }
+
+            try {
+
+                const snapshot =
+                    await db
+                        .collection('anneesAcademiques')
+                        .get();
+
+                allAnnees = [];
+
+                snapshot.forEach(doc => {
+
+                    allAnnees.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+
+                });
+
+                CacheManager.set(
+                    cacheKey,
+                    allAnnees,
+                    'ANNEES'
+                );
+
+                return allAnnees;
+
+            } catch (error) {
+
+                console.error(
+                    'Erreur chargement années:',
+                    error
+                );
+
+                const cached =
+                    CacheManager.get(cacheKey);
+
+                if (
+                    cached &&
+                    Array.isArray(cached) &&
+                    cached.length > 0
+                ) {
+
+                    allAnnees = cached;
+
+                    return allAnnees;
+
+                }
+
+                return [];
+
+            }
+
+        }
+
+
+        // ================================================================
+        // 9. NOMS PROMOTION / ANNÉE
+        // ================================================================
+
+        function getPromotionNom(
+            promotionId
+        ) {
+
+            if (!promotionId) {
+                return 'Non définie';
+            }
+
+            const promo =
+                allPromotions.find(
+                    p => p.id === promotionId
+                );
+
+            return promo
+                ? promo.nom
+                : promotionId;
+
+        }
+
+
+        function getAnneeNom(
+            anneeId
+        ) {
+
+            if (!anneeId) {
+                return '-';
+            }
+
+            const annee =
+                allAnnees.find(
+                    a => a.id === anneeId
+                );
+
+            return annee
+                ? (
+                    annee.annee ||
+                    annee.nom ||
+                    anneeId
+                )
+                : anneeId;
+
+        }
+
+
+        // ================================================================
+        // 10. AFFICHAGE DES PAIEMENTS
+        // ================================================================
+
+        function afficherPaiements(
+            transactions,
+            fromCache = false
+        ) {
+
+            const container =
+                document.getElementById(
+                    'paiementsContainer'
+                );
+
+            if (!container) return;
+
+            const promoNom =
+                getPromotionNom(
+                    currentStudent.promotion
+                );
+
+            if (
+                !transactions ||
+                transactions.length === 0
+            ) {
+
+                container.innerHTML = `
+                    <div class="empty-state">
+
+                        <i class="bi bi-receipt"></i>
+
+                        <h5>Aucun paiement trouvé</h5>
+
+                        <p class="text-muted">
+                            Vous n'avez effectué aucun paiement
+                            pour le moment.
+                        </p>
+
+                        <hr>
+
+                        <small class="text-muted">
+                            Matricule:
+                            ${escapeHtml(
+                                currentStudent.matricule
+                            )}
+                        </small>
+
+                        ${
+                            fromCache
+                                ? `
+                                    <p class="text-muted small mt-2">
+                                        <i class="bi bi-database"></i>
+                                        Données en cache
+                                    </p>
+                                `
+                                : ''
+                        }
+
+                    </div>
+                `;
+
+                updateNotificationDot(false);
+
+                return;
+
+            }
+
+
+            let totalGeneral = 0;
+
+            const transactionsParAnnee = {};
+
+
+            transactions.forEach(
+                transaction => {
+
+                    let montant =
+                        Number(
+                            transaction.montantTotal ||
+                            transaction.montant ||
+                            0
+                        );
+
+                    if (
+                        transaction.isDuplicata
+                    ) {
+
+                        montant =
+                            Number(
+                                transaction.dernierFraisDuplicata ||
+                                transaction.duplicataFrais ||
+                                montant
+                            );
+
+                    }
+
+                    totalGeneral += montant;
+
+
+                    const anneeId =
+                        transaction.anneeAcademiqueId ||
+                        transaction.anneeAcademique ||
+                        'default';
+
+
+                    if (
+                        !transactionsParAnnee[anneeId]
+                    ) {
+
+                        transactionsParAnnee[anneeId] = {
+
+                            total: 0,
+
+                            transactions: []
+
+                        };
+
+                    }
+
+
+                    transactionsParAnnee[
+                        anneeId
+                    ].transactions.push(
+                        transaction
+                    );
+
+                    transactionsParAnnee[
+                        anneeId
+                    ].total += montant;
+
+                }
+            );
+
+
+            let html = `
+
+                <div class="total-paye-card">
+
+                    <div class="label">
+                        <i class="bi bi-wallet2"></i>
+                        TOTAL GÉNÉRAL PAYÉ
+                    </div>
+
+                    <div class="amount">
+                        ${totalGeneral.toLocaleString('fr-FR')} FC
+                    </div>
+
+                    <small>
+                        Toutes années confondues
+                    </small>
+
+                    ${
+                        fromCache
+                            ? `
+                                <br>
+                                <small>
+                                    <i class="bi bi-database"></i>
+                                    Données en cache
+                                </small>
+                            `
+                            : ''
+                    }
+
+                </div>
+
+
+                <div class="payment-status-card">
+
+                    <h6>
+                        <i class="bi bi-person-badge"></i>
+                        Informations étudiant
+                    </h6>
+
+                    <p class="mb-0">
+
+                        <strong>
+                            ${escapeHtml(
+                                currentStudent.nom
+                            )}
+                        </strong>
+
+                        <br>
+
+                        Matricule:
+                        ${escapeHtml(
+                            currentStudent.matricule
+                        )}
+
+                        <br>
+
+                        Promotion:
+                        ${escapeHtml(
+                            promoNom
+                        )}
+
+                    </p>
+
+                    <hr class="my-2">
+
+                    <small>
+                        <i class="bi bi-check-circle"></i>
+                        ${transactions.length}
+                        paiement(s) trouvé(s)
+                    </small>
+
+                </div>
+
+            `;
+
+
+            const anneeKeys =
+                Object.keys(
+                    transactionsParAnnee
+                );
+
+
+            for (
+                const anneeId of anneeKeys
+            ) {
+
+                const data =
+                    transactionsParAnnee[
+                        anneeId
+                    ];
+
+                const anneeNom =
+                    getAnneeNom(
+                        anneeId
+                    );
+
+
+                html += `
+
+                    <div class="payment-status-card"
+                         style="margin-top:20px;">
+
+                        <h6>
+
+                            <i class="bi bi-calendar-week"></i>
+
+                            Année académique :
+                            ${escapeHtml(
+                                anneeNom
+                            )}
+
+                        </h6>
+
+                        <div class="table-responsive">
+
+                            <table class="paiements-table">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>Date</th>
+
+                                        <th>N° Reçu</th>
+
+                                        <th>Fiches payées</th>
+
+                                        <th>Montant</th>
+
+                                        <th>Statut</th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                `;
+
+
+                for (
+                    const transaction
+                    of data.transactions
+                ) {
+
+                    const dateTransaction =
+                        formatDateTime(
+                            transaction.date
+                        );
+
+
+                    let montant =
+                        Number(
+                            transaction.montantTotal ||
+                            transaction.montant ||
+                            0
+                        );
+
+
+                    let statut =
+                        transaction.statut ||
+                        'payé';
+
+
+                    let typeLabel =
+                        'Original';
+
+
+                    if (
+                        transaction.isDuplicata
+                    ) {
+
+                        montant =
+                            Number(
+                                transaction.dernierFraisDuplicata ||
+                                transaction.duplicataFrais ||
+                                montant
+                            );
+
+                        typeLabel =
+                            'Duplicata';
+
+                    }
+
+
+                    let fichesHtml =
+                        '';
+
+
+                    if (
+                        Array.isArray(
+                            transaction.fiches
+                        ) &&
+                        transaction.fiches.length > 0
+                    ) {
+
+                        fichesHtml =
+                            transaction.fiches
+                                .map(f => {
+
+                                    const prix =
+                                        Number(
+                                            f.prix ||
+                                            f.montant ||
+                                            0
+                                        );
+
+                                    return `
+                                        <span class="fiche-badge">
+
+                                            ${escapeHtml(
+                                                f.nom ||
+                                                'Fiche'
+                                            )}
+
+                                            (${prix.toLocaleString('fr-FR')} FC)
+
+                                        </span>
+                                    `;
+
+                                })
+                                .join('');
+
+                    } else if (
+                        transaction.description
+                    ) {
+
+                        fichesHtml = `
+
+                            <span class="fiche-badge">
+
+                                ${escapeHtml(
+                                    String(
+                                        transaction.description
+                                    ).substring(0, 30)
+                                )}
+
+                            </span>
+
+                        `;
+
+                    } else {
+
+                        fichesHtml =
+                            '<span style="color:#999;">-</span>';
+
+                    }
+
+
+                    const statutNormalise =
+                        String(
+                            statut
+                        )
+                            .toLowerCase()
+                            .trim();
+
+
+                    const estPaye =
+                        statutNormalise === 'payé' ||
+                        statutNormalise === 'paye' ||
+                        statutNormalise === 'paid';
+
+
+                    const statutClass =
+                        estPaye
+                            ? 'statut-paye'
+                            : 'statut-attente';
+
+
+                    const statutIcon =
+                        estPaye
+                            ? 'check-circle'
+                            : 'clock-history';
+
+
+                    const numeroRecu =
+                        transaction.numeroRecu ||
+                        (
+                            transaction.id
+                                ? transaction.id.substring(0, 8)
+                                : '-'
+                        );
+
+
+                    html += `
+
+                        <tr>
+
+                            <td>
+                                ${escapeHtml(
+                                    dateTransaction
+                                )}
+                            </td>
+
+                            <td>
+
+                                <strong>
+                                    ${escapeHtml(
+                                        numeroRecu
+                                    )}
+                                </strong>
+
+                                <br>
+
+                                <small class="text-muted">
+                                    ${escapeHtml(
+                                        typeLabel
+                                    )}
+                                </small>
+
+                            </td>
+
+                            <td>
+                                ${fichesHtml}
+                            </td>
+
+                            <td class="${statutClass}">
+
+                                ${montant.toLocaleString('fr-FR')}
+                                FC
+
+                            </td>
+
+                            <td>
+
+                                <i class="bi bi-${statutIcon}"></i>
+
+                                ${
+                                    estPaye
+                                        ? 'Payé'
+                                        : 'En attente'
+                                }
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+
+
+                html += `
+
+                                </tbody>
+
+                                <tfoot>
+
+                                    <tr style="background:#e8f4fd;">
+
+                                        <td colspan="3"
+                                            style="text-align:right;">
+
+                                            <strong>
+                                                Total :
+                                            </strong>
+
+                                        </td>
+
+                                        <td colspan="2">
+
+                                            <strong>
+                                                ${data.total.toLocaleString('fr-FR')}
+                                                FC
+                                            </strong>
+
+                                        </td>
+
+                                    </tr>
+
+                                </tfoot>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }
+
+
+            container.innerHTML =
+                html;
+
+
+            if (fromCache) {
+
+                updateCacheStatus(
+                    'cached'
+                );
+
+            }
+
+        }
+
+
+        // ================================================================
+        // 11. NOTIFICATION DOT
+        // ================================================================
+
+        function updateNotificationDot(
+            hasNew
+        ) {
+
+            const dot =
+                document.getElementById(
+                    'notificationDot'
+                );
+
+            if (dot) {
+
+                dot.style.display =
+                    hasNew
+                        ? 'block'
+                        : 'none';
+
+            }
+
+        }
+
+
+        // ================================================================
+        // 12. ÉCOUTEUR TEMPS RÉEL FIRESTORE
+        // ================================================================
+
+        function setupRealtimeListener() {
+
+            if (snapshotUnsubscribe) {
+
+                try {
+
+                    snapshotUnsubscribe();
+
+                } catch (e) {
+
+                    console.warn(
+                        'Erreur arrêt listener:',
+                        e
+                    );
+
+                }
+
+                snapshotUnsubscribe =
+                    null;
+
+            }
+
+
+            if (!currentStudent) {
+                return;
+            }
+
+
+            const matricule =
+                currentStudent.matricule;
+
+            const studentId =
+                currentStudent.id;
+
+            const cacheKey =
+                'paiements_' +
+                studentId;
+
+
+            // ------------------------------------------------------------
+            // AFFICHAGE IMMÉDIAT DEPUIS LE CACHE
+            // ------------------------------------------------------------
+
+            const cachedTransactions =
+                CacheManager.get(
+                    cacheKey
+                );
+
+
+            if (
+                cachedTransactions &&
+                Array.isArray(cachedTransactions) &&
+                cachedTransactions.length > 0
+            ) {
+
+                allTransactions =
+                    cachedTransactions;
+
+                afficherPaiements(
+                    cachedTransactions,
+                    true
+                );
+
+                console.log(
+                    '📦 Paiements affichés depuis le cache'
+                );
+
+                updateCacheStatus(
+                    'cached',
+                    '📦 Cache (' +
+                    cachedTransactions.length +
+                    ' pay.)'
+                );
+
+            }
+
+
+            // ------------------------------------------------------------
+            // FIRESTORE TEMPS RÉEL
+            // ------------------------------------------------------------
+
+            snapshotUnsubscribe =
+                db.collection('transactions')
+                    .limit(2000)
+                    .onSnapshot(
+
+                        snapshot => {
+
+                            const transactions =
+                                [];
+
+                            let newTransactionsCount =
+                                0;
+
+
+                            snapshot.docChanges()
+                                .forEach(
+                                    change => {
+
+                                        const data =
+                                            change.doc.data();
+
+
+                                        const estConcerne =
+                                            (
+                                                data.etudiantId === matricule ||
+                                                data.etudiantMatricule === matricule ||
+                                                data.etudiantId === studentId
+                                            );
+
+
+                                        if (
+                                            estConcerne &&
+                                            change.type === 'added'
+                                        ) {
+
+                                            newTransactionsCount++;
+
+                                        }
+
+                                    }
+                                );
+
+
+                            snapshot.forEach(
+                                doc => {
+
+                                    const data =
+                                        doc.data();
+
+
+                                    const estConcerne =
+                                        (
+                                            data.etudiantId === matricule ||
+                                            data.etudiantMatricule === matricule ||
+                                            data.etudiantId === studentId
+                                        );
+
+
+                                    if (
+                                        estConcerne
+                                    ) {
+
+                                        transactions.push({
+
+                                            id: doc.id,
+
+                                            ...data
+
+                                        });
+
+                                    }
+
+                                }
+                            );
+
+
+                            // ------------------------------------------------
+                            // TRI DU PLUS RÉCENT AU PLUS ANCIEN
+                            // ------------------------------------------------
+
+                            transactions.sort(
+                                (a, b) => {
+
+                                    const dateA =
+                                        getTransactionDateValue(
+                                            a.date
+                                        );
+
+                                    const dateB =
+                                        getTransactionDateValue(
+                                            b.date
+                                        );
+
+                                    return dateB - dateA;
+
+                                }
+                            );
+
+
+                            allTransactions =
+                                transactions;
+
+
+                            // ------------------------------------------------
+                            // CACHE
+                            // ------------------------------------------------
+
+                            CacheManager.set(
+                                cacheKey,
+                                transactions,
+                                'PAIEMENTS'
+                            );
+
+
+                            // ------------------------------------------------
+                            // AFFICHAGE
+                            // ------------------------------------------------
+
+                            afficherPaiements(
+                                transactions,
+                                false
+                            );
+
+
+                            updateCacheStatus(
+                                'live',
+                                '🔄 Temps réel (' +
+                                transactions.length +
+                                ' pay.)'
+                            );
+
+
+                            // ------------------------------------------------
+                            // NOUVEAU PAIEMENT
+                            // ------------------------------------------------
+
+                            if (
+                                newTransactionsCount > 0
+                            ) {
+
+                                updateNotificationDot(
+                                    true
+                                );
+
+
+                                /*
+                                 * Le PUSH en arrière-plan est envoyé
+                                 * par le serveur / Cloud Function.
+                                 *
+                                 * Cette page ne déclenche plus elle-même
+                                 * un push FCM.
+                                 */
+
+                                if (
+                                    !document.hasFocus()
+                                ) {
+
+                                    const newTransaction =
+                                        transactions[0];
+
+                                    const newMontant =
+                                        Number(
+                                            newTransaction?.montantTotal ||
+                                            newTransaction?.montant ||
+                                            0
+                                        );
+
+
+                                    showToast(
+                                        '💳 Nouveau paiement de ' +
+                                        newMontant.toLocaleString('fr-FR') +
+                                        ' FC enregistré !',
+                                        'success'
+                                    );
+
+                                }
+
+                            }
+
+                        },
+
+                        error => {
+
+                            console.error(
+                                'Erreur écouteur paiements:',
+                                error
+                            );
+
+
+                            updateCacheStatus(
+                                'offline',
+                                '⚠️ Hors ligne'
+                            );
+
+
+                            // ------------------------------------------------
+                            // FALLBACK CACHE
+                            // ------------------------------------------------
+
+                            if (
+                                allTransactions.length === 0
+                            ) {
+
+                                const cached =
+                                    CacheManager.get(
+                                        cacheKey
+                                    );
+
+
+                                if (
+                                    cached &&
+                                    Array.isArray(cached) &&
+                                    cached.length > 0
+                                ) {
+
+                                    allTransactions =
+                                        cached;
+
+
+                                    afficherPaiements(
+                                        cached,
+                                        true
+                                    );
+
+
+                                    showToast(
+                                        'Mode hors ligne - données en cache',
+                                        'warning'
+                                    );
+
+                                } else {
+
+                                    showToast(
+                                        'Impossible de charger les paiements',
+                                        'danger'
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                    );
+
+        }
+
+
+        // ================================================================
+        // 13. PROFIL
+        // ================================================================
+
+        async function loadProfileData() {
+
+            await chargerPromotions();
+
+            const promoNom =
+                getPromotionNom(
+                    currentStudent.promotion
+                );
+
+
+            const nomElement =
+                document.getElementById(
+                    'profilNom'
+                );
+
+            const matriculeElement =
+                document.getElementById(
+                    'profilMatricule'
+                );
+
+            const promotionElement =
+                document.getElementById(
+                    'profilPromotion'
+                );
+
+
+            if (nomElement) {
+
+                nomElement.textContent =
+                    currentStudent.nom || '';
+
+            }
+
+
+            if (matriculeElement) {
+
+                matriculeElement.textContent =
+                    `Matricule: ${
+                        currentStudent.matricule || ''
+                    }`;
+
+            }
+
+
+            if (promotionElement) {
+
+                promotionElement.textContent =
+                    `Promotion: ${promoNom}`;
+
+            }
+
+        }
+
+
+        document.getElementById(
+            'profileBtn'
+        ).onclick = async () => {
+
+            try {
+
+                await loadProfileData();
+
+                document.getElementById(
+                    'profileModal'
+                ).style.display = 'flex';
+
+            } catch (error) {
+
+                console.error(
+                    'Erreur profil:',
+                    error
+                );
+
+                showToast(
+                    'Impossible de charger le profil',
+                    'danger'
+                );
+
+            }
+
+        };
+
+
+        window.closeProfileModal = () => {
+
+            document.getElementById(
+                'profileModal'
+            ).style.display = 'none';
+
+
+            document.getElementById(
+                'newPassword'
+            ).value = '';
+
+
+            document.getElementById(
+                'confirmNewPassword'
+            ).value = '';
+
+        };
+
+
+        document.getElementById(
+            'profileModal'
+        ).addEventListener(
+            'click',
+            function(e) {
+
+                if (e.target === this) {
+
+                    closeProfileModal();
+
+                }
+
+            }
+        );
+
+
+        // ================================================================
+        // 14. DÉCONNEXION
+        // ================================================================
+
+        document.getElementById(
+            'logoutBtn'
+        ).onclick = () => {
+
+            if (
+                confirm(
+                    'Voulez-vous vous déconnecter ?'
+                )
+            ) {
+
+                if (snapshotUnsubscribe) {
+
+                    try {
+                        snapshotUnsubscribe();
+                    } catch (e) {}
+
+                    snapshotUnsubscribe =
+                        null;
+
+                }
+
+
+                localStorage.removeItem(
+                    'session_etudiant'
+                );
+
+
+                window.location.href =
+                    'login-etudiant.html';
+
+            }
+
+        };
+
+
+        // ================================================================
+        // 15. ACTUALISATION
+        // ================================================================
+
+        document.getElementById(
+            'refreshBtn'
+        ).onclick = async () => {
+
+            if (!currentStudent) {
+                return;
+            }
+
+
+            showToast(
+                'Actualisation...',
+                'info'
+            );
+
+
+            const cacheKey =
+                'paiements_' +
+                currentStudent.id;
+
+
+            CacheManager.remove(
+                cacheKey
+            );
+
+
+            try {
+
+                await chargerPromotions(
+                    true
+                );
+
+                await chargerAnnees(
+                    true
+                );
+
+            } catch (error) {
+
+                console.warn(
+                    'Actualisation des référentiels:',
+                    error
+                );
+
+            }
+
+
+            setupRealtimeListener();
+
+        };
+
+
+        // ================================================================
+        // 16. CHANGEMENT MOT DE PASSE
+        // ================================================================
+
+        document.getElementById(
+            'changePasswordBtn'
+        ).onclick = async () => {
+
+            const newPwd =
+                document.getElementById(
+                    'newPassword'
+                ).value.trim();
+
+
+            const confirmPwd =
+                document.getElementById(
+                    'confirmNewPassword'
+                ).value.trim();
+
+
+            if (
+                !newPwd ||
+                !confirmPwd
+            ) {
+
+                showToast(
+                    'Veuillez remplir tous les champs',
+                    'warning'
+                );
+
+                return;
+
+            }
+
+
+            if (
+                newPwd !== confirmPwd
+            ) {
+
+                showToast(
+                    'Les mots de passe ne correspondent pas',
+                    'warning'
+                );
+
+                return;
+
+            }
+
+
+            if (
+                newPwd.length < 4
+            ) {
+
+                showToast(
+                    'Minimum 4 caractères',
+                    'warning'
+                );
+
+                return;
+
+            }
+
+
+            const button =
+                document.getElementById(
+                    'changePasswordBtn'
+                );
+
+
+            const originalText =
+                button.textContent;
+
+
+            button.disabled =
+                true;
+
+            button.textContent =
+                'Modification...';
+
+
+            try {
+
+                await db
+                    .collection('etudiants')
+                    .doc(currentStudent.id)
+                    .update({
+
+                        motDePasse:
+                            newPwd
+
+                    });
+
+
+                showToast(
+                    '✅ Mot de passe modifié',
+                    'success'
+                );
+
+
+                closeProfileModal();
+
+
+            } catch (error) {
+
+                console.error(
+                    'Erreur changement mot de passe:',
+                    error
+                );
+
+
+                showToast(
+                    '❌ Erreur: ' +
+                    (
+                        error.message ||
+                        'Modification impossible'
+                    ),
+                    'danger'
+                );
+
+
+            } finally {
+
+                button.disabled =
+                    false;
+
+                button.textContent =
+                    originalText;
+
+            }
+
+        };
+
+
+        // ================================================================
+        // 17. SERVICE WORKER CENTRALISÉ
+        // ================================================================
+
+        async function registerServiceWorker() {
+
+            try {
+
+                /*
+                 * On utilise le gestionnaire centralisé.
+                 *
+                 * notification-utils.js s'occupe de :
+                 * - enregistrer ./sw.js ;
+                 * - utiliser le scope /Espace-etudiant/ ;
+                 * - supprimer les anciennes registrations inutiles ;
+                 * - connecter Firebase Messaging au SW central.
+                 */
+
+                if (
+                    typeof window.registerAppServiceWorker ===
+                    'function'
+                ) {
+
+                    return await
+                        window.registerAppServiceWorker();
+
+                }
+
+
+                // --------------------------------------------------------
+                // FALLBACK
+                // --------------------------------------------------------
+
+                if (
+                    !('serviceWorker' in navigator)
+                ) {
+
+                    console.warn(
+                        'Service Worker non supporté'
+                    );
+
+                    return null;
+
+                }
+
+
+                const registration =
+                    await navigator.serviceWorker.register(
+                        './sw.js',
+                        {
+                            scope: '/Espace-etudiant/'
+                        }
+                    );
+
+
+                console.log(
+                    '✅ Service Worker enregistré:',
+                    registration.scope
+                );
+
+
+                return registration;
+
+
+            } catch (error) {
+
+                console.error(
+                    'Erreur Service Worker:',
+                    error
+                );
+
+                return null;
+
+            }
+
+        }
+
+
+        // ================================================================
+        // 18. INITIALISATION DES NOTIFICATIONS
+        // ================================================================
+
+        async function initialiserNotifications() {
+
+            if (
+                !currentStudent ||
+                !currentStudent.id
+            ) {
+
+                return;
+
+            }
+
+
+            try {
+
+                /*
+                 * IMPORTANT :
+                 * init() ne doit pas demander automatiquement
+                 * la permission de notification.
+                 *
+                 * La permission doit être demandée depuis une
+                 * action explicite de l'utilisateur, par exemple
+                 * depuis le bouton "Activer les notifications"
+                 * de etudiant.html.
+                 */
+
+                if (
+                    window.notificationManager &&
+                    typeof window.notificationManager.init ===
+                    'function'
+                ) {
+
+                    await window.notificationManager.init(
+
+                        currentStudent.id,
+
+                        currentStudent.nom || '',
+
+                        currentStudent.promotion || ''
+
+                    );
+
+
+                    console.log(
+                        '🔔 Gestionnaire de notifications initialisé'
+                    );
+
+                } else {
+
+                    console.warn(
+                        'notificationManager non disponible'
+                    );
+
+                }
+
+            } catch (error) {
+
+                console.warn(
+                    'Initialisation notifications:',
+                    error
+                );
+
+            }
+
+        }
+
+
+        // ================================================================
+        // 19. VISIBILITY API
+        // ================================================================
+
+        document.addEventListener(
+            'visibilitychange',
+            () => {
+
+                if (
+                    !document.hidden &&
+                    currentStudent
+                ) {
+
+                    const cacheKey =
+                        'paiements_' +
+                        currentStudent.id;
+
+
+                    /*
+                     * Correction :
+                     * l'ancien code testait CacheManager.isValid
+                     * comme une propriété inexistante.
+                     *
+                     * Maintenant isValid() est une vraie méthode.
+                     */
+
+                    if (
+                        !CacheManager.isValid(
+                            cacheKey
+                        )
+                    ) {
+
+                        setupRealtimeListener();
+
+                    }
+
+                }
+
+            }
+        );
+
+
+        // ================================================================
+        // 20. ONLINE / OFFLINE
+        // ================================================================
+
+        window.addEventListener(
+            'online',
+            () => {
+
+                updateCacheStatus(
+                    'live',
+                    '🔄 Connexion rétablie'
+                );
+
+
+                showToast(
+                    '🌐 Connexion Internet rétablie',
+                    'success'
+                );
+
+
+                if (currentStudent) {
+
+                    setupRealtimeListener();
+
+                }
+
+            }
+        );
+
+
+        window.addEventListener(
+            'offline',
+            () => {
+
+                updateCacheStatus(
+                    'offline',
+                    '⚠️ Hors ligne'
+                );
+
+
+                showToast(
+                    '📡 Mode hors ligne activé',
+                    'warning'
+                );
+
+            }
+        );
+
+
+        // ================================================================
+        // 21. NETTOYAGE À LA FERMETURE
+        // ================================================================
+
+        window.addEventListener(
+            'beforeunload',
+            () => {
+
+                if (snapshotUnsubscribe) {
+
+                    try {
+
+                        snapshotUnsubscribe();
+
+                    } catch (e) {}
+
+                }
+
+            }
+        );
+
+
+        // ================================================================
+        // 22. INITIALISATION PRINCIPALE
+        // ================================================================
+
+        async function init() {
+
+            if (!checkSession()) {
+                return;
+            }
+
+
+            console.log(
+                '🚀 Initialisation page paiements v3'
+            );
+
+
+            console.log(
+                '👤 Étudiant:',
+                currentStudent.nom
+            );
+
+
+            console.log(
+                '📦 Cache local activé'
+            );
+
+
+            CacheManager.cleanExpired();
+
+
+            // ------------------------------------------------------------
+            // RÉFÉRENTIELS
+            // ------------------------------------------------------------
+
+            await Promise.allSettled([
+
+                chargerPromotions(),
+
+                chargerAnnees()
+
+            ]);
+
+
+            // ------------------------------------------------------------
+            // SERVICE WORKER CENTRAL
+            // ------------------------------------------------------------
+
+            await registerServiceWorker();
+
+
+            // ------------------------------------------------------------
+            // NOTIFICATIONS
+            // ------------------------------------------------------------
+
+            await initialiserNotifications();
+
+
+            // ------------------------------------------------------------
+            // PAIEMENTS TEMPS RÉEL
+            // ------------------------------------------------------------
+
+            setupRealtimeListener();
+
+
+            console.log(
+                '✅ Paiements prêt - Cache + Temps réel + Notifications actifs'
+            );
+
+        }
+
+
+        // ================================================================
+        // 23. LANCEMENT
+        // ================================================================
+
+        init().catch(
+            error => {
+
+                console.error(
+                    'Erreur initialisation:',
+                    error
+                );
+
+
+                showToast(
+                    'Erreur de chargement',
+                    'danger'
+                );
+
+            }
+        );
+
+
+        // ================================================================
+        // 24. CONSOLE DE DÉBOGAGE
+        // ================================================================
+
+        console.log(
+            '%c💳 PAIEMENTS - CACHE ACTIVÉ',
+            'color:#ffb347;font-size:12px;font-weight:bold;'
+        );
+
+        console.log(
+            '%c📦 Affichage instantané depuis le cache',
+            'color:#28a745;font-size:11px;'
+        );
+
+        console.log(
+            '%c🔔 Système de notifications centralisé',
+            'color:#003366;font-size:11px;font-weight:bold;'
+        );
+
+    </script>
+
+
+    <!-- ================================================================
+         NOTIFICATION UTILITIES
+         IMPORTANT : ce fichier doit être chargé après Firebase.
+         Il utilise le Service Worker central ./sw.js.
+         ================================================================ -->
+
+    <script src="./notification-utils.js"></script>
+
+
+</body>
+</html>

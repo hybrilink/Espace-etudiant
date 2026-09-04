@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation Paiement - Faculté Agronomique</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 550px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #003366, #ffb347, #003366);
+        }
+        .icon { font-size: 72px; margin-bottom: 20px; }
+        h2 { color: #003366; margin-bottom: 10px; font-size: 24px; }
+        p { color: #666; line-height: 1.6; margin-bottom: 10px; }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 5px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background: #003366; color: white; }
+        .btn-primary:hover { background: #002244; transform: translateY(-2px); }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #1e7e34; transform: translateY(-2px); }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; transform: translateY(-2px); }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; transform: translateY(-2px); }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-warning:hover { background: #e0a800; transform: translateY(-2px); }
+        
+        .spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e0e0e0;
+            border-top-color: #003366;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            text-align: left;
+        }
+        .detail-row .label { color: #888; }
+        .detail-row .value { font-weight: bold; color: #003366; }
+        
+        .success-box { 
+            background: #d4edda; 
+            border-radius: 12px; 
+            padding: 20px; 
+            margin: 15px 0;
+            border-left: 5px solid #28a745;
+            text-align: left;
+        }
+        .success-box h4 { color: #155724; margin-bottom: 8px; }
+        .success-box p { color: #155724; margin: 0; }
+        
+        .error-box { 
+            background: #f8d7da; 
+            border-radius: 12px; 
+            padding: 20px; 
+            margin: 15px 0;
+            border-left: 5px solid #dc3545;
+            text-align: left;
+        }
+        .error-box h4 { color: #721c24; margin-bottom: 8px; }
+        .error-box p { color: #721c24; margin: 0; }
+        
+        .pending-box { 
+            background: #fff3cd; 
+            border-radius: 12px; 
+            padding: 20px; 
+            margin: 15px 0;
+            border-left: 5px solid #ffc107;
+            text-align: left;
+        }
+        .pending-box h4 { color: #856404; margin-bottom: 8px; }
+        .pending-box p { color: #856404; margin: 0; }
+        
+        .actions-container {
+            margin-top: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .hidden { display: none; }
+        
+        .logo {
+            margin-bottom: 20px;
+        }
+        .logo-text {
+            font-size: 14px;
+            color: #003366;
+            font-weight: bold;
+        }
+        
+        .timer {
+            font-size: 13px;
+            color: #888;
+            margin-top: 15px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .status-badge.success { background: #d4edda; color: #155724; }
+        .status-badge.error { background: #f8d7da; color: #721c24; }
+        .status-badge.pending { background: #fff3cd; color: #856404; }
+        
+        @media (max-width: 480px) {
+            .container { padding: 25px 20px; }
+            .icon { font-size: 56px; }
+            h2 { font-size: 20px; }
+            .btn { padding: 10px 20px; font-size: 13px; }
+            .detail-row { font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <div class="logo">
+            <div class="logo-text">🏛️ FACULTÉ AGRONOMIQUE - UNILU</div>
+            <div style="font-size: 12px; color: #888;">Paiement sécurisé via Pawapay</div>
+        </div>
+        
+        <div id="loadingState">
+            <div class="spinner"></div>
+            <h2>Traitement en cours...</h2>
+            <p>Veuillez patienter pendant la confirmation de votre paiement.</p>
+        </div>
+        
+        <div id="resultState" class="hidden">
+            <div id="resultIcon" class="icon"></div>
+            <h2 id="resultTitle"></h2>
+            <div id="resultContent"></div>
+            <div id="resultActions" class="actions-container"></div>
+            <div id="resultTimer" class="timer"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONFIGURATION FIREBASE ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
+            authDomain: "fsa-unilu.firebaseapp.com",
+            projectId: "fsa-unilu",
+            storageBucket: "fsa-unilu.firebasestorage.app",
+            messagingSenderId: "36551990738",
+            appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+        
+        // ==================== CONFIGURATION PAWAPAY ====================
+        // 🔑 VOTRE CLÉ API INTÉGRÉE
+        const PAWAPAY_CONFIG = {
+            MERCHANT_ID: "26548",
+            API_KEY: "cd50015e-5897-48aa-80fd-e82a515dca98",
+            ACCESS_TOKEN: "eyJraWQiOiIxIiwiYWxnIjoiRVMyNTYifQ.eyJ0dCI6IkFBVCIsInN1YiI6IjI2NTQ4IiwibWF2IjoiMSIsImV4cCI6MjEwMTkxNTMwOSwiaWF0IjoxNzg2Mjk2MTA5LCJwbSI6IkRBRixQQUYiLCJqdGkiOiJjZDUwMDE1ZS01ODk3LTQ4YWEtODBmZC1lODJhNTE1ZGNhOTgifQ.B-58xwEkNS2UmM3omX8SpwZMsPEF4Ly3daO4Camoea6ZRHJrt7BLaDvkJl77pMJh-16X1I4bTEcAW2HdUwepKw"
+        };
+        
+        // ==================== FONCTIONS UTILITAIRES ====================
+        function formaterMontant(montant) {
+            return `${montant.toLocaleString()} FC`;
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return '-';
+            try {
+                if (timestamp.toDate) timestamp = timestamp.toDate();
+                return timestamp.toLocaleString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch(e) { return '-'; }
+        }
+
+        function generateTransactionId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = 'TRX-';
+            for (let i = 0; i < 12; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function generateNumeroRecu() {
+            const now = new Date();
+            const date = now.getFullYear().toString().slice(-2) + 
+                        String(now.getMonth() + 1).padStart(2, '0') + 
+                        String(now.getDate()).padStart(2, '0');
+            const random = String(Math.floor(Math.random() * 9000) + 1000);
+            return `${date}-${random}`;
+        }
+
+        // ==================== AFFICHAGE DES RÉSULTATS ====================
+        function showResult(type, title, content, actions) {
+            const loadingState = document.getElementById('loadingState');
+            const resultState = document.getElementById('resultState');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultContent = document.getElementById('resultContent');
+            const resultActions = document.getElementById('resultActions');
+            const resultTimer = document.getElementById('resultTimer');
+
+            loadingState.classList.add('hidden');
+            resultState.classList.remove('hidden');
+
+            const icons = {
+                'success': '✅',
+                'error': '❌',
+                'pending': '⏳',
+                'info': 'ℹ️'
+            };
+            resultIcon.textContent = icons[type] || 'ℹ️';
+            resultTitle.textContent = title;
+            resultContent.innerHTML = content;
+            resultActions.innerHTML = actions || '';
+
+            if (type === 'success') {
+                let seconds = 10;
+                resultTimer.textContent = `Cette page se fermera automatiquement dans ${seconds} secondes...`;
+                const timerInterval = setInterval(() => {
+                    seconds--;
+                    if (seconds <= 0) {
+                        clearInterval(timerInterval);
+                        resultTimer.textContent = 'Fermeture...';
+                        window.location.href = 'etudiant.html';
+                    } else {
+                        resultTimer.textContent = `Cette page se fermera automatiquement dans ${seconds} secondes...`;
+                    }
+                }, 1000);
+            } else {
+                resultTimer.textContent = '';
+            }
+
+            const container = document.getElementById('mainContainer');
+            const colors = {
+                'success': '#28a745',
+                'error': '#dc3545',
+                'pending': '#ffc107',
+                'info': '#17a2b8'
+            };
+            container.style.borderTop = `5px solid ${colors[type] || '#003366'}`;
+        }
+
+        // ==================== CRÉER LA TRANSACTION ====================
+        async function creerTransaction(paymentId, pendingData, pawapayRef) {
+            try {
+                const transactionId = generateTransactionId();
+                const numeroRecu = generateNumeroRecu();
+                
+                const transactionData = {
+                    id: transactionId,
+                    numeroRecu: numeroRecu,
+                    paiementAttenteId: paymentId,
+                    pawapayReference: pawapayRef || null,
+                    etudiantId: pendingData.etudiantId,
+                    etudiantNom: pendingData.etudiantNom,
+                    etudiantMatricule: pendingData.etudiantMatricule,
+                    promotion: pendingData.promotion,
+                    promotionNom: pendingData.promotionNom,
+                    anneeAcademiqueId: pendingData.anneeAcademiqueId,
+                    anneeAcademiqueNom: pendingData.anneeAcademiqueNom,
+                    fiches: pendingData.fiches,
+                    montantTotal: pendingData.montantTotal,
+                    montantLettres: pendingData.montantLettres,
+                    telephone: pendingData.telephone,
+                    operateur: pendingData.operateur,
+                    status: 'confirmed',
+                    type: 'ligne',
+                    dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
+                    datePaiement: firebase.firestore.FieldValue.serverTimestamp(),
+                    comptable: null,
+                    comptableId: null,
+                    isDuplicata: false
+                };
+                
+                console.log('📝 Création de la transaction:', transactionData);
+                
+                await db.collection('transactions').doc(transactionId).set(transactionData);
+                console.log('✅ Transaction créée:', transactionId);
+                
+                await db.collection('paiements_attente').doc(paymentId).update({
+                    status: 'confirmed',
+                    transactionId: transactionId,
+                    numeroRecu: numeroRecu,
+                    pawapayReference: pawapayRef || null,
+                    datePaiement: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log('✅ Document temporaire mis à jour');
+                
+                const content = `
+                    <div class="success-box">
+                        <h4>🎉 Paiement confirmé avec succès !</h4>
+                        <p>Le montant de <strong>${formaterMontant(pendingData.montantTotal)}</strong> a été reçu sur le compte Pawapay.</p>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">N° Transaction</span>
+                        <span class="value">${transactionId}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">N° Reçu</span>
+                        <span class="value">${numeroRecu}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Montant</span>
+                        <span class="value">${formaterMontant(pendingData.montantTotal)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Étudiant</span>
+                        <span class="value">${pendingData.etudiantNom}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Matricule</span>
+                        <span class="value">${pendingData.etudiantMatricule || '-'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Promotion</span>
+                        <span class="value">${pendingData.promotionNom || '-'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Opérateur</span>
+                        <span class="value">${(pendingData.operateur || '').toUpperCase()}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Téléphone</span>
+                        <span class="value">${pendingData.telephone || '-'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Date</span>
+                        <span class="value">${formatDate(new Date())}</span>
+                    </div>
+                    <div style="margin-top: 15px; font-size: 13px; color: #666; text-align: center;">
+                        <i class="bi bi-info-circle"></i> 
+                        Un reçu a été enregistré dans votre compte.
+                    </div>
+                `;
+                
+                const actions = `
+                    <a href="etudiant.html" class="btn btn-primary">
+                        <i class="bi bi-house-door"></i> Accueil
+                    </a>
+                    <a href="mes-recus.html" class="btn btn-success">
+                        <i class="bi bi-receipt"></i> Voir mes reçus
+                    </a>
+                    <button onclick="window.print()" class="btn btn-secondary">
+                        🖨️ Imprimer
+                    </button>
+                `;
+                
+                showResult('success', '✅ Paiement confirmé !', content, actions);
+                
+                if (window.opener && !window.opener.closed) {
+                    try {
+                        window.opener.postMessage({ 
+                            type: 'PAYMENT_CONFIRMED', 
+                            paymentId: paymentId,
+                            transactionId: transactionId
+                        }, '*');
+                    } catch(e) {
+                        console.log('Impossible de notifier la fenêtre parente');
+                    }
+                }
+                
+                return { success: true, transactionId: transactionId };
+                
+            } catch (error) {
+                console.error('❌ Erreur création transaction:', error);
+                
+                try {
+                    await db.collection('paiements_attente').doc(paymentId).update({
+                        status: 'failed',
+                        erreur: 'Erreur lors de la création de la transaction: ' + error.message
+                    });
+                } catch(e) {}
+                
+                const content = `
+                    <div class="error-box">
+                        <h4>❌ Erreur lors de la création</h4>
+                        <p>${error.message}</p>
+                    </div>
+                    <p>Veuillez contacter le support technique.</p>
+                `;
+                const actions = `
+                    <a href="etudiant.html" class="btn btn-secondary">Retour à l'accueil</a>
+                    <a href="paiement-ligne.html" class="btn btn-danger">Réessayer</a>
+                `;
+                
+                showResult('error', 'Erreur', content, actions);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // ==================== ANNULER LE PAIEMENT ====================
+        async function annulerPaiement(paymentId, pendingData, raison) {
+            try {
+                await db.collection('paiements_attente').doc(paymentId).update({
+                    status: 'failed',
+                    erreur: raison || 'Paiement annulé',
+                    dateAnnulation: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                const content = `
+                    <div class="error-box">
+                        <h4>❌ Paiement annulé</h4>
+                        <p>${raison || 'Le paiement n\'a pas été confirmé.'}</p>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Référence</span>
+                        <span class="value">${paymentId}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Motif</span>
+                        <span class="value">${raison || 'Annulé par l\'utilisateur'}</span>
+                    </div>
+                `;
+                const actions = `
+                    <a href="paiement-ligne.html" class="btn btn-danger">Réessayer</a>
+                    <a href="etudiant.html" class="btn btn-secondary">Retour à l'accueil</a>
+                `;
+                
+                showResult('error', '❌ Paiement échoué', content, actions);
+                
+                if (window.opener && !window.opener.closed) {
+                    try {
+                        window.opener.postMessage({ 
+                            type: 'PAYMENT_FAILED', 
+                            paymentId: paymentId
+                        }, '*');
+                    } catch(e) {}
+                }
+                
+            } catch (error) {
+                console.error('Erreur annulation:', error);
+            }
+        }
+
+        // ==================== TRAITER LE STATUT "PENDING" ====================
+        async function traiterPending(paymentId, pendingData) {
+            const content = `
+                <div class="pending-box">
+                    <h4>⏳ En attente de confirmation</h4>
+                    <p>Le paiement est en cours de traitement. Veuillez patienter...</p>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Référence</span>
+                    <span class="value">${paymentId}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Montant</span>
+                    <span class="value">${formaterMontant(pendingData.montantTotal)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Opérateur</span>
+                    <span class="value">${(pendingData.operateur || '').toUpperCase()}</span>
+                </div>
+                <div style="margin-top: 15px;">
+                    <div class="spinner" style="width: 30px; height: 30px;"></div>
+                    <p style="color: #856404; font-size: 13px;">En attente de la confirmation Pawapay...</p>
+                </div>
+            `;
+            
+            const actions = `
+                <a href="etudiant.html" class="btn btn-secondary">Retour à l'accueil</a>
+                <button onclick="window.location.reload()" class="btn btn-warning">
+                    <i class="bi bi-arrow-repeat"></i> Rafraîchir
+                </button>
+            `;
+            
+            showResult('pending', '⏳ En attente de confirmation', content, actions);
+            
+            const unsubscribe = db.collection('paiements_attente').doc(paymentId)
+                .onSnapshot((doc) => {
+                    if (!doc.exists) return;
+                    const data = doc.data();
+                    if (data.status === 'confirmed') {
+                        unsubscribe();
+                        window.location.reload();
+                    } else if (data.status === 'failed' || data.status === 'expired') {
+                        unsubscribe();
+                        window.location.reload();
+                    }
+                });
+        }
+
+        // ==================== TRAITEMENT PRINCIPAL DU CALLBACK ====================
+        async function traiterCallback() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const paymentId = urlParams.get('reference') || urlParams.get('transactionId') || urlParams.get('paymentId');
+                const status = urlParams.get('status') || urlParams.get('result');
+                const pawapayRef = urlParams.get('transactionId') || urlParams.get('pawapayRef') || urlParams.get('reference');
+                const message = urlParams.get('message') || '';
+                
+                console.log('📥 Callback reçu:', { paymentId, status, pawapayRef, message });
+                console.log('📋 Tous les paramètres:', Object.fromEntries(urlParams.entries()));
+                
+                if (!paymentId) {
+                    const content = `
+                        <div class="error-box">
+                            <h4>❌ Erreur</h4>
+                            <p>Identifiant de paiement manquant.</p>
+                        </div>
+                        <p>Veuillez contacter le support avec la référence de votre paiement.</p>
+                    `;
+                    const actions = `
+                        <a href="etudiant.html" class="btn btn-secondary">Retour à l'accueil</a>
+                    `;
+                    showResult('error', 'Erreur', content, actions);
+                    return;
+                }
+                
+                const pendingDoc = await db.collection('paiements_attente').doc(paymentId).get();
+                
+                if (!pendingDoc.exists) {
+                    const content = `
+                        <div class="error-box">
+                            <h4>❌ Paiement non trouvé</h4>
+                            <p>Le paiement avec la référence <strong>${paymentId}</strong> n'existe pas ou a déjà été traité.</p>
+                        </div>
+                    `;
+                    const actions = `
+                        <a href="etudiant.html" class="btn btn-secondary">Retour à l'accueil</a>
+                    `;
+                    showResult('error', 'Paiement introuvable', content, actions);
+                    return;
+                }
+                
+                const pendingData = pendingDoc.data();
+                const currentStatus = pendingData.status;
+                
+                console.log('📊 Statut actuel:', currentStatus);
+                
+                if (currentStatus === 'confirmed') {
+                    const content = `
+                        <div class="success-box">
+                            <h4>✅ Paiement déjà confirmé</h4>
+                            <p>Ce paiement a déjà été validé avec succès.</p>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">N° Transaction</span>
+                            <span class="value">${pendingData.transactionId || '-'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">N° Reçu</span>
+                            <span class="value">${pendingData.numeroRecu || '-'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Montant</span>
+                            <span class="value">${formaterMontant(pendingData.montantTotal)}</span>
+                        </div>
+                    `;
+                    const actions = `
+                        <a href="etudiant.html" class="btn btn-primary">Retour à l'accueil</a>
+                        <a href="mes-recus.html" class="btn btn-success">Voir mes reçus</a>
+                    `;
+                    showResult('success', '✅ Paiement déjà confirmé', content, actions);
+                    return;
+                }
+                
+                if (currentStatus === 'failed' || currentStatus === 'expired') {
+                    const content = `
+                        <div class="error-box">
+                            <h4>❌ Paiement échoué</h4>
+                            <p>${pendingData.erreur || 'Le paiement a échoué.'}</p>
+                        </div>
+                    `;
+                    const actions = `
+                        <a href="paiement-ligne.html" class="btn btn-danger">Réessayer</a>
+                        <a href="etudiant.html" class="btn btn-secondary">Retour à l'accueil</a>
+                    `;
+                    showResult('error', 'Paiement échoué', content, actions);
+                    return;
+                }
+                
+                const statusNormalized = (status || '').toLowerCase();
+                console.log('📊 Statut normalisé:', statusNormalized);
+                
+                if (statusNormalized === 'success' || 
+                    statusNormalized === 'confirmed' || 
+                    statusNormalized === 'completed' ||
+                    statusNormalized === 'paid') {
+                    
+                    console.log('✅ Paiement confirmé par Pawapay, création de la transaction...');
+                    await creerTransaction(paymentId, pendingData, pawapayRef);
+                    
+                } else if (statusNormalized === 'failed' || 
+                          statusNormalized === 'cancelled' || 
+                          statusNormalized === 'canceled' ||
+                          statusNormalized === 'timeout' ||
+                          statusNormalized === 'error') {
+                    
+                    console.log('❌ Paiement échoué selon Pawapay');
+                    await annulerPaiement(paymentId, pendingData, message || 'Paiement annulé ou échoué');
+                    
+                } else {
+                    console.log('⚠️ Statut inconnu, maintien en attente:', status);
+                    
+                    await db.collection('paiements_attente').doc(paymentId).update({
+                        pawapayReference: pawapayRef || null,
+                        dernierStatut: status || 'unknown',
+                        pawapayStatus: status || 'unknown'
+                    });
+                    
+                    await traiterPending(paymentId, pendingData);
+                }
+                
+            } catch (error) {
+                console.error('❌ Erreur callback:', error);
+                const content = `
+                    <div class="error-box">
+                        <h4>❌ Erreur technique</h4>
+                        <p>${error.message}</p>
+                    </div>
+                    <p>Veuillez contacter le support technique.</p>
+                `;
+                const actions = `
+                    <a href="etudiant.html" class="btn btn-secondary">Retour à l'accueil</a>
+                `;
+                showResult('error', 'Erreur', content, actions);
+            }
+        }
+
+        // ==================== ÉCOUTE DES MESSAGES ====================
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'PAYMENT_CONFIRMED') {
+                console.log('📨 Message reçu de la fenêtre parente:', event.data);
+                window.location.reload();
+            }
+        });
+
+        // ==================== EXÉCUTION ====================
+        console.log('🚀 Callback Pawapay démarré');
+        console.log('📍 URL:', window.location.href);
+        console.log('🔍 Paramètres:', window.location.search);
+        console.log('🔑 API Key:', PAWAPAY_CONFIG.API_KEY);
+        
+        traiterCallback();
+    </script>
+</body>
+</html>

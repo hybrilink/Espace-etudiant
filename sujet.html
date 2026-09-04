@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mon Projet - Faculté Agronomique</title>
+    <meta name="theme-color" content="#003366">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        :root { 
+            --primary-blue: #003366; 
+            --dark-blue: #002244; 
+            --accent-yellow: #ffb347; 
+            --light-gray: #f0f2f5;
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background: var(--light-gray); 
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .navbar-custom { 
+            background: var(--primary-blue); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1rem;
+            color: white !important;
+        }
+        
+        .btn-back {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 18px;
+            border-radius: 25px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        
+        .btn-back:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateX(-3px);
+            color: white;
+        }
+        
+        .container-custom {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 15px 40px;
+        }
+        
+        .submission-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        
+        .submission-card h3 {
+            color: var(--primary-blue);
+            font-weight: 700;
+            margin-bottom: 5px;
+            font-size: 1.4rem;
+        }
+        
+        .submission-card .subtitle {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--primary-blue);
+            font-size: 0.9rem;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 12px;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.2rem rgba(0,51,102,0.15);
+        }
+        
+        .btn-submit {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn-submit:hover {
+            background: var(--dark-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,51,102,0.3);
+        }
+        
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .director-card {
+            background: linear-gradient(135deg, #1a5c2a, #0d3b17);
+            border-radius: 20px;
+            padding: 25px 30px;
+            color: white;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .director-card::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+        }
+        
+        .director-card h4 {
+            font-weight: 700;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .director-card h4 i {
+            color: var(--accent-yellow);
+        }
+        
+        .director-info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .director-info-item i {
+            color: var(--accent-yellow);
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .progress-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        
+        .progress-section h4 {
+            color: var(--primary-blue);
+            font-weight: 700;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .progress {
+            height: 30px;
+            border-radius: 15px;
+            background: #e9ecef;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        
+        .progress-bar {
+            transition: width 0.6s ease, background 0.6s ease;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+        }
+        
+        .progress-bar.stage-1 { background: #dc3545; }
+        .progress-bar.stage-2 { background: #fd7e14; }
+        .progress-bar.stage-3 { background: #ffc107; color: #333; }
+        .progress-bar.stage-4 { background: var(--success-green); }
+        
+        .btn-download-fv {
+            background: var(--success-green);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-download-fv:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40,167,69,0.3);
+        }
+        
+        .btn-download-fv:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .already-submitted-card {
+            background: #fff8e1;
+            border: 2px solid #ffcc02;
+            border-radius: 20px;
+            padding: 25px 30px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .already-submitted-card i {
+            font-size: 50px;
+            color: var(--accent-yellow);
+            margin-bottom: 10px;
+        }
+        
+        .already-submitted-card h5 {
+            color: var(--primary-blue);
+            font-weight: 700;
+        }
+        
+        .alert-info-custom {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-top: 15px;
+            color: #1565c0;
+            font-size: 0.9rem;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .loading-spinner {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #e0e0e0;
+            border-top: 5px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .container-custom {
+                padding: 15px 10px 30px;
+            }
+            .submission-card, .director-card, .progress-section {
+                padding: 20px 15px;
+                border-radius: 15px;
+            }
+            .submission-card h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-laptop-fill"></i> MON PROJET DE FIN D'ÉTUDES
+            </a>
+            <a href="etudiant.html" class="btn-back">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+    </nav>
+    
+    <div class="container-custom" id="mainContent">
+        <div id="loadingIndicator" class="text-center mt-5">
+            <div class="spinner"></div>
+            <p class="text-muted mt-3">Chargement de votre espace projet...</p>
+        </div>
+    </div>
+    
+    <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p class="mb-0" id="loadingText">Traitement en cours...</p>
+        </div>
+    </div>
+
+    <script>
+        // ==================== FIREBASE ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
+            authDomain: "fsa-unilu.firebaseapp.com",
+            projectId: "fsa-unilu",
+            storageBucket: "fsa-unilu.firebasestorage.app",
+            messagingSenderId: "36551990738",
+            appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+        };
+        
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // ==================== LISTE DES DÉPARTEMENTS ====================
+        const DEPARTEMENTS = [
+            "Agronomie Générale",
+            "Économie Agricole",
+            "Sciences du Sol",
+            "Protection des Végétaux",
+            "Zootechnie",
+            "Génie Rural"
+        ];
+        
+        // ==================== SESSION ====================
+        let currentStudent = null;
+        
+        function checkSession() {
+            const session = localStorage.getItem('session_etudiant');
+            if (!session) {
+                window.location.href = 'login-etudiant.html';
+                return false;
+            }
+            try {
+                const data = JSON.parse(session);
+                if (Date.now() > data.expires) {
+                    localStorage.removeItem('session_etudiant');
+                    window.location.href = 'login-etudiant.html';
+                    return false;
+                }
+                currentStudent = data;
+                return true;
+            } catch(e) {
+                window.location.href = 'login-etudiant.html';
+                return false;
+            }
+        }
+        
+        // ==================== FONCTIONS UTILITAIRES ====================
+        function showLoading(show, message = 'Traitement en cours...') {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+            document.getElementById('loadingText').textContent = message;
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function showToast(message, type = 'success') {
+            const existing = document.querySelector('.toast-custom');
+            if (existing) existing.remove();
+            
+            const colors = {
+                success: { bg: '#28a745', icon: 'check-circle-fill' },
+                warning: { bg: '#ffc107', icon: 'exclamation-triangle-fill', textColor: '#333' },
+                danger: { bg: '#dc3545', icon: 'x-circle-fill' },
+                info: { bg: '#17a2b8', icon: 'info-circle-fill' }
+            };
+            const config = colors[type] || colors.success;
+            const textColor = config.textColor || 'white';
+            
+            const toastHtml = `
+                <div class="toast-custom" style="position:fixed;top:20px;right:20px;z-index:10000;background:${config.bg};color:${textColor};padding:15px 20px;border-radius:12px;box-shadow:0 5px 20px rgba(0,0,0,0.2);animation:slideInRight 0.3s ease-out;max-width:350px;font-weight:500;">
+                    <i class="bi bi-${config.icon} me-2"></i>${message}
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', toastHtml);
+            setTimeout(() => {
+                const t = document.querySelector('.toast-custom');
+                if (t) t.remove();
+            }, 4000);
+        }
+        
+        function getDepartementName(deptValue) {
+            if (DEPARTEMENTS.includes(deptValue)) return deptValue;
+            return deptValue || 'Non défini';
+        }
+        
+        // ==================== DONNÉES ====================
+        let studentProject = null;
+        let directorInfo = null;
+        let allPromotions = [];
+        
+        async function loadStudentProject() {
+            try {
+                const snapshot = await db.collection('projets')
+                    .where('etudiantId', '==', currentStudent.id)
+                    .limit(1)
+                    .get();
+                
+                if (!snapshot.empty) {
+                    studentProject = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+                }
+                return studentProject;
+            } catch (error) {
+                console.error('Erreur chargement projet:', error);
+                return null;
+            }
+        }
+        
+        async function loadDirectorInfo(directorId) {
+            if (!directorId) return null;
+            try {
+                const doc = await db.collection('utilisateurs').doc(directorId).get();
+                if (doc.exists) {
+                    directorInfo = { id: doc.id, ...doc.data() };
+                    return directorInfo;
+                }
+                return null;
+            } catch (error) {
+                console.error('Erreur chargement directeur:', error);
+                return null;
+            }
+        }
+        
+        async function loadPromotions() {
+            try {
+                const snapshot = await db.collection('promotions').get();
+                allPromotions = [];
+                snapshot.forEach(doc => {
+                    allPromotions.push({ id: doc.id, ...doc.data() });
+                });
+                return allPromotions;
+            } catch (error) {
+                console.error('Erreur chargement promotions:', error);
+                return [];
+            }
+        }
+        
+        function getPromotionName(promotionId) {
+            if (!promotionId) return 'Non définie';
+            const promo = allPromotions.find(p => p.id === promotionId);
+            return promo ? promo.nom : promotionId;
+        }
+        
+        // ==================== AFFICHAGE ====================
+        function renderSubmissionForm() {
+            let options = '<option value="">-- Sélectionnez un département --</option>';
+            DEPARTEMENTS.forEach(dept => {
+                options += `<option value="${dept}">${dept}</option>`;
+            });
+            
+            return `
+                <div class="submission-card">
+                    <h3><i class="bi bi-pencil-square me-2"></i>Soumission du Sujet de Projet</h3>
+                    <p class="subtitle">Veuillez remplir ce formulaire pour soumettre votre sujet de projet de fin d'études. <strong>Cette action est irréversible.</strong></p>
+                    
+                    <div class="alert-info-custom mb-3">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Important :</strong> Vous ne pourrez soumettre votre sujet qu'une seule fois. Assurez-vous que toutes les informations sont correctes avant de valider.
+                    </div>
+                    
+                    <form id="projectForm">
+                        <div class="mb-3">
+                            <label for="departement" class="form-label">
+                                <i class="bi bi-building me-1"></i> Département *
+                            </label>
+                            <select class="form-select" id="departement" required>
+                                ${options}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="sujetProjet" class="form-label">
+                                <i class="bi bi-journal-text me-1"></i> Sujet de votre projet *
+                            </label>
+                            <textarea class="form-control" id="sujetProjet" rows="6" 
+                                placeholder="Décrivez votre sujet de projet en détail..." 
+                                required minlength="20"></textarea>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i> Minimum 20 caractères. Soyez précis dans la description de votre sujet.
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn-submit" id="submitBtn">
+                            <i class="bi bi-send-fill me-2"></i> Soumettre mon sujet
+                        </button>
+                    </form>
+                </div>
+            `;
+        }
+        
+        function renderSubmittedProject() {
+            const deptName = getDepartementName(studentProject.departementId);
+            const promotionName = getPromotionName(studentProject.promotion || currentStudent.promotion);
+            
+            let html = `
+                <div class="already-submitted-card">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <h5>Votre sujet a été soumis avec succès</h5>
+                    <p class="text-muted mb-0">Soumis le : ${studentProject.dateSoumission ? new Date(studentProject.dateSoumission.toDate ? studentProject.dateSoumission.toDate() : studentProject.dateSoumission).toLocaleDateString('fr-FR') : 'Date inconnue'}</p>
+                </div>
+                
+                <div class="submission-card">
+                    <h3><i class="bi bi-file-text-fill me-2"></i>Détails de votre sujet</h3>
+                    <hr>
+                    <p><strong><i class="bi bi-building me-2"></i>Département :</strong> ${escapeHtml(deptName)}</p>
+                    <p><strong><i class="bi bi-mortarboard-fill me-2"></i>Promotion :</strong> ${escapeHtml(promotionName)}</p>
+                    <p><strong><i class="bi bi-journal-text me-2"></i>Sujet :</strong></p>
+                    <div style="background:#f8f9fa;padding:15px;border-radius:10px;border-left:4px solid var(--primary-blue);margin-bottom:15px;">
+                        ${escapeHtml(studentProject.sujet)}
+                    </div>
+                    ${studentProject.sujetReformule ? `
+                        <p><strong><i class="bi bi-pencil-square me-2"></i>Sujet reformulé par le directeur :</strong></p>
+                        <div style="background:#fff8e1;padding:15px;border-radius:10px;border-left:4px solid var(--accent-yellow);margin-bottom:15px;">
+                            ${escapeHtml(studentProject.sujetReformule)}
+                        </div>
+                    ` : ''}
+                    <p><strong><i class="bi bi-calendar-check me-2"></i>Date de soumission :</strong> ${studentProject.dateSoumission ? new Date(studentProject.dateSoumission.toDate ? studentProject.dateSoumission.toDate() : studentProject.dateSoumission).toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'}) : 'N/A'}</p>
+                </div>
+            `;
+            
+            // Section Directeur
+            if (directorInfo) {
+                html += `
+                    <div class="director-card">
+                        <h4><i class="bi bi-person-badge-fill me-2"></i>Votre Directeur de Projet</h4>
+                        <div class="director-info-item">
+                            <i class="bi bi-person-fill"></i>
+                            <span>${escapeHtml(directorInfo.nomComplet || directorInfo.nom || 'Non renseigné')}</span>
+                        </div>
+                        <div class="director-info-item">
+                            <i class="bi bi-envelope-fill"></i>
+                            <span>${escapeHtml(directorInfo.email || 'Non renseigné')}</span>
+                        </div>
+                        <div class="director-info-item">
+                            <i class="bi bi-telephone-fill"></i>
+                            <span>${escapeHtml(directorInfo.telephone || 'Non renseigné')}</span>
+                        </div>
+                        ${directorInfo.departement ? `
+                        <div class="director-info-item">
+                            <i class="bi bi-building"></i>
+                            <span>Département: ${escapeHtml(directorInfo.departement)}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            } else if (studentProject.directeurId) {
+                html += `
+                    <div class="director-card" style="background: linear-gradient(135deg, #6c757d, #495057);">
+                        <h4><i class="bi bi-hourglass-split me-2"></i>Directeur en attente d'assignation</h4>
+                        <p class="mb-0 opacity-75">Un directeur vous sera assigné prochainement.</p>
+                    </div>
+                `;
+            }
+            
+            // Section Progression Feu Vert (SANS les indicateurs d'étapes en dessous)
+            const etape = studentProject.etape || 0;
+            const pourcentage = etape * 25;
+            let stageClass = '';
+            if (pourcentage <= 25) stageClass = 'stage-1';
+            else if (pourcentage <= 50) stageClass = 'stage-2';
+            else if (pourcentage <= 75) stageClass = 'stage-3';
+            else stageClass = 'stage-4';
+            
+            html += `
+                <div class="progress-section">
+                    <h4><i class="bi bi-bar-chart-fill me-2"></i>Progression Feu Vert</h4>
+                    <div class="progress">
+                        <div class="progress-bar ${stageClass}" role="progressbar" 
+                             style="width: ${pourcentage}%;" 
+                             aria-valuenow="${pourcentage}" aria-valuemin="0" aria-valuemax="100">
+                            ${pourcentage}%
+                        </div>
+                    </div>
+                    
+                    ${pourcentage === 100 ? `
+                        <div class="mt-4 text-center">
+                            <div class="alert alert-success" style="border-radius:12px;">
+                                <i class="bi bi-trophy-fill me-2"></i>
+                                <strong>Félicitations !</strong> Votre projet a obtenu le Feu Vert !
+                            </div>
+                            <button class="btn-download-fv" onclick="downloadFeuVert()">
+                                <i class="bi bi-download"></i> Télécharger le Feu Vert (PDF)
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="alert-info-custom mt-3">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            Votre directeur validera chaque étape. Le bouton de téléchargement apparaîtra lorsque vous atteindrez 100%.
+                        </div>
+                    `}
+                </div>
+            `;
+            
+            return html;
+        }
+        
+        async function renderPage() {
+            const container = document.getElementById('mainContent');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+            
+            // Charger les promotions pour résoudre les noms
+            await loadPromotions();
+            
+            // Charger le projet existant
+            await loadStudentProject();
+            
+            if (studentProject) {
+                // Charger les infos du directeur si assigné
+                if (studentProject.directeurId) {
+                    await loadDirectorInfo(studentProject.directeurId);
+                }
+                container.innerHTML = renderSubmittedProject();
+            } else {
+                container.innerHTML = renderSubmissionForm();
+                setupFormListener();
+            }
+        }
+        
+        function setupFormListener() {
+            const form = document.getElementById('projectForm');
+            if (!form) return;
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const departement = document.getElementById('departement').value;
+                const sujet = document.getElementById('sujetProjet').value.trim();
+                
+                if (!departement) {
+                    showToast('Veuillez sélectionner un département', 'warning');
+                    return;
+                }
+                
+                if (!sujet || sujet.length < 20) {
+                    showToast('Le sujet doit contenir au moins 20 caractères', 'warning');
+                    return;
+                }
+                
+                // Confirmation
+                if (!confirm('⚠️ ATTENTION : Cette action est IRRÉVERSIBLE.\n\nUne fois soumis, vous ne pourrez plus modifier votre sujet.\n\nÊtes-vous sûr de vouloir continuer ?')) {
+                    return;
+                }
+                
+                showLoading(true, 'Soumission de votre sujet...');
+                
+                try {
+                    const projectData = {
+                        etudiantId: currentStudent.id,
+                        etudiantNom: currentStudent.nom || '',
+                        etudiantMatricule: currentStudent.matricule || '',
+                        promotion: currentStudent.promotion || '',
+                        departementId: departement,
+                        sujet: sujet,
+                        dateSoumission: firebase.firestore.FieldValue.serverTimestamp(),
+                        directeurId: null,
+                        etape: 0,
+                        statut: 'soumis'
+                    };
+                    
+                    const docRef = await db.collection('projets').add(projectData);
+                    
+                    showLoading(false);
+                    showToast('✅ Votre sujet a été soumis avec succès !', 'success');
+                    
+                    // Recharger la page après 1.5s
+                    setTimeout(() => {
+                        studentProject = { id: docRef.id, ...projectData };
+                        renderPage();
+                    }, 1500);
+                    
+                } catch (error) {
+                    showLoading(false);
+                    console.error('Erreur soumission:', error);
+                    showToast('❌ Erreur lors de la soumission : ' + error.message, 'danger');
+                }
+            });
+        }
+        
+        // ==================== TÉLÉCHARGEMENT FEU VERT ====================
+        async function downloadFeuVert() {
+            if (!studentProject || studentProject.etape < 4) {
+                showToast('Le feu vert n\'est pas encore disponible', 'warning');
+                return;
+            }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Charger les logos en base64
+            const logoLeft = await loadImageAsBase64('ti.png');
+            const logoRight = await loadImageAsBase64('th.png');
+            
+            // En-tête avec logos
+            // Logo gauche
+            if (logoLeft) {
+                doc.addImage(logoLeft, 'PNG', 10, 5, 25, 25);
+            }
+            
+            // Logo droit
+            if (logoRight) {
+                doc.addImage(logoRight, 'PNG', 175, 5, 25, 25);
+            }
+            
+            // Bande de titre
+            doc.setFillColor(0, 51, 102);
+            doc.rect(0, 32, 210, 22, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text('FEU VERT - PROJET DE FIN D\'ÉTUDES', 105, 46, { align: 'center' });
+            
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Faculté des Sciences Agronomiques - UNILU', 105, 52, { align: 'center' });
+            
+            // Corps
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(12);
+            
+            let y = 62;
+            const lineHeight = 8;
+            
+            // Informations étudiant
+            doc.setFillColor(240, 242, 245);
+            doc.rect(15, y - 5, 180, 8, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(13);
+            doc.text('INFORMATIONS DE L\'ÉTUDIANT', 20, y);
+            y += 12;
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+            doc.text(`Nom complet : ${currentStudent.nom || 'N/A'}`, 25, y); y += lineHeight;
+            doc.text(`Matricule : ${currentStudent.matricule || 'N/A'}`, 25, y); y += lineHeight;
+            
+            const promotionName = getPromotionName(studentProject.promotion || currentStudent.promotion);
+            doc.text(`Promotion : ${promotionName}`, 25, y); y += lineHeight + 5;
+            
+            // Informations projet
+            doc.setFillColor(240, 242, 245);
+            doc.rect(15, y - 5, 180, 8, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(13);
+            doc.text('DÉTAILS DU PROJET', 20, y);
+            y += 12;
+            
+            const deptName = getDepartementName(studentProject.departementId);
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+            doc.text(`Département : ${deptName}`, 25, y); y += lineHeight;
+            
+            // Sujet (avec gestion du texte long)
+            doc.text('Sujet du projet :', 25, y); y += lineHeight;
+            const sujet = studentProject.sujetReformule || studentProject.sujet;
+            const splitSujet = doc.splitTextToSize(sujet, 160);
+            doc.setFontSize(10);
+            doc.text(splitSujet, 30, y);
+            y += (splitSujet.length * 7) + 5;
+            
+            // Directeur
+            if (directorInfo) {
+                doc.setFillColor(240, 242, 245);
+                doc.rect(15, y - 5, 180, 8, 'F');
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(13);
+                doc.text('DIRECTEUR DE PROJET', 20, y);
+                y += 12;
+                
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(11);
+                doc.text(`Nom : ${directorInfo.nomComplet || 'N/A'}`, 25, y); y += lineHeight;
+                doc.text(`Email : ${directorInfo.email || 'N/A'}`, 25, y); y += lineHeight;
+                if (directorInfo.telephone) {
+                    doc.text(`Téléphone : ${directorInfo.telephone}`, 25, y); y += lineHeight;
+                }
+                if (directorInfo.departement) {
+                    doc.text(`Département : ${directorInfo.departement}`, 25, y); y += lineHeight;
+                }
+                y += 5;
+            }
+            
+            // Validation Feu Vert
+            doc.setFillColor(40, 167, 69);
+            doc.rect(15, y, 180, 28, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text('FEU VERT ACCORDÉ', 105, y + 13, { align: 'center' });
+            doc.setFontSize(11);
+            doc.text('Progression : 100% - Toutes les étapes validées', 105, y + 22, { align: 'center' });
+            
+            // Pied de page
+            y = 275;
+            doc.setTextColor(128, 128, 128);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Document généré par HYBRILINK-TECH - Faculté des Sciences Agronomiques', 105, y, { align: 'center' });
+            y += 5;
+            doc.text(`Date d'émission : ${new Date().toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'})}`, 105, y, { align: 'center' });
+            
+            doc.save(`Feu_Vert_${currentStudent.matricule || 'etudiant'}.pdf`);
+            showToast('✅ Feu Vert téléchargé avec succès !', 'success');
+        }
+        
+        // Fonction pour charger une image en base64
+        function loadImageAsBase64(url) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    resolve(canvas.toDataURL('image/png'));
+                };
+                img.onerror = function() {
+                    console.warn(`Logo non trouvé : ${url}`);
+                    resolve(null);
+                };
+                img.src = url;
+            });
+        }
+        
+        // ==================== INITIALISATION ====================
+        async function init() {
+            if (!checkSession()) return;
+            console.log('🚀 Page Projet Étudiant - Initialisation');
+            console.log('👤 Étudiant:', currentStudent.nom);
+            console.log('📋 Départements disponibles:', DEPARTEMENTS);
+            
+            // Ajouter le style d'animation pour les toasts
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideInRight {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            await renderPage();
+            
+            // Écouter les changements en temps réel sur le projet
+            const snapshot = await db.collection('projets')
+                .where('etudiantId', '==', currentStudent.id)
+                .limit(1)
+                .get();
+            
+            if (!snapshot.empty) {
+                const projectId = snapshot.docs[0].id;
+                db.collection('projets').doc(projectId).onSnapshot(async (doc) => {
+                    if (doc.exists) {
+                        const oldEtape = studentProject ? studentProject.etape : 0;
+                        const oldDirecteurId = studentProject ? studentProject.directeurId : null;
+                        
+                        studentProject = { id: doc.id, ...doc.data() };
+                        
+                        // Si l'étape a changé
+                        if (studentProject.etape !== oldEtape) {
+                            const newPourcentage = studentProject.etape * 25;
+                            showToast(`🎉 Progression mise à jour : ${newPourcentage}% - ${studentProject.etape >= 4 ? 'Feu Vert obtenu !' : 'Étape ' + studentProject.etape + ' validée'}`, 'info');
+                            renderPage();
+                        }
+                        
+                        // Si le directeur a changé
+                        if (studentProject.directeurId !== oldDirecteurId && studentProject.directeurId) {
+                            await loadDirectorInfo(studentProject.directeurId);
+                            showToast('👨‍🏫 Un directeur de projet vous a été assigné !', 'info');
+                            renderPage();
+                        }
+                    }
+                }, (error) => {
+                    console.error('Erreur écoute projet:', error);
+                });
+            }
+            
+            console.log('✅ Page Projet Étudiant prête');
+        }
+        
+        init();
+    </script>
+</body>
+</html>
