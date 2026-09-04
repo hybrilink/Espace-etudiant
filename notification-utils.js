@@ -15,7 +15,8 @@ const FSA_APP_SCOPE = '/Espace-etudiant/';
 const FSA_VAPID_KEY =
     'BNDQ5l-Vf4yBzUl6wAZ0gBurHoJQG78zf173r-jsOderVcWBor0LjEsqzr11FegBTpRH-O-pb7xXzSTO00xMRP0';
 
-const FSA_SW_PATH = '/sw.js';
+// ✅ CORRECTION : Chemin relatif pour que le SW soit trouvé
+const FSA_SW_PATH = '/Espace-etudiant/sw.js';
 
 const FSA_FCM_TOKEN_KEY = 'fsa_fcm_token';
 const FSA_FCM_USER_KEY = 'fsa_fcm_user';
@@ -66,6 +67,16 @@ class NotificationManager {
 
         try {
 
+            console.log('[FSA-NOTIF] 🔍 Recherche du Service Worker...');
+            console.log('[FSA-NOTIF] 📁 Chemin SW:', FSA_SW_PATH);
+            console.log('[FSA-NOTIF] 📁 Scope:', FSA_APP_SCOPE);
+
+            /*
+             * Nettoyer d'abord les anciens SW.
+             */
+
+            await this.nettoyerAnciensServiceWorkers();
+
             /*
              * Chercher d'abord une registration
              * appartenant exactement à notre application.
@@ -89,6 +100,8 @@ class NotificationManager {
                     registration.installing?.scriptURL ||
                     '';
 
+                console.log('[FSA-NOTIF] 📋 SW existant trouvé:', scriptURL);
+
                 /*
                  * Si un ancien firebase-messaging-sw.js
                  * contrôle encore cette portée, on le retire.
@@ -110,6 +123,20 @@ class NotificationManager {
                     registration = null;
                 }
 
+                /*
+                 * Si ce n'est pas notre sw.js, on le remplace.
+                 */
+
+                if (registration && scriptURL && !scriptURL.includes('/sw.js')) {
+
+                    console.log(
+                        '[FSA-NOTIF] SW différent détecté, réenregistrement...'
+                    );
+
+                    await registration.unregister();
+
+                    registration = null;
+                }
             }
 
             /*
@@ -117,6 +144,8 @@ class NotificationManager {
              */
 
             if (!registration) {
+
+                console.log('[FSA-NOTIF] 📝 Enregistrement du SW...');
 
                 registration =
                     await navigator.serviceWorker.register(
@@ -127,7 +156,7 @@ class NotificationManager {
                     );
 
                 console.log(
-                    '[FSA-NOTIF] Service Worker enregistré :',
+                    '[FSA-NOTIF] ✅ Service Worker enregistré :',
                     registration.scope
                 );
             }
@@ -141,14 +170,19 @@ class NotificationManager {
             this.serviceWorkerRegistration =
                 registration;
 
+            console.log('[FSA-NOTIF] ✅ Service Worker prêt');
+
             return registration;
 
         } catch (error) {
 
             console.error(
-                '[FSA-NOTIF] Erreur Service Worker :',
+                '[FSA-NOTIF] ❌ Erreur Service Worker :',
                 error
             );
+
+            console.error('  - Message:', error.message);
+            console.error('  - Stack:', error.stack);
 
             return null;
         }
@@ -194,7 +228,7 @@ class NotificationManager {
                 ) {
 
                     console.log(
-                        '[FSA-NOTIF] Suppression ancien firebase-messaging-sw.js'
+                        '[FSA-NOTIF] 🗑️ Suppression ancien firebase-messaging-sw.js'
                     );
 
                     await registration.unregister();
@@ -213,7 +247,7 @@ class NotificationManager {
                 ) {
 
                     console.log(
-                        '[FSA-NOTIF] Suppression ancienne portée FCM'
+                        '[FSA-NOTIF] 🗑️ Suppression ancienne portée FCM'
                     );
 
                     await registration.unregister();
@@ -236,7 +270,7 @@ class NotificationManager {
                 ) {
 
                     console.log(
-                        '[FSA-NOTIF] Suppression ancien SW racine'
+                        '[FSA-NOTIF] 🗑️ Suppression ancien SW racine'
                     );
 
                     await registration.unregister();
@@ -279,6 +313,8 @@ class NotificationManager {
 
             this.messaging =
                 firebase.messaging();
+
+            console.log('[FSA-NOTIF] ✅ Firebase Messaging initialisé');
 
             return this.messaging;
 
@@ -325,6 +361,8 @@ class NotificationManager {
         this.promotion =
             promotion || '';
 
+        console.log('[FSA-NOTIF] 🔔 Initialisation pour:', this.etudiantId);
+
         /*
          * Nettoyer les anciennes registrations.
          */
@@ -339,6 +377,8 @@ class NotificationManager {
             await this.getServiceWorkerRegistration();
 
         if (!registration) {
+
+            console.error('[FSA-NOTIF] ❌ Impossible d\'obtenir le SW');
             return null;
         }
 
@@ -352,6 +392,8 @@ class NotificationManager {
         }
 
         if (!this.messaging) {
+
+            console.error('[FSA-NOTIF] ❌ Firebase Messaging non disponible');
             return null;
         }
 
@@ -368,6 +410,7 @@ class NotificationManager {
             Notification.permission === 'granted'
         ) {
 
+            console.log('[FSA-NOTIF] ✅ Permission déjà accordée, enregistrement...');
             return await this.registerToken(
                 etudiantNom,
                 promotion,
@@ -400,6 +443,8 @@ class NotificationManager {
 
         this.isInitialized = true;
 
+        console.log('[FSA-NOTIF] ⏳ En attente de permission utilisateur');
+
         return null;
     }
 
@@ -431,6 +476,8 @@ class NotificationManager {
         this.promotion =
             promotion || '';
 
+        console.log('[FSA-NOTIF] 🔔 Demande de permission pour:', this.etudiantId);
+
         /*
          * Vérification de la compatibilité.
          */
@@ -457,15 +504,6 @@ class NotificationManager {
             return null;
         }
 
-        /*
-         * Certaines versions d'iOS nécessitent
-         * que l'application soit installée sur l'écran
-         * d'accueil pour les notifications Web Push.
-         *
-         * On laisse toutefois le navigateur gérer
-         * la demande de permission.
-         */
-
         try {
 
             /*
@@ -478,6 +516,8 @@ class NotificationManager {
                 await this.getServiceWorkerRegistration();
 
             if (!registration) {
+
+                console.error('[FSA-NOTIF] ❌ SW non disponible');
                 return null;
             }
 
@@ -490,6 +530,8 @@ class NotificationManager {
             }
 
             if (!this.messaging) {
+
+                console.error('[FSA-NOTIF] ❌ Firebase Messaging non disponible');
                 return null;
             }
 
@@ -500,12 +542,18 @@ class NotificationManager {
             let permission =
                 Notification.permission;
 
+            console.log('[FSA-NOTIF] 📋 Permission actuelle:', permission);
+
             if (
                 permission === 'default'
             ) {
 
+                console.log('[FSA-NOTIF] 🔔 Demande de permission...');
+
                 permission =
                     await Notification.requestPermission();
+
+                console.log('[FSA-NOTIF] 📋 Nouvelle permission:', permission);
             }
 
             /*
@@ -517,7 +565,7 @@ class NotificationManager {
             ) {
 
                 console.warn(
-                    '[FSA-NOTIF] Permission notifications :',
+                    '[FSA-NOTIF] Permission notifications refusée :',
                     permission
                 );
 
@@ -530,6 +578,8 @@ class NotificationManager {
              * Permission accordée.
              */
 
+            console.log('[FSA-NOTIF] ✅ Permission accordée, enregistrement...');
+
             return await this.registerToken(
                 etudiantNom,
                 promotion,
@@ -539,7 +589,7 @@ class NotificationManager {
         } catch (error) {
 
             console.error(
-                '[FSA-NOTIF] Erreur demande permission :',
+                '[FSA-NOTIF] ❌ Erreur demande permission :',
                 error
             );
 
@@ -579,6 +629,8 @@ class NotificationManager {
                 return null;
             }
 
+            console.log('[FSA-NOTIF] 📝 Enregistrement du token pour:', this.etudiantId);
+
             /*
              * Vérifier Notification API.
              */
@@ -601,6 +653,8 @@ class NotificationManager {
             let permission =
                 Notification.permission;
 
+            console.log('[FSA-NOTIF] 📋 Permission:', permission);
+
             if (
                 requestPermission &&
                 permission === 'default'
@@ -614,6 +668,7 @@ class NotificationManager {
                 permission !== 'granted'
             ) {
 
+                console.warn('[FSA-NOTIF] ⚠️ Permission non accordée');
                 return null;
             }
 
@@ -625,6 +680,8 @@ class NotificationManager {
                 await this.getServiceWorkerRegistration();
 
             if (!registration) {
+
+                console.error('[FSA-NOTIF] ❌ SW non disponible');
                 return null;
             }
 
@@ -638,6 +695,8 @@ class NotificationManager {
             }
 
             if (!this.messaging) {
+
+                console.error('[FSA-NOTIF] ❌ Firebase Messaging non disponible');
                 return null;
             }
 
@@ -647,6 +706,8 @@ class NotificationManager {
              * IMPORTANT :
              * On fournit explicitement notre SW principal.
              */
+
+            console.log('[FSA-NOTIF] 🔑 Demande du token FCM...');
 
             const token =
                 await this.messaging.getToken({
@@ -665,6 +726,8 @@ class NotificationManager {
             }
 
             this.token = token;
+
+            console.log('[FSA-NOTIF] ✅ Token FCM obtenu:', token.substring(0, 20) + '...');
 
             /*
              * Sauvegarder localement.
@@ -705,7 +768,7 @@ class NotificationManager {
             this.isInitialized = true;
 
             console.log(
-                '[FSA-NOTIF] Token FCM enregistré avec succès'
+                '[FSA-NOTIF] ✅ Token FCM enregistré avec succès'
             );
 
             return token;
@@ -713,9 +776,12 @@ class NotificationManager {
         } catch (error) {
 
             console.error(
-                '[FSA-NOTIF] Erreur enregistrement token :',
+                '[FSA-NOTIF] ❌ Erreur enregistrement token :',
                 error
             );
+
+            console.error('  - Message:', error.message);
+            console.error('  - Stack:', error.stack);
 
             return null;
 
@@ -753,6 +819,8 @@ class NotificationManager {
 
                 return false;
             }
+
+            console.log('[FSA-NOTIF] 💾 Sauvegarde du token dans Firestore...');
 
             const tokenRef =
                 db.collection('fcmTokens')
@@ -803,7 +871,7 @@ class NotificationManager {
             );
 
             console.log(
-                '[FSA-NOTIF] Token sauvegardé dans Firestore'
+                '[FSA-NOTIF] ✅ Token sauvegardé dans Firestore'
             );
 
             return true;
@@ -811,7 +879,7 @@ class NotificationManager {
         } catch (error) {
 
             console.error(
-                '[FSA-NOTIF] Erreur sauvegarde Firestore :',
+                '[FSA-NOTIF] ❌ Erreur sauvegarde Firestore :',
                 error
             );
 
@@ -851,7 +919,7 @@ class NotificationManager {
                 payload => {
 
                     console.log(
-                        '[FSA-NOTIF] Notification au premier plan :',
+                        '[FSA-NOTIF] 📨 Notification au premier plan :',
                         payload
                     );
 
@@ -932,10 +1000,12 @@ class NotificationManager {
             this.foregroundListenerAttached =
                 true;
 
+            console.log('[FSA-NOTIF] ✅ Listener foreground installé');
+
         } catch (error) {
 
             console.error(
-                '[FSA-NOTIF] Impossible d'installer le listener foreground :',
+                '[FSA-NOTIF] ❌ Impossible d\'installer le listener foreground :',
                 error
             );
         }
@@ -1565,5 +1635,5 @@ document.addEventListener(
 // ================================================================
 
 console.log(
-    '[FSA-NOTIF] notification-utils.js chargé'
+    '[FSA-NOTIF] ✅ notification-utils.js chargé'
 );
