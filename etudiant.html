@@ -1022,10 +1022,31 @@
                 </div>
             </div>
 
-        </div>
-    </div>
-</div>
+            <!-- ====================================================
+                 CARTE IA FSA - MÊME DESIGN, PLACÉE À LA FIN
+            ===================================================== -->
 
+            <div
+                class="menu-card"
+                data-page="ia"
+                id="iaCard"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-robot"></i>
+                </div>
+
+                <div class="menu-title">
+                    IA FSA
+                </div>
+
+                <div class="menu-subtitle">
+                    Assistant intelligent
+                </div>
+            </div>
+
+        </div> <!-- Fin de menu-grid -->
+    </div> <!-- Fin de homePage -->
+</div> <!-- Fin de container -->
 <!-- ================================================================
      MODAL PROFIL
 ================================================================ -->
@@ -1090,6 +1111,7 @@
 
         </div>
     </div>
+
 </div>
 
 <!-- ================================================================
@@ -2955,6 +2977,60 @@ document
 
                     window.location.href =
                         'paiement-ligne.html';
+
+                    return;
+                }
+
+                /*
+                 * Toutes les autres pages.
+                 */
+                window.location.href =
+                    `${page}.html`;
+            }
+        );
+    });
+
+/* ================================================================
+   NAVIGATION - AVEC IA
+================================================================ */
+
+document
+    .querySelectorAll('.menu-card')
+    .forEach(card => {
+
+        card.addEventListener(
+            'click',
+            function () {
+
+                const page =
+                    this.dataset.page;
+
+                if (!page) {
+                    return;
+                }
+
+                /*
+                 * Paiement en ligne
+                 */
+                if (
+                    page === 'paiement-ligne'
+                ) {
+
+                    window.location.href =
+                        'paiement-ligne.html';
+
+                    return;
+                }
+
+                /*
+                 * IA FSA - redirection vers ia.html
+                 */
+                if (
+                    page === 'ia'
+                ) {
+
+                    window.location.href =
+                        'ia.html';
 
                     return;
                 }
