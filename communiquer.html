@@ -24,9 +24,22 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 
     <!-- ================================================================ -->
-    <!-- GESTIONNAIRE CENTRALISÉ -->
+    <!-- ERUDA - CONSOLE SUR LE TELEPHONE -->
     <!-- ================================================================ -->
-    <script src="notification-utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>
+        if (window.eruda) {
+            eruda.init();
+            console.log('✅ Eruda console activée');
+        } else {
+            document.addEventListener('DOMContentLoaded', function () {
+                if (window.eruda) {
+                    eruda.init();
+                    console.log('✅ Eruda console activée');
+                }
+            });
+        }
+    </script>
 
     <style>
         * {
@@ -95,9 +108,17 @@
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(220,53,69,0.7); }
-            70% { box-shadow: 0 0 0 8px rgba(220,53,69,0); }
-            100% { box-shadow: 0 0 0 0 rgba(220,53,69,0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(220,53,69,0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 8px rgba(220,53,69,0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(220,53,69,0);
+            }
         }
 
         .page-header {
@@ -128,6 +149,20 @@
             background: var(--dark-blue);
             transform: translateY(-2px);
             color: white;
+        }
+
+        .btn-refresh {
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-refresh:hover {
+            background: #ff9800;
         }
 
         .content-card {
@@ -161,8 +196,13 @@
         }
 
         @keyframes highlightPulse {
-            0% { background: #fff3e0; }
-            100% { background: white; }
+            0% {
+                background: #fff3e0;
+            }
+
+            100% {
+                background: white;
+            }
         }
 
         .communique-title {
@@ -190,8 +230,13 @@
         }
 
         @keyframes blink {
-            0%,100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%,100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
         }
 
         .communique-content {
@@ -277,8 +322,15 @@
         }
 
         @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         .profile-modal {
@@ -304,8 +356,15 @@
         }
 
         @keyframes modalFadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .btn-action {
@@ -334,54 +393,35 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .offline-badge {
             position: fixed;
             bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
+            left: 20px;
+            background: rgba(0,0,0,0.7);
             color: var(--accent-yellow);
-            padding: 6px 16px;
+            padding: 5px 12px;
             border-radius: 20px;
             font-size: 11px;
             display: none;
             z-index: 100;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
         .offline-badge.show {
             display: flex;
             align-items: center;
-            gap: 8px;
-        }
-
-        .offline-badge .pulse-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--accent-yellow);
-            border-radius: 50%;
-            animation: pulse-dot-offline 1.5s infinite;
-        }
-
-        @keyframes pulse-dot-offline {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.3; transform: scale(0.8); }
+            gap: 5px;
         }
 
         .cache-status {
             font-size: 10px;
             color: #888;
-            padding: 5px 10px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
+            text-align: right;
+            padding: 5px 0;
         }
 
         .cache-status .cached {
@@ -394,11 +434,6 @@
 
         .cache-status .offline {
             color: #dc3545;
-        }
-
-        .cache-status .syncing {
-            color: #17a2b8;
-            animation: spin 1s linear infinite;
         }
 
         .notification-permission-card {
@@ -426,77 +461,30 @@
             margin-bottom: 10px;
         }
 
-        /* Barre de progression de synchronisation */
-        .sync-progress {
-            display: none;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-blue), var(--accent-yellow));
-            width: 0%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 9999;
-            transition: width 0.3s ease;
-            border-radius: 0 2px 2px 0;
-        }
-
-        .sync-progress.active {
-            display: block;
-            animation: progressPulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes progressPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        .sync-progress.complete {
-            width: 100% !important;
-            background: var(--success-green);
-            animation: none;
-        }
-
-        .sync-progress.error {
-            width: 100% !important;
-            background: var(--danger-red);
-            animation: none;
-        }
-
         @media (max-width: 768px) {
             .content-card {
                 padding: 15px;
             }
+
             .communique-card {
                 padding: 15px;
             }
+
             .communique-title {
                 font-size: 16px;
             }
+
             .toast-custom {
                 right: 10px;
                 left: 10px;
                 min-width: auto;
                 max-width: none;
             }
-            .offline-badge {
-                bottom: 15px;
-                font-size: 10px;
-                padding: 4px 12px;
-            }
-            .cache-status {
-                font-size: 9px;
-                padding: 3px 8px;
-            }
         }
     </style>
 </head>
 
 <body>
-
-    <!-- ================================================================ -->
-    <!-- BARRE DE PROGRESSION DE SYNCHRONISATION -->
-    <!-- ================================================================ -->
-    <div class="sync-progress" id="syncProgress"></div>
 
     <!-- ================================================================ -->
     <!-- NAVBAR -->
@@ -532,9 +520,8 @@
         <div id="toastContainer" class="toast-notification"></div>
 
         <div class="offline-badge" id="offlineBadge">
-            <span class="pulse-dot"></span>
-            <span>📱 Mode hors ligne</span>
-            <span style="font-size:9px;opacity:0.7;">données les plus récentes disponibles</span>
+            <i class="bi bi-wifi-off"></i>
+            Mode hors ligne
         </div>
 
         <!-- ============================================================ -->
@@ -577,12 +564,13 @@
                 Communications
             </h4>
 
-            <div class="d-flex align-items-center gap-2 flex-wrap">
+            <div>
 
-                <span class="cache-status" id="cacheStatus">
-                    <i class="bi bi-wifi" id="statusIcon"></i>
-                    <span id="cacheStatusText">Chargement...</span>
-                    <span style="font-size:9px;opacity:0.7;margin-left:5px;" id="lastSyncInfo"></span>
+                <span class="cache-status me-2" id="cacheStatus">
+                    <i class="bi bi-database"></i>
+                    <span id="cacheStatusText">
+                        Temps réel ⚡
+                    </span>
                 </span>
 
                 <a href="etudiant.html" class="btn-back">
@@ -694,7 +682,7 @@
         // ================================================================
 
         const firebaseConfig = {
-            apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
+            apiKey: "AIzaSyBb82N-5ns7qKjBAj5UvDW87s2PZ27F0",
             authDomain: "fsa-unilu.firebaseapp.com",
             projectId: "fsa-unilu",
             storageBucket: "fsa-unilu.firebasestorage.app",
@@ -703,364 +691,53 @@
         };
 
         try {
+
             if (!firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
             }
+
             console.log('✅ Firebase initialisé');
+
         } catch (error) {
-            console.error('❌ Erreur initialisation Firebase:', error);
+
+            console.error(
+                '❌ Erreur initialisation Firebase:',
+                error
+            );
+
         }
 
         const db = firebase.firestore();
 
         let messaging = null;
+
         try {
-            if ('Notification' in window && 'serviceWorker' in navigator && firebase.messaging.isSupported()) {
+
+            if (
+                'Notification' in window &&
+                'serviceWorker' in navigator &&
+                firebase.messaging.isSupported()
+            ) {
                 messaging = firebase.messaging();
                 console.log('✅ Firebase Messaging disponible');
             } else {
-                console.warn('⚠️ Firebase Messaging non supporté sur cet appareil');
+                console.warn(
+                    '⚠️ Firebase Messaging non supporté sur cet appareil'
+                );
             }
+
         } catch (error) {
-            console.warn('⚠️ Impossible d\'initialiser Firebase Messaging:', error);
+
+            console.warn(
+                '⚠️ Impossible d’initialiser Firebase Messaging:',
+                error
+            );
+
         }
 
 
         // ================================================================
-        // 2. CACHE MANAGER (hérité du parent)
-        // ================================================================
-
-        const CacheManager = {
-            PREFIX: 'fsa_cache_',
-            VERSION_KEY: 'fsa_cache_version',
-            CURRENT_VERSION: '1.0.0',
-
-            TTL: {
-                PROMOTIONS: 24 * 60 * 60 * 1000,
-                ETUDIANT: 12 * 60 * 60 * 1000,
-                COMMUNIQUES: 5 * 60 * 1000,
-                NOTES: 5 * 60 * 1000,
-                PAIEMENTS: 5 * 60 * 1000,
-                CARTES: 5 * 60 * 1000,
-                SYNC_METADATA: 30 * 60 * 1000
-            },
-
-            isCacheValid(key) {
-                const raw = localStorage.getItem(this.PREFIX + key);
-                if (!raw) return false;
-                try {
-                    const cacheItem = JSON.parse(raw);
-                    if (!cacheItem || typeof cacheItem.expires !== 'number') return false;
-                    if (Date.now() > cacheItem.expires) return false;
-                    const currentVersion = localStorage.getItem(this.VERSION_KEY);
-                    if (currentVersion && currentVersion !== this.CURRENT_VERSION) {
-                        console.log('[CACHE] Version différente, invalidation');
-                        this.clearAll();
-                        return false;
-                    }
-                    return true;
-                } catch (e) {
-                    return false;
-                }
-            },
-
-            set(key, data, ttlKey = null, metadata = null) {
-                try {
-                    const ttl = ttlKey && this.TTL[ttlKey] ? this.TTL[ttlKey] : this.TTL.PROMOTIONS;
-                    const now = Date.now();
-                    const cacheItem = {
-                        data: data,
-                        timestamp: now,
-                        expires: now + ttl,
-                        version: this.CURRENT_VERSION,
-                        metadata: metadata || { source: 'cache' }
-                    };
-                    localStorage.setItem(this.PREFIX + key, JSON.stringify(cacheItem));
-                    localStorage.setItem(this.VERSION_KEY, this.CURRENT_VERSION);
-                    return true;
-                } catch (e) {
-                    console.warn('[CACHE] Erreur écriture:', e);
-                    return false;
-                }
-            },
-
-            get(key) {
-                try {
-                    if (!this.isCacheValid(key)) return null;
-                    const raw = localStorage.getItem(this.PREFIX + key);
-                    if (!raw) return null;
-                    const cacheItem = JSON.parse(raw);
-                    return cacheItem.data;
-                } catch (e) {
-                    console.warn('[CACHE] Erreur lecture:', e);
-                    return null;
-                }
-            },
-
-            getMetadata(key) {
-                try {
-                    if (!this.isCacheValid(key)) return null;
-                    const raw = localStorage.getItem(this.PREFIX + key);
-                    if (!raw) return null;
-                    const cacheItem = JSON.parse(raw);
-                    return cacheItem.metadata || null;
-                } catch (e) {
-                    return null;
-                }
-            },
-
-            getTimestamp(key) {
-                try {
-                    const raw = localStorage.getItem(this.PREFIX + key);
-                    if (!raw) return null;
-                    const cacheItem = JSON.parse(raw);
-                    return cacheItem.timestamp || null;
-                } catch (e) {
-                    return null;
-                }
-            },
-
-            remove(key) {
-                try {
-                    localStorage.removeItem(this.PREFIX + key);
-                } catch (e) {
-                    console.warn('[CACHE] Erreur suppression:', e);
-                }
-            },
-
-            clearAll() {
-                try {
-                    const keys = Object.keys(localStorage);
-                    for (const key of keys) {
-                        if (key.startsWith(this.PREFIX)) {
-                            localStorage.removeItem(key);
-                        }
-                    }
-                    localStorage.removeItem(this.VERSION_KEY);
-                    console.log('[CACHE] Tous les caches supprimés');
-                } catch (e) {
-                    console.warn('[CACHE] Erreur nettoyage:', e);
-                }
-            },
-
-            cleanExpired() {
-                try {
-                    const keys = Object.keys(localStorage);
-                    let count = 0;
-                    for (const key of keys) {
-                        if (!key.startsWith(this.PREFIX)) continue;
-                        const raw = localStorage.getItem(key);
-                        if (!raw) continue;
-                        try {
-                            const cacheItem = JSON.parse(raw);
-                            if (!cacheItem || Date.now() > cacheItem.expires) {
-                                localStorage.removeItem(key);
-                                count++;
-                            }
-                        } catch (e) {
-                            localStorage.removeItem(key);
-                            count++;
-                        }
-                    }
-                    return count;
-                } catch (e) {
-                    console.warn('[CACHE] Nettoyage impossible:', e);
-                    return 0;
-                }
-            }
-        };
-
-        CacheManager.cleanExpired();
-
-
-        // ================================================================
-        // 3. SYNC MANAGER (hérité du parent)
-        // ================================================================
-
-        const SyncManager = {
-            isSyncing: false,
-            lastSyncTime: null,
-
-            getLastSync() {
-                const stored = localStorage.getItem('fsa_last_sync');
-                if (stored) {
-                    try {
-                        this.lastSyncTime = JSON.parse(stored);
-                    } catch (e) {
-                        this.lastSyncTime = null;
-                    }
-                }
-                return this.lastSyncTime;
-            },
-
-            updateLastSync() {
-                this.lastSyncTime = Date.now();
-                try {
-                    localStorage.setItem('fsa_last_sync', JSON.stringify(this.lastSyncTime));
-                } catch (e) {}
-                this.updateUI();
-            },
-
-            updateUI() {
-                const statusText = document.getElementById('cacheStatusText');
-                const statusIcon = document.getElementById('statusIcon');
-                const lastSyncInfo = document.getElementById('lastSyncInfo');
-
-                if (statusText) {
-                    if (this.isSyncing) {
-                        statusText.textContent = 'Synchronisation en cours...';
-                        statusText.className = 'syncing';
-                    } else if (!navigator.onLine) {
-                        statusText.textContent = '📱 Mode hors ligne';
-                        statusText.className = 'offline';
-                    } else {
-                        statusText.textContent = '✅ Temps réel';
-                        statusText.className = 'live';
-                    }
-                }
-
-                if (statusIcon) {
-                    if (this.isSyncing) {
-                        statusIcon.className = 'bi bi-arrow-repeat syncing';
-                    } else if (!navigator.onLine) {
-                        statusIcon.className = 'bi bi-database-fill offline';
-                    } else {
-                        statusIcon.className = 'bi bi-wifi live';
-                    }
-                }
-
-                if (lastSyncInfo) {
-                    const lastSync = this.getLastSync();
-                    if (lastSync) {
-                        const date = new Date(lastSync);
-                        const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                        const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-                        lastSyncInfo.textContent = `🕐 ${dateStr} ${timeStr}`;
-                    } else {
-                        lastSyncInfo.textContent = '🕐 Jamais synchronisé';
-                    }
-                }
-
-                // Mise à jour du badge hors ligne
-                const offlineBadge = document.getElementById('offlineBadge');
-                if (offlineBadge) {
-                    if (!navigator.onLine) {
-                        offlineBadge.classList.add('show');
-                    } else {
-                        offlineBadge.classList.remove('show');
-                    }
-                }
-            },
-
-            showProgress() {
-                const progress = document.getElementById('syncProgress');
-                if (progress) {
-                    progress.classList.add('active');
-                    progress.style.width = '0%';
-                    progress.classList.remove('complete', 'error');
-                }
-            },
-
-            updateProgress(percent) {
-                const progress = document.getElementById('syncProgress');
-                if (progress) {
-                    progress.style.width = Math.min(percent, 100) + '%';
-                }
-            },
-
-            hideProgress(success = true) {
-                const progress = document.getElementById('syncProgress');
-                if (progress) {
-                    if (success) {
-                        progress.classList.add('complete');
-                    } else {
-                        progress.classList.add('error');
-                    }
-                    setTimeout(() => {
-                        progress.classList.remove('active', 'complete', 'error');
-                        progress.style.width = '0%';
-                    }, success ? 1000 : 2000);
-                }
-            },
-
-            async syncCommuniques(forceRefresh = false) {
-                if (this.isSyncing) return false;
-                if (!navigator.onLine) return false;
-
-                this.isSyncing = true;
-                this.showProgress();
-                this.updateUI();
-
-                try {
-                    console.log('[SYNC] Synchronisation des communiqués...');
-                    this.updateProgress(30);
-
-                    if (!currentStudent) throw new Error('Étudiant non connecté');
-
-                    const cacheKey = 'communiques_' + currentStudent.id;
-                    const dateLimite = new Date(Date.now() - 24 * 60 * 60 * 1000);
-                    
-                    const snapshot = await db.collection('communiques')
-                        .where('dateFin', '>=', firebase.firestore.Timestamp.fromDate(dateLimite))
-                        .orderBy('dateFin', 'asc')
-                        .get();
-
-                    this.updateProgress(60);
-
-                    const communiquesList = [];
-                    const promo = currentStudent.promotion;
-                    const maintenant = new Date();
-
-                    snapshot.forEach(doc => {
-                        const data = doc.data() || {};
-                        if (data.promotions && Array.isArray(data.promotions) && data.promotions.length > 0) {
-                            if (!data.promotions.includes(promo)) return;
-                        }
-                        const dateFin = data.dateFin ? (typeof data.dateFin.toDate === 'function' ? data.dateFin.toDate() : new Date(data.dateFin)) : null;
-                        if (dateFin && !isNaN(dateFin.getTime()) && dateFin < maintenant) return;
-                        const dateDebut = data.dateDebut ? (typeof data.dateDebut.toDate === 'function' ? data.dateDebut.toDate() : new Date(data.dateDebut)) : null;
-                        if (dateDebut && !isNaN(dateDebut.getTime()) && dateDebut > maintenant) return;
-                        communiquesList.push({ id: doc.id, ...data });
-                    });
-
-                    communiquesList.sort((a, b) => {
-                        let dateA = 0, dateB = 0;
-                        if (a.dateCreation) {
-                            dateA = typeof a.dateCreation.toDate === 'function' ? a.dateCreation.toDate().getTime() : (a.dateCreation.seconds || 0) * 1000;
-                        }
-                        if (b.dateCreation) {
-                            dateB = typeof b.dateCreation.toDate === 'function' ? b.dateCreation.toDate().getTime() : (b.dateCreation.seconds || 0) * 1000;
-                        }
-                        return dateB - dateA;
-                    });
-
-                    this.updateProgress(80);
-                    CacheManager.set(cacheKey, communiquesList, 'COMMUNIQUES');
-                    allCommuniques = communiquesList;
-                    renderCommuniques(false);
-                    this.updateLastSync();
-
-                    this.updateProgress(100);
-                    this.isSyncing = false;
-                    this.hideProgress(true);
-                    this.updateUI();
-
-                    console.log('[SYNC] Communiqués synchronisés:', communiquesList.length);
-                    return true;
-
-                } catch (error) {
-                    console.error('[SYNC] Erreur:', error);
-                    this.isSyncing = false;
-                    this.hideProgress(false);
-                    this.updateUI();
-                    return false;
-                }
-            }
-        };
-
-
-        // ================================================================
-        // 4. VARIABLES
+        // 2. VARIABLES
         // ================================================================
 
         let currentStudent = null;
@@ -1070,393 +747,1011 @@
 
 
         // ================================================================
-        // 5. SESSION
+        // 3. CHARGEMENT DU GESTIONNAIRE CENTRALISÉ
+        // ================================================================
+
+        /*
+         * IMPORTANT :
+         *
+         * notification-utils.js est chargé APRÈS Firebase.
+         *
+         * Il utilise le SW central :
+         *
+         *     sw.js
+         *
+         * Il n'y a PLUS de :
+         *
+         *     firebase-messaging-sw.js
+         *
+         * sur cette page.
+         */
+
+        (function loadNotificationManager() {
+
+            const script = document.createElement('script');
+
+            script.src = 'notification-utils.js';
+
+            script.onload = function () {
+
+                console.log(
+                    '✅ notification-utils.js chargé'
+                );
+
+            };
+
+            script.onerror = function () {
+
+                console.error(
+                    '❌ Impossible de charger notification-utils.js'
+                );
+
+            };
+
+            document.head.appendChild(script);
+
+        })();
+
+
+        // ================================================================
+        // 4. SESSION
         // ================================================================
 
         function checkSession() {
-            const session = localStorage.getItem('session_etudiant');
+
+            const session =
+                localStorage.getItem('session_etudiant');
+
             if (!session) {
-                window.location.href = 'login-etudiant.html';
+
+                window.location.href =
+                    'login-etudiant.html';
+
                 return false;
             }
+
             try {
+
                 const data = JSON.parse(session);
-                if (!data || !data.id || !data.expires || Date.now() > data.expires) {
-                    localStorage.removeItem('session_etudiant');
-                    window.location.href = 'login-etudiant.html';
+
+                if (
+                    !data ||
+                    !data.id ||
+                    !data.expires ||
+                    Date.now() > data.expires
+                ) {
+
+                    localStorage.removeItem(
+                        'session_etudiant'
+                    );
+
+                    window.location.href =
+                        'login-etudiant.html';
+
                     return false;
                 }
+
                 currentStudent = data;
-                console.log('✅ Session étudiant valide:', currentStudent.id);
+
+                console.log(
+                    '✅ Session étudiant valide:',
+                    currentStudent.id
+                );
+
                 return true;
+
             } catch (error) {
-                console.error('❌ Session invalide:', error);
-                localStorage.removeItem('session_etudiant');
-                window.location.href = 'login-etudiant.html';
+
+                console.error(
+                    '❌ Session invalide:',
+                    error
+                );
+
+                localStorage.removeItem(
+                    'session_etudiant'
+                );
+
+                window.location.href =
+                    'login-etudiant.html';
+
                 return false;
             }
         }
 
 
         // ================================================================
-        // 6. FONCTIONS UTILITAIRES
+        // 5. FONCTIONS UTILITAIRES
         // ================================================================
 
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
+        function showToast(
+            message,
+            type = 'success'
+        ) {
+
+            const container =
+                document.getElementById(
+                    'toastContainer'
+                );
+
             if (!container) return;
 
+            const toast =
+                document.createElement('div');
+
+            toast.className =
+                'toast-custom';
+
             const colors = {
-                success: { bg: '#28a745', icon: 'bi-check-circle-fill' },
-                warning: { bg: '#ffc107', icon: 'bi-exclamation-triangle-fill', textColor: '#333' },
-                danger: { bg: '#dc3545', icon: 'bi-x-circle-fill' },
-                info: { bg: '#17a2b8', icon: 'bi-info-circle-fill' }
+
+                success: {
+                    bg: '#28a745',
+                    icon: 'bi-check-circle-fill'
+                },
+
+                warning: {
+                    bg: '#ffc107',
+                    icon: 'bi-exclamation-triangle-fill',
+                    textColor: '#333'
+                },
+
+                danger: {
+                    bg: '#dc3545',
+                    icon: 'bi-x-circle-fill'
+                },
+
+                info: {
+                    bg: '#17a2b8',
+                    icon: 'bi-info-circle-fill'
+                }
+
             };
 
-            const config = colors[type] || colors.success;
-            const textColor = config.textColor || 'white';
+            const config =
+                colors[type] ||
+                colors.success;
 
-            const toast = document.createElement('div');
-            toast.className = 'toast-custom';
-            toast.style.background = config.bg;
-            toast.style.color = textColor;
+            const textColor =
+                config.textColor ||
+                'white';
+
+            toast.style.background =
+                config.bg;
+
+            toast.style.color =
+                textColor;
+
             toast.innerHTML = `
                 <i class="bi ${config.icon}"></i>
                 <span>${escapeHtml(message)}</span>
-                <button class="close-toast" type="button" aria-label="Fermer" onclick="this.parentElement.remove()">&times;</button>
+                <button
+                    class="close-toast"
+                    type="button"
+                    aria-label="Fermer"
+                    onclick="this.parentElement.remove()"
+                >
+                    &times;
+                </button>
             `;
 
             container.prepend(toast);
-            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 5000);
+
+            setTimeout(() => {
+
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+
+            }, 5000);
         }
 
+
         function escapeHtml(text) {
-            if (text === null || text === undefined) return '';
-            const div = document.createElement('div');
-            div.textContent = String(text);
+
+            if (
+                text === null ||
+                text === undefined
+            ) {
+                return '';
+            }
+
+            const div =
+                document.createElement('div');
+
+            div.textContent =
+                String(text);
+
             return div.innerHTML;
         }
 
+
         function formatDateTime(date) {
+
             if (!date) return '-';
+
             try {
-                if (date && typeof date.toDate === 'function') date = date.toDate();
-                else if (date && typeof date.seconds === 'number') date = new Date(date.seconds * 1000);
-                else if (typeof date === 'string' || typeof date === 'number') date = new Date(date);
-                if (!(date instanceof Date) || isNaN(date.getTime())) return '-';
-                return date.toLocaleString('fr-FR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
+
+                if (
+                    date &&
+                    typeof date.toDate === 'function'
+                ) {
+                    date = date.toDate();
+                }
+
+                else if (
+                    date &&
+                    typeof date.seconds === 'number'
+                ) {
+                    date =
+                        new Date(
+                            date.seconds * 1000
+                        );
+                }
+
+                else if (
+                    typeof date === 'string' ||
+                    typeof date === 'number'
+                ) {
+                    date =
+                        new Date(date);
+                }
+
+                if (
+                    !(date instanceof Date) ||
+                    isNaN(date.getTime())
+                ) {
+                    return '-';
+                }
+
+                return date.toLocaleString(
+                    'fr-FR',
+                    {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }
+                );
+
             } catch (error) {
+
                 return '-';
             }
         }
+
 
         function formatDate(date) {
+
             if (!date) return '-';
+
             try {
-                if (date && typeof date.toDate === 'function') date = date.toDate();
-                else if (date && typeof date.seconds === 'number') date = new Date(date.seconds * 1000);
-                else if (typeof date === 'string' || typeof date === 'number') date = new Date(date);
-                if (!(date instanceof Date) || isNaN(date.getTime())) return '-';
-                return date.toLocaleDateString('fr-FR');
+
+                if (
+                    date &&
+                    typeof date.toDate === 'function'
+                ) {
+                    date = date.toDate();
+                }
+
+                else if (
+                    date &&
+                    typeof date.seconds === 'number'
+                ) {
+                    date =
+                        new Date(
+                            date.seconds * 1000
+                        );
+                }
+
+                else if (
+                    typeof date === 'string' ||
+                    typeof date === 'number'
+                ) {
+                    date =
+                        new Date(date);
+                }
+
+                if (
+                    !(date instanceof Date) ||
+                    isNaN(date.getTime())
+                ) {
+                    return '-';
+                }
+
+                return date.toLocaleDateString(
+                    'fr-FR'
+                );
+
             } catch (error) {
+
                 return '-';
             }
         }
 
 
+        function updateCacheStatus(
+            status,
+            message
+        ) {
+
+            const el =
+                document.getElementById(
+                    'cacheStatusText'
+                );
+
+            if (!el) return;
+
+            const statusMap = {
+
+                cached: '📦 Cache',
+
+                live: '⚡ Temps réel',
+
+                offline: '⚠️ Hors ligne',
+
+                error: '❌ Erreur'
+
+            };
+
+            el.textContent =
+                message ||
+                statusMap[status] ||
+                status;
+        }
+
+
         // ================================================================
-        // 7. NOTIFICATIONS - GESTIONNAIRE CENTRALISÉ
+        // 6. NOTIFICATIONS - GESTIONNAIRE CENTRALISÉ
         // ================================================================
 
-        async function enregistrerTokenFCM(etudiantId, etudiantNom, promotion) {
+        async function enregistrerTokenFCM(
+            etudiantId,
+            etudiantNom,
+            promotion
+        ) {
+
             try {
-                console.log('[FCM] 📱 Initialisation du gestionnaire centralisé...');
-                if (!window.notificationManager) {
-                    console.warn('[FCM] ⚠️ NotificationManager pas encore disponible');
+
+                console.log(
+                    '[FCM] 📱 Initialisation du gestionnaire centralisé...'
+                );
+
+                if (
+                    !window.notificationManager
+                ) {
+
+                    console.warn(
+                        '[FCM] ⚠️ NotificationManager pas encore disponible'
+                    );
+
                     return null;
                 }
-                const token = await window.notificationManager.init(etudiantId, etudiantNom, promotion);
+
+                /*
+                 * IMPORTANT :
+                 *
+                 * init() ne doit pas forcer la demande
+                 * de permission au chargement de la page.
+                 *
+                 * Si l'autorisation a déjà été donnée,
+                 * le gestionnaire peut récupérer/enregistrer
+                 * le token.
+                 */
+
+                const token =
+                    await window.notificationManager.init(
+                        etudiantId,
+                        etudiantNom,
+                        promotion
+                    );
+
                 if (token) {
-                    console.log('[FCM] ✅ Token disponible et enregistré');
-                    const card = document.getElementById('notificationPermissionCard');
-                    if (card) card.classList.remove('show');
+
+                    console.log(
+                        '[FCM] ✅ Token disponible et enregistré'
+                    );
+
+                    const card =
+                        document.getElementById(
+                            'notificationPermissionCard'
+                        );
+
+                    if (card) {
+                        card.classList.remove('show');
+                    }
+
                 } else {
-                    console.log('[FCM] ℹ️ Aucun token disponible pour le moment');
+
+                    console.log(
+                        '[FCM] ℹ️ Aucun token disponible pour le moment'
+                    );
                 }
+
                 return token;
+
             } catch (error) {
-                console.error('[FCM] ❌ Erreur:', error);
+
+                console.error(
+                    '[FCM] ❌ Erreur:',
+                    error
+                );
+
                 return null;
             }
         }
 
+
+        // ================================================================
+        // 7. VÉRIFICATION UI NOTIFICATIONS
+        // ================================================================
+
         function checkNotificationStatus() {
-            const card = document.getElementById('notificationPermissionCard');
+
+            const card =
+                document.getElementById(
+                    'notificationPermissionCard'
+                );
+
             if (!card) return;
-            if (!('Notification' in window)) {
+
+            if (
+                !('Notification' in window)
+            ) {
+
+                console.log(
+                    '⚠️ API Notification non disponible'
+                );
+
                 card.classList.remove('show');
+
                 return;
             }
-            if (window.notificationManager && typeof window.notificationManager.isActive === 'function') {
+
+            if (
+                window.notificationManager &&
+                typeof window.notificationManager.isActive ===
+                'function'
+            ) {
+
                 try {
-                    if (window.notificationManager.isActive()) {
+
+                    if (
+                        window.notificationManager.isActive()
+                    ) {
+
                         card.classList.remove('show');
+
                         return;
                     }
+
                 } catch (error) {
-                    console.warn('[FCM] Erreur vérification statut:', error);
+
+                    console.warn(
+                        '[FCM] Erreur vérification statut:',
+                        error
+                    );
                 }
             }
-            if (Notification.permission === 'default') {
+
+            /*
+             * Permission par défaut :
+             * afficher le bouton Activer.
+             */
+
+            if (
+                Notification.permission ===
+                'default'
+            ) {
+
                 card.classList.add('show');
+
             } else {
+
                 card.classList.remove('show');
             }
         }
 
-        document.getElementById('enableNotificationsBtn')?.addEventListener('click', async function() {
-            if (!currentStudent) {
-                showToast('Session étudiant introuvable.', 'warning');
-                return;
-            }
-            const btn = this;
-            btn.disabled = true;
-            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Activation...`;
-            try {
-                if (window.notificationManager && typeof window.notificationManager.requestPermissionAndRegister === 'function') {
-                    const token = await window.notificationManager.requestPermissionAndRegister();
-                    if (token) {
-                        document.getElementById('notificationPermissionCard')?.classList.remove('show');
-                        showToast('🔔 Notifications activées !', 'success');
-                    } else {
-                        checkNotificationStatus();
-                        if ('Notification' in window && Notification.permission === 'denied') {
-                            showToast('⚠️ Les notifications sont bloquées dans les réglages du navigateur.', 'warning');
-                        } else {
-                            showToast('⚠️ Impossible d\'activer les notifications pour le moment.', 'warning');
-                        }
+
+        // ================================================================
+        // 8. BOUTON ACTIVER NOTIFICATIONS
+        // ================================================================
+
+        document
+            .getElementById(
+                'enableNotificationsBtn'
+            )
+            ?.addEventListener(
+                'click',
+                async function () {
+
+                    if (!currentStudent) {
+
+                        showToast(
+                            'Session étudiant introuvable.',
+                            'warning'
+                        );
+
+                        return;
                     }
-                } else {
-                    showToast('⚠️ Le gestionnaire de notifications n\'est pas disponible.', 'danger');
+
+                    const btn = this;
+
+                    btn.disabled = true;
+
+                    btn.innerHTML = `
+                        <span
+                            class="spinner-border spinner-border-sm me-1"
+                        ></span>
+                        Activation...
+                    `;
+
+                    try {
+
+                        /*
+                         * Cette méthode est la seule qui doit
+                         * demander explicitement l'autorisation
+                         * de notification.
+                         */
+
+                        if (
+                            window.notificationManager &&
+                            typeof window.notificationManager
+                                .requestPermissionAndRegister ===
+                            'function'
+                        ) {
+
+                            const token =
+                                await window
+                                    .notificationManager
+                                    .requestPermissionAndRegister();
+
+                            if (token) {
+
+                                document
+                                    .getElementById(
+                                        'notificationPermissionCard'
+                                    )
+                                    ?.classList.remove('show');
+
+                                showToast(
+                                    '🔔 Notifications activées !',
+                                    'success'
+                                );
+
+                            } else {
+
+                                checkNotificationStatus();
+
+                                if (
+                                    'Notification' in window &&
+                                    Notification.permission ===
+                                    'denied'
+                                ) {
+
+                                    showToast(
+                                        '⚠️ Les notifications sont bloquées dans les réglages du navigateur.',
+                                        'warning'
+                                    );
+
+                                } else {
+
+                                    showToast(
+                                        '⚠️ Impossible d’activer les notifications pour le moment.',
+                                        'warning'
+                                    );
+                                }
+                            }
+
+                        } else {
+
+                            showToast(
+                                '⚠️ Le gestionnaire de notifications n’est pas disponible.',
+                                'danger'
+                            );
+                        }
+
+                    } catch (error) {
+
+                        console.error(
+                            '[FCM] ❌ Activation:',
+                            error
+                        );
+
+                        showToast(
+                            '❌ Erreur lors de l’activation des notifications.',
+                            'danger'
+                        );
+
+                    } finally {
+
+                        btn.disabled = false;
+
+                        btn.innerHTML = `
+                            <i class="bi bi-bell"></i>
+                            Activer
+                        `;
+
+                        checkNotificationStatus();
+                    }
+
                 }
-            } catch (error) {
-                console.error('[FCM] ❌ Activation:', error);
-                showToast('❌ Erreur lors de l\'activation des notifications.', 'danger');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="bi bi-bell"></i> Activer`;
-                checkNotificationStatus();
-            }
-        });
+            );
 
 
         // ================================================================
-        // 8. PROMOTIONS
+        // 9. PROMOTIONS
         // ================================================================
 
-        async function chargerPromotions(forceRefresh = false) {
-            const cacheKey = 'promotions';
-            if (!forceRefresh) {
-                const cached = CacheManager.get(cacheKey);
-                if (Array.isArray(cached) && cached.length > 0) {
-                    allPromotions = cached;
-                    return allPromotions;
-                }
-            }
+        async function chargerPromotions(
+            forceRefresh = false
+        ) {
+
             try {
-                const snapshot = await db.collection('promotions').get();
+
+                const snapshot =
+                    await db
+                        .collection('promotions')
+                        .get();
+
                 allPromotions = [];
+
                 snapshot.forEach(doc => {
-                    allPromotions.push({ id: doc.id, ...doc.data() });
+
+                    allPromotions.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+
                 });
-                CacheManager.set(cacheKey, allPromotions, 'PROMOTIONS');
-                console.log('✅ Promotions chargées:', allPromotions.length);
+
+                console.log(
+                    '✅ Promotions chargées:',
+                    allPromotions.length
+                );
+
                 return allPromotions;
+
             } catch (error) {
-                console.error('❌ Erreur chargement promotions:', error);
-                const cached = CacheManager.get(cacheKey);
-                if (Array.isArray(cached) && cached.length > 0) {
-                    allPromotions = cached;
-                    return allPromotions;
-                }
+
+                console.error(
+                    '❌ Erreur chargement promotions:',
+                    error
+                );
+
                 return [];
             }
         }
 
-        function getPromotionNom(promotionId) {
-            if (!promotionId) return 'Non définie';
-            const promo = allPromotions.find(p => p.id === promotionId);
-            return promo ? promo.nom : promotionId;
+
+        function getPromotionNom(
+            promotionId
+        ) {
+
+            if (!promotionId) {
+                return 'Non définie';
+            }
+
+            const promo =
+                allPromotions.find(
+                    p => p.id === promotionId
+                );
+
+            return promo
+                ? promo.nom
+                : promotionId;
         }
 
 
         // ================================================================
-        // 9. GESTION DES COMMUNIQUÉS LUS
+        // 10. GESTION DES COMMUNIQUÉS LUS
         // ================================================================
 
         function getReadCommuniques() {
+
             try {
-                const data = JSON.parse(localStorage.getItem('communiques_lus') || '[]');
-                return Array.isArray(data) ? data : [];
+
+                const data =
+                    JSON.parse(
+                        localStorage.getItem(
+                            'communiques_lus'
+                        ) || '[]'
+                    );
+
+                return Array.isArray(data)
+                    ? data
+                    : [];
+
             } catch (error) {
-                console.warn('⚠️ Impossible de lire les communiqués lus:', error);
+
+                console.warn(
+                    '⚠️ Impossible de lire les communiqués lus:',
+                    error
+                );
+
                 return [];
             }
         }
 
-        function markAsRead(communiqueId) {
+
+        function markAsRead(
+            communiqueId
+        ) {
+
             if (!communiqueId) return;
-            const readIds = getReadCommuniques();
-            if (!readIds.includes(communiqueId)) {
-                readIds.push(communiqueId);
+
+            const readIds =
+                getReadCommuniques();
+
+            if (
+                !readIds.includes(
+                    communiqueId
+                )
+            ) {
+
+                readIds.push(
+                    communiqueId
+                );
+
                 try {
-                    localStorage.setItem('communiques_lus', JSON.stringify(readIds));
+
+                    localStorage.setItem(
+                        'communiques_lus',
+                        JSON.stringify(readIds)
+                    );
+
                 } catch (error) {
-                    console.warn('⚠️ Impossible d\'enregistrer la lecture:', error);
+
+                    console.warn(
+                        '⚠️ Impossible d’enregistrer la lecture:',
+                        error
+                    );
                 }
+
                 updateUnreadCount();
-                // Mettre à jour le badge sur la page parente
-                const dot = document.getElementById('notificationDot');
-                if (dot) {
-                    const unreadCount = allCommuniques.filter(c => !readIds.includes(c.id)).length;
-                    dot.style.display = unreadCount > 0 ? 'block' : 'none';
-                }
             }
         }
+
 
         function updateUnreadCount() {
-            const readIds = getReadCommuniques();
-            const unreadCount = allCommuniques.filter(c => !readIds.includes(c.id)).length;
-            const dot = document.getElementById('notificationDot');
-            if (dot) {
-                dot.style.display = unreadCount > 0 ? 'block' : 'none';
-            }
+
+            const readIds =
+                getReadCommuniques();
+
+            const unreadCount =
+                allCommuniques.filter(
+                    c => !readIds.includes(c.id)
+                ).length;
+
+            const dot =
+                document.getElementById(
+                    'notificationDot'
+                );
+
+            if (!dot) return;
+
+            dot.style.display =
+                unreadCount > 0
+                    ? 'block'
+                    : 'none';
         }
 
 
         // ================================================================
-        // 10. AFFICHAGE DES COMMUNIQUÉS
+        // 11. AFFICHAGE DES COMMUNIQUÉS
         // ================================================================
 
-        function renderCommuniques(fromCache = false) {
-            const container = document.getElementById('contentCard');
+        function renderCommuniques(
+            fromCache = false
+        ) {
+
+            const container =
+                document.getElementById(
+                    'contentCard'
+                );
+
             if (!container) return;
 
-            const readIds = getReadCommuniques();
+            const readIds =
+                getReadCommuniques();
 
-            if (!allCommuniques || allCommuniques.length === 0) {
+            if (
+                !allCommuniques ||
+                allCommuniques.length === 0
+            ) {
+
                 container.innerHTML = `
                     <div class="empty-state">
+
                         <i class="bi bi-inbox"></i>
-                        <h5>Aucune communication</h5>
+
+                        <h5>
+                            Aucune communication
+                        </h5>
+
                         <p class="text-muted">
-                            ${fromCache ? '📦 Données en cache' : 'Les communiqués apparaîtront ici en temps réel ⚡'}
+                            Les communiqués apparaîtront ici en temps réel ⚡
                         </p>
-                        ${!navigator.onLine ? `
-                            <p class="text-muted small">
-                                <i class="bi bi-wifi-off"></i>
-                                Hors ligne - Vérifiez votre connexion
-                            </p>
-                        ` : ''}
+
+                        ${
+                            fromCache
+                                ? `
+                                    <p class="text-muted small">
+                                        <i class="bi bi-database"></i>
+                                        Données en cache
+                                    </p>
+                                `
+                                : ''
+                        }
+
                     </div>
                 `;
+
                 updateUnreadCount();
-                SyncManager.updateUI();
+
                 return;
             }
 
             let html = '';
-            allCommuniques.forEach(communique => {
-                const estNonLu = !readIds.includes(communique.id);
-                const titre = communique.titre || 'Sans titre';
-                const description = communique.description || '';
-                const createur = communique.createur || 'Direction';
-                const descriptionHtml = escapeHtml(description).replace(/\n/g, '<br>');
 
-                html += `
-                    <div class="communique-card ${estNonLu ? 'nouveau' : ''}" 
-                         data-id="${escapeHtml(communique.id)}" 
-                         onclick="handleCardClick('${escapeHtml(communique.id)}')">
-                        <div class="communique-title">
-                            <span>
-                                <i class="bi bi-megaphone-fill"></i>
-                                ${escapeHtml(titre)}
-                            </span>
-                            ${estNonLu ? `<span class="new-badge">NOUVEAU ⚡</span>` : ''}
-                        </div>
-                        <div class="communique-content">${descriptionHtml}</div>
-                        <div class="communique-footer">
-                            <span>
-                                <i class="bi bi-calendar3"></i>
-                                ${formatDateTime(communique.dateCreation)}
-                            </span>
-                            ${communique.dateFin ? `
+            allCommuniques.forEach(
+                communique => {
+
+                    const estNonLu =
+                        !readIds.includes(
+                            communique.id
+                        );
+
+                    const titre =
+                        communique.titre ||
+                        'Sans titre';
+
+                    const description =
+                        communique.description ||
+                        '';
+
+                    const createur =
+                        communique.createur ||
+                        'Direction';
+
+                    const descriptionHtml =
+                        escapeHtml(
+                            description
+                        ).replace(
+                            /\n/g,
+                            '<br>'
+                        );
+
+                    html += `
+
+                        <div
+                            class="communique-card ${
+                                estNonLu
+                                    ? 'nouveau'
+                                    : ''
+                            }"
+                            data-id="${escapeHtml(
+                                communique.id
+                            )}"
+                            onclick="handleCardClick('${escapeHtml(
+                                communique.id
+                            )}')"
+                        >
+
+                            <div class="communique-title">
+
                                 <span>
-                                    <i class="bi bi-calendar-x"></i>
-                                    Jusqu'au ${formatDate(communique.dateFin)}
+                                    <i class="bi bi-megaphone-fill"></i>
+                                    ${escapeHtml(titre)}
                                 </span>
-                            ` : ''}
-                            <span>
-                                <i class="bi bi-person-circle"></i>
-                                ${escapeHtml(createur)}
-                            </span>
+
+                                ${
+                                    estNonLu
+                                        ? `
+                                            <span class="new-badge">
+                                                NOUVEAU ⚡
+                                            </span>
+                                        `
+                                        : ''
+                                }
+
+                            </div>
+
+                            <div class="communique-content">
+                                ${descriptionHtml}
+                            </div>
+
+                            <div class="communique-footer">
+
+                                <span>
+                                    <i class="bi bi-calendar3"></i>
+                                    ${formatDateTime(
+                                        communique.dateCreation
+                                    )}
+                                </span>
+
+                                ${
+                                    communique.dateFin
+                                        ? `
+                                            <span>
+                                                <i class="bi bi-calendar-x"></i>
+                                                Jusqu'au
+                                                ${formatDate(
+                                                    communique.dateFin
+                                                )}
+                                            </span>
+                                        `
+                                        : ''
+                                }
+
+                                <span>
+                                    <i class="bi bi-person-circle"></i>
+                                    ${escapeHtml(
+                                        createur
+                                    )}
+                                </span>
+
+                            </div>
+
                         </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-            updateUnreadCount();
-            SyncManager.updateUI();
-
-            // Afficher un message si on est en mode cache
-            if (fromCache) {
-                const statusText = document.getElementById('cacheStatusText');
-                if (statusText) {
-                    statusText.textContent = '📦 Données en cache';
-                    statusText.className = 'cached';
+                    `;
                 }
+            );
+
+            container.innerHTML =
+                html;
+
+            updateUnreadCount();
+
+            if (fromCache) {
+
+                updateCacheStatus(
+                    'cached'
+                );
+
+            } else {
+
+                updateCacheStatus(
+                    'live',
+                    '⚡ Temps réel (' +
+                    allCommuniques.length +
+                    ' comm.)'
+                );
             }
         }
 
 
         // ================================================================
-        // 11. CLIC SUR UN COMMUNIQUÉ
+        // 12. CLIC SUR UN COMMUNIQUÉ
         // ================================================================
 
-        window.handleCardClick = function(communiqueId) {
-            markAsRead(communiqueId);
-            const card = document.querySelector(`.communique-card[data-id="${CSS.escape(communiqueId)}"]`);
-            if (card) {
-                card.classList.remove('nouveau');
-                const badge = card.querySelector('.new-badge');
-                if (badge) badge.remove();
-            }
-        };
+        window.handleCardClick =
+            function (communiqueId) {
 
+                markAsRead(
+                    communiqueId
+                );
 
-        // ================================================================
-        // 12. CHARGEMENT INITIAL DEPUIS LE CACHE
-        // ================================================================
+                const card =
+                    document.querySelector(
+                        `.communique-card[data-id="${CSS.escape(communiqueId)}"]`
+                    );
 
-        function loadFromCache() {
-            if (!currentStudent) return false;
-            const cacheKey = 'communiques_' + currentStudent.id;
-            const cached = CacheManager.get(cacheKey);
-            if (Array.isArray(cached) && cached.length > 0) {
-                allCommuniques = cached;
-                renderCommuniques(true);
-                console.log('📦 Données chargées depuis le cache:', cached.length);
-                return true;
-            }
-            return false;
-        }
+                if (card) {
+
+                    card.classList.remove(
+                        'nouveau'
+                    );
+
+                    const badge =
+                        card.querySelector(
+                            '.new-badge'
+                        );
+
+                    if (badge) {
+                        badge.remove();
+                    }
+                }
+            };
 
 
         // ================================================================
@@ -1464,96 +1759,406 @@
         // ================================================================
 
         function setupRealtimeListener() {
+
             if (snapshotUnsubscribe) {
-                try { snapshotUnsubscribe(); } catch (error) {}
-                snapshotUnsubscribe = null;
+
+                try {
+                    snapshotUnsubscribe();
+                } catch (error) {}
+
+                snapshotUnsubscribe =
+                    null;
             }
 
-            const maintenant = new Date();
-            const promo = currentStudent ? currentStudent.promotion : null;
+            const maintenant =
+                new Date();
 
-            console.log('🔄 Écoute en temps réel des communiqués...');
+            const promo =
+                currentStudent
+                    ? currentStudent.promotion
+                    : null;
 
-            snapshotUnsubscribe = db.collection('communiques')
-                .where('dateFin', '>=', firebase.firestore.Timestamp.fromDate(new Date(maintenant.getTime() - 86400000)))
-                .orderBy('dateFin', 'asc')
-                .onSnapshot(
-                    snapshot => {
-                        console.log('📥 Snapshot reçu, taille:', snapshot.size);
+            console.log(
+                '🔄 Écoute en temps réel des communiqués...'
+            );
 
-                        const communiquesTemp = [];
-                        const nouveauxCommuniques = [];
+            /*
+             * On récupère les communications dont
+             * la date de fin est récente ou future.
+             */
 
-                        snapshot.docChanges().forEach(change => {
-                            const data = change.doc.data();
-                            const docId = change.doc.id;
-                            if (change.type === 'added' && allCommuniques.length > 0) {
-                                const nouveau = { id: docId, ...data };
-                                nouveauxCommuniques.push(nouveau);
-                                console.log('📢 COMMUNIQUÉ AJOUTÉ:', data.titre);
+            snapshotUnsubscribe =
+                db
+                    .collection('communiques')
+                    .where(
+                        'dateFin',
+                        '>=',
+                        firebase.firestore.Timestamp.fromDate(
+                            new Date(
+                                maintenant.getTime() -
+                                86400000
+                            )
+                        )
+                    )
+                    .orderBy(
+                        'dateFin',
+                        'asc'
+                    )
+                    .onSnapshot(
+
+                        snapshot => {
+
+                            console.log(
+                                '📥 Snapshot reçu, taille:',
+                                snapshot.size
+                            );
+
+                            const communiquesTemp =
+                                [];
+
+                            const nouveauxCommuniques =
+                                [];
+
+                            /*
+                             * Détection des changements.
+                             *
+                             * IMPORTANT :
+                             * aucun push n'est envoyé ici.
+                             *
+                             * Le push distant doit être envoyé
+                             * par la Cloud Function.
+                             */
+
+                            snapshot
+                                .docChanges()
+                                .forEach(
+                                    change => {
+
+                                        const data =
+                                            change.doc.data();
+
+                                        const docId =
+                                            change.doc.id;
+
+                                        if (
+                                            change.type ===
+                                            'added'
+                                        ) {
+
+                                            const nouveau = {
+
+                                                id: docId,
+
+                                                ...data
+                                            };
+
+                                            /*
+                                             * Pour éviter de considérer
+                                             * tous les documents existants
+                                             * comme de nouveaux communiqués
+                                             * lors du premier chargement,
+                                             * on ne déclenche le toast
+                                             * que si la page avait déjà
+                                             * reçu au moins une fois
+                                             * les données.
+                                             */
+
+                                            if (
+                                                allCommuniques.length > 0
+                                            ) {
+
+                                                nouveauxCommuniques
+                                                    .push(
+                                                        nouveau
+                                                    );
+                                            }
+
+                                            console.log(
+                                                '📢 COMMUNIQUÉ AJOUTÉ:',
+                                                data.titre
+                                            );
+                                        }
+                                    }
+                                );
+
+
+                            /*
+                             * Construction de la liste.
+                             */
+
+                            snapshot.forEach(
+                                doc => {
+
+                                    const data =
+                                        doc.data();
+
+                                    /*
+                                     * Filtrage par promotion.
+                                     *
+                                     * Si le communiqué ne possède
+                                     * pas de promotions ou que la
+                                     * liste est vide, il est visible
+                                     * par tous.
+                                     */
+
+                                    if (
+                                        data.promotions &&
+                                        Array.isArray(
+                                            data.promotions
+                                        ) &&
+                                        data.promotions.length > 0
+                                    ) {
+
+                                        if (
+                                            !promo ||
+                                            !data.promotions.includes(
+                                                promo
+                                            )
+                                        ) {
+
+                                            return;
+                                        }
+                                    }
+
+                                    communiquesTemp.push({
+
+                                        id: doc.id,
+
+                                        titre:
+                                            data.titre ||
+                                            'Sans titre',
+
+                                        description:
+                                            data.description ||
+                                            '',
+
+                                        dateCreation:
+                                            data.dateCreation ||
+                                            null,
+
+                                        dateFin:
+                                            data.dateFin ||
+                                            null,
+
+                                        createur:
+                                            data.createur ||
+                                            ''
+                                    });
+                                }
+                            );
+
+
+                            /*
+                             * Tri : plus récent en premier.
+                             */
+
+                            communiquesTemp.sort(
+                                (a, b) => {
+
+                                    let dateA = 0;
+                                    let dateB = 0;
+
+                                    if (
+                                        a.dateCreation
+                                    ) {
+
+                                        if (
+                                            typeof a.dateCreation.toDate ===
+                                            'function'
+                                        ) {
+
+                                            dateA =
+                                                a.dateCreation
+                                                    .toDate()
+                                                    .getTime();
+
+                                        } else if (
+                                            typeof a.dateCreation.seconds ===
+                                            'number'
+                                        ) {
+
+                                            dateA =
+                                                a.dateCreation.seconds *
+                                                1000;
+                                        }
+                                    }
+
+                                    if (
+                                        b.dateCreation
+                                    ) {
+
+                                        if (
+                                            typeof b.dateCreation.toDate ===
+                                            'function'
+                                        ) {
+
+                                            dateB =
+                                                b.dateCreation
+                                                    .toDate()
+                                                    .getTime();
+
+                                        } else if (
+                                            typeof b.dateCreation.seconds ===
+                                            'number'
+                                        ) {
+
+                                            dateB =
+                                                b.dateCreation.seconds *
+                                                1000;
+                                        }
+                                    }
+
+                                    return dateB - dateA;
+                                }
+                            );
+
+
+                            /*
+                             * Mise à jour globale.
+                             */
+
+                            allCommuniques =
+                                communiquesTemp;
+
+
+                            /*
+                             * Notification visuelle uniquement
+                             * pour les nouveaux communiqués.
+                             */
+
+                            if (
+                                nouveauxCommuniques.length > 0
+                            ) {
+
+                                nouveauxCommuniques
+                                    .forEach(
+                                        comm => {
+
+                                            const titre =
+                                                comm.titre ||
+                                                'Nouveau communiqué';
+
+                                            showToast(
+                                                `📢 ${titre}`,
+                                                'info'
+                                            );
+
+                                            /*
+                                             * Le point rouge indique
+                                             * qu'un nouveau communiqué
+                                             * n'a pas encore été lu.
+                                             */
+
+                                            const dot =
+                                                document.getElementById(
+                                                    'notificationDot'
+                                                );
+
+                                            if (dot) {
+                                                dot.style.display =
+                                                    'block';
+                                            }
+
+                                            /*
+                                             * Petit son local optionnel.
+                                             *
+                                             * Aucun push n'est envoyé
+                                             * depuis le navigateur.
+                                             */
+
+                                            try {
+
+                                                const audio =
+                                                    new Audio();
+
+                                                audio.src =
+                                                    'data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==';
+
+                                                audio.volume =
+                                                    0.3;
+
+                                                audio
+                                                    .play()
+                                                    .catch(
+                                                        () => {}
+                                                    );
+
+                                            } catch (error) {}
+
+                                        }
+                                    );
                             }
-                        });
 
-                        snapshot.forEach(doc => {
-                            const data = doc.data();
-                            if (data.promotions && Array.isArray(data.promotions) && data.promotions.length > 0) {
-                                if (!promo || !data.promotions.includes(promo)) return;
+
+                            renderCommuniques(
+                                false
+                            );
+
+                        },
+
+                        error => {
+
+                            console.error(
+                                '❌ Erreur listener:',
+                                error
+                            );
+
+                            updateCacheStatus(
+                                'offline',
+                                '⚠️ Hors ligne'
+                            );
+
+                            /*
+                             * Firestore possède son propre cache
+                             * hors ligne. On essaie donc de garder
+                             * les données déjà présentes.
+                             */
+
+                            if (
+                                allCommuniques.length > 0
+                            ) {
+
+                                renderCommuniques(
+                                    true
+                                );
+
+                            } else {
+
+                                const container =
+                                    document.getElementById(
+                                        'contentCard'
+                                    );
+
+                                if (container) {
+
+                                    container.innerHTML = `
+
+                                        <div class="empty-state">
+
+                                            <i class="bi bi-wifi-off"></i>
+
+                                            <h5>
+                                                Connexion indisponible
+                                            </h5>
+
+                                            <p class="text-muted">
+                                                Impossible de récupérer les communications pour le moment.
+                                            </p>
+
+                                            <button
+                                                class="btn-back"
+                                                onclick="location.reload()"
+                                            >
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                                Réessayer
+                                            </button>
+
+                                        </div>
+                                    `;
+                                }
                             }
-                            communiquesTemp.push({
-                                id: doc.id,
-                                titre: data.titre || 'Sans titre',
-                                description: data.description || '',
-                                dateCreation: data.dateCreation || null,
-                                dateFin: data.dateFin || null,
-                                createur: data.createur || ''
-                            });
-                        });
-
-                        communiquesTemp.sort((a, b) => {
-                            let dateA = 0, dateB = 0;
-                            if (a.dateCreation) {
-                                dateA = typeof a.dateCreation.toDate === 'function' ? a.dateCreation.toDate().getTime() : (a.dateCreation.seconds || 0) * 1000;
-                            }
-                            if (b.dateCreation) {
-                                dateB = typeof b.dateCreation.toDate === 'function' ? b.dateCreation.toDate().getTime() : (b.dateCreation.seconds || 0) * 1000;
-                            }
-                            return dateB - dateA;
-                        });
-
-                        // Sauvegarder dans le cache
-                        const cacheKey = 'communiques_' + currentStudent.id;
-                        CacheManager.set(cacheKey, communiquesTemp, 'COMMUNIQUES');
-
-                        allCommuniques = communiquesTemp;
-
-                        // Notifier des nouveaux communiqués
-                        if (nouveauxCommuniques.length > 0) {
-                            nouveauxCommuniques.forEach(comm => {
-                                const titre = comm.titre || 'Nouveau communiqué';
-                                showToast(`📢 ${titre}`, 'info');
-                                const dot = document.getElementById('notificationDot');
-                                if (dot) dot.style.display = 'block';
-                                try {
-                                    const audio = new Audio();
-                                    audio.src = 'data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==';
-                                    audio.volume = 0.3;
-                                    audio.play().catch(() => {});
-                                } catch (error) {}
-                            });
-                            // Mise à jour du cache parent
-                            SyncManager.updateLastSync();
                         }
-
-                        renderCommuniques(false);
-                        SyncManager.updateUI();
-                    },
-                    error => {
-                        console.error('❌ Erreur listener:', error);
-                        if (allCommuniques.length > 0) {
-                            renderCommuniques(true);
-                        }
-                    }
-                );
+                    );
         }
 
 
@@ -1562,275 +2167,770 @@
         // ================================================================
 
         async function loadProfileData() {
+
             await chargerPromotions();
+
             try {
-                const doc = await db.collection('etudiants').doc(currentStudent.id).get();
+
+                const doc =
+                    await db
+                        .collection('etudiants')
+                        .doc(currentStudent.id)
+                        .get();
+
                 if (doc.exists) {
-                    const data = doc.data();
-                    document.getElementById('profilNom').textContent = data.nom || currentStudent.nom || '';
-                    document.getElementById('profilMatricule').textContent = `Matricule: ${data.matricule || currentStudent.matricule || ''}`;
-                    document.getElementById('profilPromotion').textContent = `Promotion: ${getPromotionNom(data.promotion || currentStudent.promotion)}`;
+
+                    const data =
+                        doc.data();
+
+                    document.getElementById(
+                        'profilNom'
+                    ).textContent =
+                        data.nom ||
+                        currentStudent.nom ||
+                        '';
+
+                    document.getElementById(
+                        'profilMatricule'
+                    ).textContent =
+                        `Matricule: ${
+                            data.matricule ||
+                            currentStudent.matricule ||
+                            ''
+                        }`;
+
+                    document.getElementById(
+                        'profilPromotion'
+                    ).textContent =
+                        `Promotion: ${
+                            getPromotionNom(
+                                data.promotion ||
+                                currentStudent.promotion
+                            )
+                        }`;
+
                 } else {
+
                     utiliserDonneesSessionProfil();
                 }
+
             } catch (error) {
-                console.error('❌ Erreur profil:', error);
+
+                console.error(
+                    '❌ Erreur profil:',
+                    error
+                );
+
                 utiliserDonneesSessionProfil();
             }
         }
 
+
         function utiliserDonneesSessionProfil() {
-            document.getElementById('profilNom').textContent = currentStudent.nom || '';
-            document.getElementById('profilMatricule').textContent = `Matricule: ${currentStudent.matricule || ''}`;
-            document.getElementById('profilPromotion').textContent = `Promotion: ${getPromotionNom(currentStudent.promotion)}`;
+
+            document.getElementById(
+                'profilNom'
+            ).textContent =
+                currentStudent.nom ||
+                '';
+
+            document.getElementById(
+                'profilMatricule'
+            ).textContent =
+                `Matricule: ${
+                    currentStudent.matricule ||
+                    ''
+                }`;
+
+            document.getElementById(
+                'profilPromotion'
+            ).textContent =
+                `Promotion: ${
+                    getPromotionNom(
+                        currentStudent.promotion
+                    )
+                }`;
         }
 
-        document.getElementById('profileBtn').onclick = async function() {
-            await loadProfileData();
-            document.getElementById('profileModal').style.display = 'flex';
-        };
 
-        window.closeProfileModal = function() {
-            document.getElementById('profileModal').style.display = 'none';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmNewPassword').value = '';
-        };
+        // ================================================================
+        // 15. OUVERTURE PROFIL
+        // ================================================================
 
-        document.getElementById('profileModal').addEventListener('click', function(e) {
-            if (e.target === this) closeProfileModal();
-        });
+        document
+            .getElementById(
+                'profileBtn'
+            )
+            .onclick =
+            async function () {
+
+                await loadProfileData();
+
+                document.getElementById(
+                    'profileModal'
+                ).style.display =
+                    'flex';
+            };
 
 
         // ================================================================
-        // 15. CHANGEMENT MOT DE PASSE
+        // 16. FERMETURE PROFIL
         // ================================================================
 
-        document.getElementById('changePasswordBtn').onclick = async function() {
-            const newPwd = document.getElementById('newPassword').value;
-            const confirmPwd = document.getElementById('confirmNewPassword').value;
+        window.closeProfileModal =
+            function () {
 
-            if (!newPwd || !confirmPwd) {
-                showToast('Remplissez tous les champs', 'warning');
-                return;
-            }
-            if (newPwd !== confirmPwd) {
-                showToast('Mots de passe différents', 'warning');
-                return;
-            }
-            if (newPwd.length < 4) {
-                showToast('Minimum 4 caractères', 'warning');
-                return;
-            }
+                document.getElementById(
+                    'profileModal'
+                ).style.display =
+                    'none';
 
-            const btn = this;
-            btn.disabled = true;
-            btn.textContent = 'Modification...';
+                document.getElementById(
+                    'newPassword'
+                ).value = '';
 
-            try {
-                await db.collection('etudiants').doc(currentStudent.id).update({ motDePasse: newPwd });
-                showToast('✅ Mot de passe modifié', 'success');
-                closeProfileModal();
-            } catch (error) {
-                console.error('❌ Erreur modification mot de passe:', error);
-                showToast('❌ Erreur: ' + (error.message || 'Impossible de modifier le mot de passe.'), 'danger');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Modifier';
-            }
-        };
+                document.getElementById(
+                    'confirmNewPassword'
+                ).value = '';
+            };
 
 
-        // ================================================================
-        // 16. DÉCONNEXION
-        // ================================================================
+        document
+            .getElementById(
+                'profileModal'
+            )
+            .addEventListener(
+                'click',
+                function (e) {
 
-        document.getElementById('logoutBtn').onclick = function() {
-            if (!confirm('Se déconnecter ?')) return;
-            if (snapshotUnsubscribe) {
-                try { snapshotUnsubscribe(); } catch (error) {}
-                snapshotUnsubscribe = null;
-            }
-            if (window.notificationManager && typeof window.notificationManager.reset === 'function') {
-                try { window.notificationManager.reset(); } catch (error) {}
-            }
-            localStorage.removeItem('session_etudiant');
-            localStorage.removeItem('communiques_lus');
-            window.location.href = 'login-etudiant.html';
-        };
+                    if (e.target === this) {
+                        closeProfileModal();
+                    }
+
+                }
+            );
 
 
         // ================================================================
-        // 17. SERVICE WORKER CENTRALISÉ
+        // 17. DÉCONNEXION
+        // ================================================================
+
+        document
+            .getElementById(
+                'logoutBtn'
+            )
+            .onclick =
+            function () {
+
+                if (
+                    !confirm(
+                        'Se déconnecter ?'
+                    )
+                ) {
+                    return;
+                }
+
+                /*
+                 * Arrêt du listener Firestore.
+                 */
+
+                if (snapshotUnsubscribe) {
+
+                    try {
+                        snapshotUnsubscribe();
+                    } catch (error) {}
+
+                    snapshotUnsubscribe =
+                        null;
+                }
+
+                /*
+                 * Réinitialisation du gestionnaire
+                 * centralisé.
+                 */
+
+                if (
+                    window.notificationManager &&
+                    typeof window.notificationManager.reset ===
+                    'function'
+                ) {
+
+                    try {
+
+                        window.notificationManager.reset();
+
+                    } catch (error) {
+
+                        console.warn(
+                            '⚠️ Reset NotificationManager:',
+                            error
+                        );
+                    }
+                }
+
+                localStorage.removeItem(
+                    'session_etudiant'
+                );
+
+                localStorage.removeItem(
+                    'communiques_lus'
+                );
+
+                window.location.href =
+                    'login-etudiant.html';
+            };
+
+
+        // ================================================================
+        // 18. CHANGEMENT MOT DE PASSE
+        // ================================================================
+
+        document
+            .getElementById(
+                'changePasswordBtn'
+            )
+            .onclick =
+            async function () {
+
+                const newPwd =
+                    document.getElementById(
+                        'newPassword'
+                    ).value;
+
+                const confirmPwd =
+                    document.getElementById(
+                        'confirmNewPassword'
+                    ).value;
+
+                if (
+                    !newPwd ||
+                    !confirmPwd
+                ) {
+
+                    showToast(
+                        'Remplissez tous les champs',
+                        'warning'
+                    );
+
+                    return;
+                }
+
+                if (
+                    newPwd !== confirmPwd
+                ) {
+
+                    showToast(
+                        'Mots de passe différents',
+                        'warning'
+                    );
+
+                    return;
+                }
+
+                if (
+                    newPwd.length < 4
+                ) {
+
+                    showToast(
+                        'Minimum 4 caractères',
+                        'warning'
+                    );
+
+                    return;
+                }
+
+                const btn = this;
+
+                btn.disabled = true;
+
+                btn.textContent =
+                    'Modification...';
+
+                try {
+
+                    await db
+                        .collection('etudiants')
+                        .doc(currentStudent.id)
+                        .update({
+                            motDePasse: newPwd
+                        });
+
+                    showToast(
+                        '✅ Mot de passe modifié',
+                        'success'
+                    );
+
+                    closeProfileModal();
+
+                } catch (error) {
+
+                    console.error(
+                        '❌ Erreur modification mot de passe:',
+                        error
+                    );
+
+                    showToast(
+                        '❌ Erreur: ' +
+                        (
+                            error.message ||
+                            'Impossible de modifier le mot de passe.'
+                        ),
+                        'danger'
+                    );
+
+                } finally {
+
+                    btn.disabled = false;
+
+                    btn.textContent =
+                        'Modifier';
+                }
+            };
+
+
+        // ================================================================
+        // 19. SERVICE WORKER CENTRALISÉ
         // ================================================================
 
         async function registerServiceWorker() {
-            if (!('serviceWorker' in navigator)) {
-                console.warn('⚠️ Service Worker non supporté');
+
+            if (
+                !('serviceWorker' in navigator)
+            ) {
+
+                console.warn(
+                    '⚠️ Service Worker non supporté'
+                );
+
                 return null;
             }
+
             try {
-                if (window.registerAppServiceWorker && typeof window.registerAppServiceWorker === 'function') {
-                    const registration = await window.registerAppServiceWorker();
-                    if (registration) console.log('✅ SW centralisé:', registration.scope);
+
+                /*
+                 * Utiliser le gestionnaire centralisé
+                 * lorsqu'il est disponible.
+                 */
+
+                if (
+                    window.registerAppServiceWorker &&
+                    typeof window.registerAppServiceWorker ===
+                    'function'
+                ) {
+
+                    const registration =
+                        await window.registerAppServiceWorker();
+
+                    if (registration) {
+
+                        console.log(
+                            '✅ SW centralisé:',
+                            registration.scope
+                        );
+                    }
+
                     return registration;
                 }
-                let registration = await navigator.serviceWorker.getRegistration('/Espace-etudiant/');
+
+
+                /*
+                 * Fallback :
+                 * enregistrer directement sw.js.
+                 */
+
+                let registration =
+                    await navigator
+                        .serviceWorker
+                        .getRegistration(
+                            '/Espace-etudiant/'
+                        );
+
                 if (!registration) {
-                    registration = await navigator.serviceWorker.register('./sw.js', { scope: '/Espace-etudiant/' });
+
+                    registration =
+                        await navigator
+                            .serviceWorker
+                            .register(
+                                './sw.js',
+                                {
+                                    scope:
+                                        '/Espace-etudiant/'
+                                }
+                            );
                 }
-                console.log('✅ SW principal:', registration.scope);
+
+                console.log(
+                    '✅ SW principal:',
+                    registration.scope
+                );
+
                 return registration;
+
             } catch (error) {
-                console.error('❌ Erreur SW:', error);
+
+                console.error(
+                    '❌ Erreur SW:',
+                    error
+                );
+
                 return null;
             }
         }
 
 
         // ================================================================
-        // 18. DÉTECTION HORS LIGNE - SYNC AUTO
+        // 20. MODE HORS LIGNE
         // ================================================================
 
         function setupOfflineDetection() {
-            function handleOnline() {
-                console.log('[SYNC] 🔌 Connexion rétablie - Synchronisation automatique...');
-                showToast('🔄 Connexion rétablie, mise à jour des communiqués...', 'info');
-                setTimeout(() => SyncManager.syncCommuniques(false), 1500);
-            }
 
-            function handleOffline() {
-                console.log('[SYNC] 📱 Mode hors ligne - Utilisation du cache');
-                showToast('📱 Mode hors ligne - Données disponibles', 'warning');
-                SyncManager.updateUI();
-                // Si on a des données en cache, les afficher
-                if (allCommuniques.length > 0) {
-                    renderCommuniques(true);
+            const offlineBadge =
+                document.getElementById(
+                    'offlineBadge'
+                );
+
+            if (!offlineBadge) return;
+
+            function updateStatus() {
+
+                if (!navigator.onLine) {
+
+                    offlineBadge.classList.add(
+                        'show'
+                    );
+
+                    updateCacheStatus(
+                        'offline'
+                    );
+
+                } else {
+
+                    offlineBadge.classList.remove(
+                        'show'
+                    );
+
+                    /*
+                     * Ne pas remplacer inutilement
+                     * le statut temps réel.
+                     */
+
+                    if (
+                        allCommuniques.length > 0
+                    ) {
+
+                        updateCacheStatus(
+                            'live',
+                            '⚡ Temps réel (' +
+                            allCommuniques.length +
+                            ' comm.)'
+                        );
+
+                    } else {
+
+                        updateCacheStatus(
+                            'live'
+                        );
+                    }
                 }
             }
 
-            window.addEventListener('online', handleOnline);
-            window.addEventListener('offline', handleOffline);
+            window.addEventListener(
+                'online',
+                updateStatus
+            );
 
-            if (!navigator.onLine) {
-                handleOffline();
-            } else {
-                // Sync automatique au démarrage si en ligne
-                setTimeout(() => SyncManager.syncCommuniques(false), 3000);
-            }
+            window.addEventListener(
+                'offline',
+                updateStatus
+            );
+
+            updateStatus();
         }
 
 
         // ================================================================
-        // 19. INITIALISATION NOTIFICATIONS
+        // 21. INITIALISATION NOTIFICATIONS
         // ================================================================
 
         async function initialiserNotifications() {
+
             try {
+
+                /*
+                 * Attendre brièvement que notification-utils.js
+                 * ait terminé son chargement si nécessaire.
+                 */
+
                 let tentatives = 0;
-                while (!window.notificationManager && tentatives < 50) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
+
+                while (
+                    !window.notificationManager &&
+                    tentatives < 50
+                ) {
+
+                    await new Promise(
+                        resolve =>
+                            setTimeout(
+                                resolve,
+                                100
+                            )
+                    );
+
                     tentatives++;
                 }
-                if (!window.notificationManager) {
-                    console.warn('⚠️ NotificationManager indisponible');
+
+
+                if (
+                    !window.notificationManager
+                ) {
+
+                    console.warn(
+                        '⚠️ NotificationManager indisponible'
+                    );
+
                     checkNotificationStatus();
+
                     return;
                 }
-                await window.notificationManager.init(
-                    currentStudent.id,
-                    currentStudent.nom,
-                    currentStudent.promotion
+
+
+                /*
+                 * Initialisation silencieuse.
+                 *
+                 * La permission n'est pas demandée ici.
+                 */
+
+                await window
+                    .notificationManager
+                    .init(
+                        currentStudent.id,
+                        currentStudent.nom,
+                        currentStudent.promotion
+                    );
+
+                console.log(
+                    '✅ NotificationManager initialisé'
                 );
-                console.log('✅ NotificationManager initialisé');
+
                 checkNotificationStatus();
+
             } catch (error) {
-                console.error('❌ Initialisation notifications:', error);
+
+                console.error(
+                    '❌ Initialisation notifications:',
+                    error
+                );
+
                 checkNotificationStatus();
             }
         }
 
 
         // ================================================================
-        // 20. INITIALISATION PRINCIPALE
+        // 22. INITIALISATION PRINCIPALE
         // ================================================================
 
         async function init() {
-            if (!checkSession()) return;
 
-            console.log('🚀 Communiquer - Démarrage');
-            console.log('👤 Étudiant:', currentStudent.nom);
-            console.log('🆔 ID:', currentStudent.id);
+            if (!checkSession()) {
+                return;
+            }
 
-            // Charger les promotions
+            console.log(
+                '🚀 Communiquer - Démarrage'
+            );
+
+            console.log(
+                '👤 Étudiant:',
+                currentStudent.nom
+            );
+
+            console.log(
+                '🆔 ID:',
+                currentStudent.id
+            );
+
+            console.log(
+                '⚡ Écoute en temps réel activée'
+            );
+
+
+            /*
+             * Charger les promotions.
+             */
+
             await chargerPromotions();
 
-            // Enregistrer le SW centralisé
+
+            /*
+             * Enregistrer le SW centralisé.
+             */
+
             await registerServiceWorker();
 
-            // Initialiser les notifications
+
+            /*
+             * Initialiser les notifications
+             * sans demander automatiquement
+             * la permission.
+             */
+
             await initialiserNotifications();
 
-            // Charger depuis le cache d'abord (affichage immédiat)
-            const hasCache = loadFromCache();
 
-            // Détection hors ligne
-            setupOfflineDetection();
+            /*
+             * Écouter Firestore.
+             */
 
-            // Écouter Firestore
             setupRealtimeListener();
 
-            // Si pas de cache, forcer une synchronisation
-            if (!hasCache && navigator.onLine) {
-                console.log('[SYNC] Pas de cache, synchronisation initiale...');
-                setTimeout(() => SyncManager.syncCommuniques(false), 1000);
-            }
 
-            // Vérification du bouton notifications
+            /*
+             * Détection hors ligne.
+             */
+
+            setupOfflineDetection();
+
+
+            /*
+             * Vérification du bouton notifications.
+             */
+
             checkNotificationStatus();
 
-            // Vérifier si un communiqué précis doit être ouvert
-            const params = new URLSearchParams(window.location.search);
-            const communiqueId = params.get('communique') || params.get('id');
+
+            /*
+             * Vérifier si un communiqué précis
+             * doit être ouvert.
+             */
+
+            const params =
+                new URLSearchParams(
+                    window.location.search
+                );
+
+            const communiqueId =
+                params.get('communique') ||
+                params.get('id');
+
 
             if (communiqueId) {
-                setTimeout(() => {
-                    const card = document.querySelector(`.communique-card[data-id="${CSS.escape(communiqueId)}"]`);
-                    if (card) {
-                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        handleCardClick(communiqueId);
-                    }
-                }, 1000);
+
+                setTimeout(
+                    () => {
+
+                        const card =
+                            document.querySelector(
+                                `.communique-card[data-id="${CSS.escape(communiqueId)}"]`
+                            );
+
+                        if (card) {
+
+                            card.scrollIntoView({
+                                behavior:
+                                    'smooth',
+                                block:
+                                    'center'
+                            });
+
+                            handleCardClick(
+                                communiqueId
+                            );
+
+                        }
+
+                    },
+                    1000
+                );
             }
 
-            console.log('✅ Communiquer prêt - Temps réel + Cache actifs');
+
+            console.log(
+                '✅ Communiquer prêt - Temps réel + Cache actifs'
+            );
+
+
+            if (
+                window.notificationManager &&
+                typeof window.notificationManager.isActive ===
+                'function'
+            ) {
+
+                try {
+
+                    console.log(
+                        '🔔 NotificationManager actif:',
+                        window
+                            .notificationManager
+                            .isActive()
+                    );
+
+                } catch (error) {
+
+                    console.warn(
+                        '⚠️ Impossible de vérifier NotificationManager'
+                    );
+                }
+            }
         }
 
 
         // ================================================================
-        // 21. NETTOYAGE
+        // 23. NETTOYAGE
         // ================================================================
 
-        window.addEventListener('beforeunload', function() {
-            if (snapshotUnsubscribe) {
-                try { snapshotUnsubscribe(); } catch (error) {}
-                snapshotUnsubscribe = null;
+        window.addEventListener(
+            'beforeunload',
+            function () {
+
+                if (snapshotUnsubscribe) {
+
+                    try {
+                        snapshotUnsubscribe();
+                    } catch (error) {}
+
+                    snapshotUnsubscribe =
+                        null;
+                }
             }
-        });
+        );
 
 
         // ================================================================
-        // 22. DÉMARRAGE
+        // 24. DÉMARRAGE
         // ================================================================
 
         init();
 
 
         // ================================================================
-        // 23. EXPORTS
+        // 25. LOGS CONSOLE
         // ================================================================
 
-        window.CacheManager = CacheManager;
-        window.SyncManager = SyncManager;
+        console.log(
+            '%c📢 COMMUNIQUÉS EN TEMPS RÉEL',
+            'color: #ffb347; font-size: 14px; font-weight: bold;'
+        );
+
+        console.log(
+            '%c⚡ Les communiqués arrivent instantanément !',
+            'color: #28a745; font-size: 12px;'
+        );
+
+        console.log(
+            '%c🔔 Notifications gérées par le système centralisé',
+            'color: #17a2b8; font-size: 12px;'
+        );
+
+        console.log(
+            '%c🔧 Service Worker utilisé: sw.js',
+            'color: #003366; font-size: 12px; font-weight: bold;'
+        );
+
+        console.log(
+            '%c🚫 Aucun firebase-messaging-sw.js utilisé par cette page',
+            'color: #dc3545; font-size: 12px;'
+        );
 
     </script>
 
