@@ -42,34 +42,13 @@
 
     <!-- ================================================================
          GESTIONNAIRE CENTRALISÉ DES NOTIFICATIONS
-         IMPORTANT : doit être chargé avant le script principal.
     ================================================================ -->
     <script src="notification-utils.js"></script>
 
-    <!-- ================================================================
-         ERUDA - CONSOLE SUR LE TÉLÉPHONE
-    ================================================================ -->
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-
-    <script>
-        if (window.eruda) {
-            eruda.init();
-            console.log('✅ Eruda console activée');
-        } else {
-            document.addEventListener('DOMContentLoaded', function () {
-                if (window.eruda) {
-                    eruda.init();
-                    console.log('✅ Eruda console activée');
-                }
-            });
-        }
-    </script>
-
     <style>
         /* ============================================================
-           RESET
+           STYLES
         ============================================================ */
-
         * {
             margin: 0;
             padding: 0;
@@ -97,10 +76,6 @@
             min-height: 100vh;
         }
 
-        /* ============================================================
-           NAVBAR
-        ============================================================ */
-
         .navbar-custom {
             background: var(--primary-blue);
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
@@ -122,10 +97,6 @@
             gap: 15px;
             flex-wrap: wrap;
         }
-
-        /* ============================================================
-           PROFIL
-        ============================================================ */
 
         .profile-photo {
             width: 45px;
@@ -152,10 +123,6 @@
             transform: scale(1.05);
         }
 
-        /* ============================================================
-           NOTIFICATION DOT
-        ============================================================ */
-
         .notification-dot {
             position: absolute;
             top: -5px;
@@ -174,34 +141,21 @@
             0% {
                 box-shadow: 0 0 0 0 rgba(220,53,69,0.7);
             }
-
             70% {
                 box-shadow: 0 0 0 8px rgba(220,53,69,0);
             }
-
             100% {
                 box-shadow: 0 0 0 0 rgba(220,53,69,0);
             }
         }
 
-        /* ============================================================
-           CARTE ÉTUDIANT
-        ============================================================ */
-
         .etudiant-info-card {
-            background: linear-gradient(
-                135deg,
-                var(--primary-blue),
-                var(--dark-blue)
-            );
-
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
             border-radius: 20px;
             padding: 20px 25px;
             margin-bottom: 30px;
             color: white;
-
             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-
             position: relative;
             overflow: hidden;
         }
@@ -255,10 +209,6 @@
             z-index: 1;
         }
 
-        /* ============================================================
-           CACHE STATUS
-        ============================================================ */
-
         .cache-status {
             font-size: 10px;
             color: rgba(255,255,255,0.6);
@@ -268,6 +218,7 @@
             gap: 5px;
             position: relative;
             z-index: 2;
+            flex-wrap: wrap;
         }
 
         .cache-status i {
@@ -282,9 +233,29 @@
             color: #ffb347;
         }
 
-        /* ============================================================
-           MENU
-        ============================================================ */
+        .cache-status .syncing {
+            color: #17a2b8;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .cache-status .status-icon {
+            font-size: 12px;
+        }
+
+        .cache-status .status-text {
+            font-size: 10px;
+        }
+
+        .cache-status .last-sync {
+            font-size: 9px;
+            opacity: 0.7;
+            margin-left: 5px;
+        }
 
         .menu-grid {
             display: grid;
@@ -334,13 +305,8 @@
         }
 
         @keyframes bounce {
-            0%,100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-5px);
-            }
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
         }
 
         .menu-icon {
@@ -360,10 +326,6 @@
             font-size: 10px;
             color: #888;
         }
-
-        /* ============================================================
-           PROFIL MODAL
-        ============================================================ */
 
         .profile-modal {
             position: fixed;
@@ -395,7 +357,6 @@
                 opacity: 0;
                 transform: scale(0.9);
             }
-
             to {
                 opacity: 1;
                 transform: scale(1);
@@ -418,10 +379,6 @@
             transform: translateY(-2px);
         }
 
-        /* ============================================================
-           TOAST
-        ============================================================ */
-
         .toast-notification {
             position: fixed;
             top: 20px;
@@ -436,7 +393,6 @@
                 transform: translateX(100%);
                 opacity: 0;
             }
-
             to {
                 transform: translateX(0);
                 opacity: 1;
@@ -470,10 +426,6 @@
             opacity: 1;
         }
 
-        /* ============================================================
-           FOOTER
-        ============================================================ */
-
         .footer-info {
             text-align: center;
             margin-top: 30px;
@@ -483,32 +435,79 @@
             color: #888;
         }
 
-        /* ============================================================
-           MODE HORS LIGNE
-        ============================================================ */
-
+        /* BADGE HORS LIGNE */
         .offline-badge {
             position: fixed;
             bottom: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.7);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
             color: var(--accent-yellow);
-            padding: 5px 12px;
+            padding: 6px 16px;
             border-radius: 20px;
             font-size: 11px;
             display: none;
             z-index: 100;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
         .offline-badge.show {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
         }
 
-        /* ============================================================
-           NOTIFICATIONS
-        ============================================================ */
+        .offline-badge .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-yellow);
+            border-radius: 50%;
+            animation: pulse-dot-offline 1.5s infinite;
+        }
+
+        @keyframes pulse-dot-offline {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.8); }
+        }
+
+        /* BADGE SYNC AUTO */
+        .auto-sync-badge {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(23, 162, 184, 0.9);
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 10px;
+            display: none;
+            z-index: 99;
+            backdrop-filter: blur(10px);
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .auto-sync-badge.show {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .auto-sync-badge .spinner {
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
 
         .notification-permission-card {
             display: none;
@@ -535,57 +534,86 @@
             margin-bottom: 10px;
         }
 
-        /* ============================================================
-           RESPONSIVE
-        ============================================================ */
+        /* Barre de progression de synchronisation */
+        .sync-progress {
+            display: none;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-yellow));
+            width: 0%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            transition: width 0.3s ease;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .sync-progress.active {
+            display: block;
+            animation: progressPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes progressPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .sync-progress.complete {
+            width: 100% !important;
+            background: var(--success-green);
+            animation: none;
+        }
+
+        .sync-progress.error {
+            width: 100% !important;
+            background: var(--danger-red);
+            animation: none;
+        }
 
         @media (max-width: 768px) {
-
             .container {
                 max-width: 100%;
             }
-
             .navbar-brand {
                 font-size: 0.8rem;
             }
-
             .menu-grid {
-                grid-template-columns: repeat(
-                    auto-fill,
-                    minmax(130px, 1fr)
-                );
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
                 gap: 12px;
             }
-
             .menu-card {
                 padding: 15px 8px;
             }
-
             .menu-icon {
                 font-size: 32px;
             }
-
             .toast-notification {
                 right: 10px;
                 left: 10px;
                 min-width: auto;
             }
-
             .etudiant-info-card {
                 padding: 18px;
+            }
+            .offline-badge {
+                bottom: 15px;
+                font-size: 10px;
+                padding: 4px 12px;
+            }
+            .auto-sync-badge {
+                bottom: 60px;
+                font-size: 9px;
+                padding: 3px 10px;
             }
         }
 
         @media (max-width: 400px) {
-
             .menu-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-
             .navbar-right {
                 gap: 8px;
             }
-
             .navbar-brand {
                 max-width: 190px;
             }
@@ -596,47 +624,37 @@
 <body>
 
 <!-- ================================================================
+     BARRE DE PROGRESSION DE SYNCHRONISATION
+================================================================ -->
+<div class="sync-progress" id="syncProgress"></div>
+
+<!-- ================================================================
+     BADGE SYNC AUTO (en bas)
+================================================================ -->
+<div class="auto-sync-badge" id="autoSyncBadge">
+    <div class="spinner"></div>
+    <span>Synchronisation automatique...</span>
+</div>
+
+<!-- ================================================================
      NAVBAR
 ================================================================ -->
-
 <nav class="navbar navbar-custom">
     <div class="container">
-
         <a class="navbar-brand" href="#">
             <i class="bi bi-tree-fill"></i>
             FACULTÉ AGRONOMIQUE - UNILU
         </a>
 
         <div class="navbar-right">
-
-            <div
-                class="profile-photo"
-                id="profileBtn"
-                title="Mon profil"
-            >
-                <img
-                    src="fsa.png"
-                    width="45"
-                    height="45"
-                    alt="Profil"
-                    onerror="this.style.display='none';"
-                >
-
-                <span
-                    class="notification-dot"
-                    id="notificationDot"
-                ></span>
+            <div class="profile-photo" id="profileBtn" title="Mon profil">
+                <img src="fsa.png" width="45" height="45" alt="Profil" onerror="this.style.display='none';">
+                <span class="notification-dot" id="notificationDot"></span>
             </div>
 
-            <button
-                class="btn btn-outline-light btn-sm"
-                id="logoutBtn"
-                type="button"
-                title="Déconnexion"
-            >
+            <button class="btn btn-outline-light btn-sm" id="logoutBtn" type="button" title="Déconnexion">
                 <i class="bi bi-box-arrow-right"></i>
             </button>
-
         </div>
     </div>
 </nav>
@@ -644,498 +662,175 @@
 <!-- ================================================================
      CONTENU PRINCIPAL
 ================================================================ -->
-
 <div class="container mt-4">
 
     <!-- TOAST -->
-    <div
-        id="toastContainer"
-        class="toast-notification"
-        aria-live="polite"
-        aria-atomic="true"
-    ></div>
+    <div id="toastContainer" class="toast-notification" aria-live="polite" aria-atomic="true"></div>
 
-    <!-- MODE HORS LIGNE -->
-    <div
-        class="offline-badge"
-        id="offlineBadge"
-    >
-        <i class="bi bi-wifi-off"></i>
-        Mode hors ligne
+    <!-- MODE HORS LIGNE (CENTRÉ EN BAS) -->
+    <div class="offline-badge" id="offlineBadge">
+        <span class="pulse-dot"></span>
+        <span>📱 Mode hors ligne</span>
+        <span style="font-size:9px;opacity:0.7;">données les plus récentes disponibles</span>
     </div>
 
-    <!-- ============================================================
-         NOTIFICATION PERMISSION
-    ============================================================= -->
-
-    <div
-        id="notificationPermissionCard"
-        class="notification-permission-card"
-    >
-        <h6>
-            <i class="bi bi-bell-fill"></i>
-            Activer les notifications
-        </h6>
-
-        <p>
-            Activez les notifications pour recevoir les communiqués
-            importants de la Faculté.
-        </p>
-
-        <button
-            type="button"
-            class="btn btn-sm btn-primary"
-            id="enableNotificationsBtn"
-            style="background:#003366;border:none;border-radius:25px;padding:8px 20px;"
-        >
-            <i class="bi bi-bell"></i>
-            Activer
+    <!-- NOTIFICATION PERMISSION -->
+    <div id="notificationPermissionCard" class="notification-permission-card">
+        <h6><i class="bi bi-bell-fill"></i> Activer les notifications</h6>
+        <p>Activez les notifications pour recevoir les communiqués importants de la Faculté.</p>
+        <button type="button" class="btn btn-sm btn-primary" id="enableNotificationsBtn" style="background:#003366;border:none;border-radius:25px;padding:8px 20px;">
+            <i class="bi bi-bell"></i> Activer
         </button>
     </div>
 
-    <!-- ============================================================
-         HOME
-    ============================================================= -->
-
+    <!-- HOME -->
     <div id="homePage">
-
         <!-- CARTE ÉTUDIANT -->
-
         <div class="etudiant-info-card">
-
             <div>
-
-                <h2 id="welcomeName">
-                    Bienvenue, Étudiant
-                </h2>
-
-                <p id="welcomeInfo">
-                    Faculté des Sciences Agronomiques
-                </p>
-
-                <span
-                    class="badge-compte"
-                    id="compteStatus"
-                >
-                    <i class="bi bi-check-circle-fill"></i>
-                    Compte Actif
+                <h2 id="welcomeName">Bienvenue, Étudiant</h2>
+                <p id="welcomeInfo">Faculté des Sciences Agronomiques</p>
+                <span class="badge-compte" id="compteStatus">
+                    <i class="bi bi-check-circle-fill"></i> Compte Actif
                 </span>
-
-                <div
-                    class="cache-status"
-                    id="cacheStatus"
-                >
-                    <i class="bi bi-database"></i>
-
-                    <span id="cacheStatusText">
-                        Chargement...
+                <div class="cache-status" id="cacheStatus">
+                    <span class="status-icon" id="statusIcon">
+                        <i class="bi bi-wifi"></i>
                     </span>
+                    <span class="status-text" id="cacheStatusText">Chargement...</span>
+                    <span class="last-sync" id="lastSyncInfo"></span>
                 </div>
-
             </div>
-
             <div class="info-icon">
                 <i class="bi bi-mortarboard-fill"></i>
             </div>
-
         </div>
 
-        <!-- ========================================================
-             MENU
-        ========================================================= -->
-
+        <!-- MENU -->
         <div class="menu-grid">
-
-            <!-- PAIEMENT EN LIGNE -->
-
-            <div
-                class="menu-card"
-                data-page="paiement-ligne"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-credit-card-2-front-fill"></i>
-                </div>
-
-                <div class="menu-title">
-                    Paiement en ligne
-                </div>
-
-                <div class="menu-subtitle">
-                    Payez via Mobile Money
-                </div>
+            <div class="menu-card" data-page="paiement-ligne">
+                <div class="menu-icon"><i class="bi bi-credit-card-2-front-fill"></i></div>
+                <div class="menu-title">Paiement en ligne</div>
+                <div class="menu-subtitle">Payez via Mobile Money</div>
             </div>
 
-            <!-- BULLETIN -->
-
-            <div
-                class="menu-card"
-                data-page="bulletin"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-journal-bookmark-fill"></i>
-                </div>
-
-                <div class="menu-title">
-                    Bulletin
-                </div>
-
-                <div class="menu-subtitle">
-                    Notes & Résultats
-                </div>
+            <div class="menu-card" data-page="bulletin">
+                <div class="menu-icon"><i class="bi bi-journal-bookmark-fill"></i></div>
+                <div class="menu-title">Bulletin</div>
+                <div class="menu-subtitle">Notes & Résultats</div>
             </div>
 
-            <!-- MOYENNE -->
-
-            <div
-                class="menu-card"
-                data-page="moyenne"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-calculator-fill"></i>
-                </div>
-
-                <div class="menu-title">
-                    Moyenne
-                </div>
-
-                <div class="menu-subtitle">
-                    Moyenne Générale
-                </div>
+            <div class="menu-card" data-page="moyenne">
+                <div class="menu-icon"><i class="bi bi-calculator-fill"></i></div>
+                <div class="menu-title">Moyenne</div>
+                <div class="menu-subtitle">Moyenne Générale</div>
             </div>
 
-            <!-- PAIEMENT -->
-
-            <div
-                class="menu-card"
-                data-page="paiement"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-credit-card-fill"></i>
-                </div>
-
-                <div class="menu-title">
-                    Paiement
-                </div>
-
-                <div class="menu-subtitle">
-                    Mes transactions
-                </div>
+            <div class="menu-card" data-page="paiement">
+                <div class="menu-icon"><i class="bi bi-credit-card-fill"></i></div>
+                <div class="menu-title">Paiement</div>
+                <div class="menu-subtitle">Mes transactions</div>
             </div>
 
-            <!-- COMPLÉMENTS -->
-
-            <div
-                class="menu-card"
-                data-page="interro-ligne"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-question-circle-fill"></i>
-                </div>
-
-                <div class="menu-title">
-                    Mes compléments
-                </div>
-
-                <div class="menu-subtitle">
-                    Résultats /2
-                </div>
+            <div class="menu-card" data-page="interro-ligne">
+                <div class="menu-icon"><i class="bi bi-question-circle-fill"></i></div>
+                <div class="menu-title">Mes compléments</div>
+                <div class="menu-subtitle">Résultats /2</div>
             </div>
 
-            <!-- CARTES EXAMEN -->
-
-            <div
-                class="menu-card"
-                data-page="mes-recus"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-receipt-cutoff"></i>
-                </div>
-
-                <div class="menu-title">
-                    Cartes Examen
-                </div>
-
-                <div class="menu-subtitle">
-                    Accès examens
-                </div>
+            <div class="menu-card" data-page="mes-recus">
+                <div class="menu-icon"><i class="bi bi-receipt-cutoff"></i></div>
+                <div class="menu-title">Cartes Examen</div>
+                <div class="menu-subtitle">Accès examens</div>
             </div>
 
-            <!-- HORAIRES -->
-
-            <div
-                class="menu-card"
-                data-page="horaires"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-calendar-week-fill"></i>
-                </div>
-
-                <div class="menu-title">
-                    Horaires
-                </div>
-
-                <div class="menu-subtitle">
-                    Emploi du temps
-                </div>
+            <div class="menu-card" data-page="horaires">
+                <div class="menu-icon"><i class="bi bi-calendar-week-fill"></i></div>
+                <div class="menu-title">Horaires</div>
+                <div class="menu-subtitle">Emploi du temps</div>
             </div>
 
-            <!-- MES COURS -->
-
-            <div
-                class="menu-card"
-                data-page="mes-cours"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-book-fill"></i>
-                </div>
-
-                <div class="menu-title">
-                    Mes Cours
-                </div>
-
-                <div class="menu-subtitle">
-                    Programmes & TD
-                </div>
+            <div class="menu-card" data-page="mes-cours">
+                <div class="menu-icon"><i class="bi bi-book-fill"></i></div>
+                <div class="menu-title">Mes Cours</div>
+                <div class="menu-subtitle">Programmes & TD</div>
             </div>
 
-            <!-- COMMUNIQUÉS -->
-
-            <div
-                class="menu-card"
-                data-page="communiquer"
-                id="communiquesCard"
-            >
-
-                <span
-                    class="card-notif-badge"
-                    id="communiqueBadge"
-                >
-                    0
-                </span>
-
-                <div class="menu-icon">
-                    <i class="bi bi-megaphone-fill"></i>
-                </div>
-
-                <div class="menu-title">
-                    Communiqués
-                </div>
-
-                <div class="menu-subtitle">
-                    Messages & Infos
-                </div>
-
+            <div class="menu-card" data-page="communiquer" id="communiquesCard">
+                <span class="card-notif-badge" id="communiqueBadge">0</span>
+                <div class="menu-icon"><i class="bi bi-megaphone-fill"></i></div>
+                <div class="menu-title">Communiqués</div>
+                <div class="menu-subtitle">Messages & Infos</div>
             </div>
 
-            <!-- SUJET -->
-
-            <div
-                class="menu-card"
-                data-page="tp"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-laptop-fill"></i>
-                </div>
-
-                <div class="menu-title">
-                    SUJET
-                </div>
-
-                <div class="menu-subtitle">
-                    projet & feu vert
-                </div>
+            <div class="menu-card" data-page="tp">
+                <div class="menu-icon"><i class="bi bi-laptop-fill"></i></div>
+                <div class="menu-title">SUJET</div>
+                <div class="menu-subtitle">projet & feu vert</div>
             </div>
 
-            <!-- FICHE -->
-
-            <div
-                class="menu-card"
-                data-page="fiche"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-file-person-fill"></i>
-                </div>
-
-                <div class="menu-title">
-                    Fiche
-                </div>
-
-                <div class="menu-subtitle">
-                    Renseignements
-                </div>
+            <div class="menu-card" data-page="fiche">
+                <div class="menu-icon"><i class="bi bi-file-person-fill"></i></div>
+                <div class="menu-title">Fiche</div>
+                <div class="menu-subtitle">Renseignements</div>
             </div>
 
-            <!-- CONDUITE -->
-
-            <div
-                class="menu-card"
-                data-page="conduite"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-flag-fill"></i>
-                </div>
-
-                <div class="menu-title">
-                    Conduite
-                </div>
-
-                <div class="menu-subtitle">
-                    Règlement
-                </div>
+            <div class="menu-card" data-page="conduite">
+                <div class="menu-icon"><i class="bi bi-flag-fill"></i></div>
+                <div class="menu-title">Conduite</div>
+                <div class="menu-subtitle">Règlement</div>
             </div>
 
-            <!-- À PROPOS -->
-
-            <div
-                class="menu-card"
-                data-page="apropos"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-info-circle-fill"></i>
-                </div>
-
-                <div class="menu-title">
-                    À propos
-                </div>
-
-                <div class="menu-subtitle">
-                    Informations
-                </div>
+            <div class="menu-card" data-page="apropos">
+                <div class="menu-icon"><i class="bi bi-info-circle-fill"></i></div>
+                <div class="menu-title">À propos</div>
+                <div class="menu-subtitle">Informations</div>
             </div>
 
-            <!-- PROFIL -->
-
-            <div
-                class="menu-card"
-                data-page="profil"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-person-circle"></i>
-                </div>
-
-                <div class="menu-title">
-                    Profil
-                </div>
-
-                <div class="menu-subtitle">
-                    Mon compte
-                </div>
+            <div class="menu-card" data-page="profil">
+                <div class="menu-icon"><i class="bi bi-person-circle"></i></div>
+                <div class="menu-title">Profil</div>
+                <div class="menu-subtitle">Mon compte</div>
             </div>
 
-            <!-- ====================================================
-                 CARTE IA FSA - MÊME DESIGN, PLACÉE À LA FIN
-            ===================================================== -->
-
-            <div
-                class="menu-card"
-                data-page="ia"
-                id="iaCard"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-robot"></i>
-                </div>
-
-                <div class="menu-title">
-                    IA FSA
-                </div>
-
-                <div class="menu-subtitle">
-                    Assistant intelligent
-                </div>
+            <div class="menu-card" data-page="ia" id="iaCard">
+                <div class="menu-icon"><i class="bi bi-robot"></i></div>
+                <div class="menu-title">IA FSA</div>
+                <div class="menu-subtitle">Assistant intelligent</div>
             </div>
+        </div>
+    </div>
+</div>
 
-        </div> <!-- Fin de menu-grid -->
-    </div> <!-- Fin de homePage -->
-</div> <!-- Fin de container -->
 <!-- ================================================================
      MODAL PROFIL
 ================================================================ -->
-
-<div
-    id="profileModal"
-    class="profile-modal"
->
-
+<div id="profileModal" class="profile-modal">
     <div class="profile-modal-content">
-
         <div class="text-center">
-
-            <i
-                class="bi bi-person-circle"
-                style="font-size:70px;color:var(--primary-blue);"
-            ></i>
-
+            <i class="bi bi-person-circle" style="font-size:70px;color:var(--primary-blue);"></i>
             <h4 id="profilNom"></h4>
-
             <p id="profilMatricule"></p>
-
             <p id="profilPromotion"></p>
-
             <hr>
-
-            <h6>
-                Changer mot de passe
-            </h6>
-
-            <input
-                type="password"
-                class="form-control mb-2"
-                id="newPassword"
-                placeholder="Nouveau mot de passe"
-                autocomplete="new-password"
-            >
-
-            <input
-                type="password"
-                class="form-control mb-2"
-                id="confirmNewPassword"
-                placeholder="Confirmer"
-                autocomplete="new-password"
-            >
-
-            <button
-                class="btn-action"
-                id="changePasswordBtn"
-                type="button"
-            >
-                Modifier
-            </button>
-
-            <button
-                class="btn btn-secondary w-100 mt-2"
-                id="closeProfileBtn"
-                type="button"
-            >
-                Fermer
-            </button>
-
+            <h6>Changer mot de passe</h6>
+            <input type="password" class="form-control mb-2" id="newPassword" placeholder="Nouveau mot de passe" autocomplete="new-password">
+            <input type="password" class="form-control mb-2" id="confirmNewPassword" placeholder="Confirmer" autocomplete="new-password">
+            <button class="btn-action" id="changePasswordBtn" type="button">Modifier</button>
+            <button class="btn btn-secondary w-100 mt-2" id="closeProfileBtn" type="button">Fermer</button>
         </div>
     </div>
-
 </div>
 
 <!-- ================================================================
      FOOTER
 ================================================================ -->
-
 <div class="container">
-
     <div class="footer-info">
-
-        <i class="bi bi-shield-check"></i>
-        HYBRILINK-TECH - Votre partenaire digital
-
+        <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital
         <br>
-
-        <img
-            src="t.png"
-            width="40"
-            alt="HYBRILINK"
-            onerror="this.style.display='none'"
-        >
-
+        <img src="t.png" width="40" alt="HYBRILINK" onerror="this.style.display='none'">
     </div>
-
 </div>
 
 <script>
@@ -1143,16 +838,14 @@
 /* ================================================================
    FIREBASE CONFIG
 ================================================================ */
-
 const firebaseConfig = {
-    apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",  // ✅ Clé corrigée
+    apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
     authDomain: "fsa-unilu.firebaseapp.com",
     projectId: "fsa-unilu",
     storageBucket: "fsa-unilu.firebasestorage.app",
     messagingSenderId: "36551990738",
     appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
 };
-/* Initialisation Firebase */
 
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
@@ -1160,12 +853,7 @@ if (!firebase.apps.length) {
 
 const db = firebase.firestore();
 
-/*
- * Messaging est conservé ici pour compatibilité avec ton application.
- * La gestion réelle du FCM est centralisée dans notification-utils.js.
- */
 let messaging = null;
-
 try {
     messaging = firebase.messaging();
     console.log('[FCM] Firebase Messaging disponible');
@@ -1173,404 +861,491 @@ try {
     console.warn('[FCM] Firebase Messaging indisponible:', error);
 }
 
-
 /* ================================================================
    CACHE MANAGER
 ================================================================ */
-
 const CacheManager = {
-
     PREFIX: 'fsa_cache_',
+    VERSION_KEY: 'fsa_cache_version',
+    CURRENT_VERSION: '1.0.0',
 
     TTL: {
-
         PROMOTIONS: 24 * 60 * 60 * 1000,
-
         ETUDIANT: 12 * 60 * 60 * 1000,
-
         COMMUNIQUES: 5 * 60 * 1000,
-
         NOTES: 5 * 60 * 1000,
-
         PAIEMENTS: 5 * 60 * 1000,
-
-        CARTES: 5 * 60 * 1000
+        CARTES: 5 * 60 * 1000,
+        SYNC_METADATA: 30 * 60 * 1000
     },
 
-    set(key, data, ttlKey = null) {
-
+    isCacheValid(key) {
+        const raw = localStorage.getItem(this.PREFIX + key);
+        if (!raw) return false;
         try {
+            const cacheItem = JSON.parse(raw);
+            if (!cacheItem || typeof cacheItem.expires !== 'number') return false;
+            if (Date.now() > cacheItem.expires) return false;
+            const currentVersion = localStorage.getItem(this.VERSION_KEY);
+            if (currentVersion && currentVersion !== this.CURRENT_VERSION) {
+                console.log('[CACHE] Version différente, invalidation');
+                this.clearAll();
+                return false;
+            }
+            return true;
+        } catch (e) {
+            return false;
+        }
+    },
 
-            const ttl =
-                ttlKey && this.TTL[ttlKey]
-                    ? this.TTL[ttlKey]
-                    : this.TTL.PROMOTIONS;
-
+    set(key, data, ttlKey = null, metadata = null) {
+        try {
+            const ttl = ttlKey && this.TTL[ttlKey] ? this.TTL[ttlKey] : this.TTL.PROMOTIONS;
             const now = Date.now();
-
             const cacheItem = {
                 data: data,
                 timestamp: now,
-                expires: now + ttl
+                expires: now + ttl,
+                version: this.CURRENT_VERSION,
+                metadata: metadata || { source: 'cache' }
             };
-
-            localStorage.setItem(
-                this.PREFIX + key,
-                JSON.stringify(cacheItem)
-            );
-
+            localStorage.setItem(this.PREFIX + key, JSON.stringify(cacheItem));
+            localStorage.setItem(this.VERSION_KEY, this.CURRENT_VERSION);
             return true;
-
         } catch (e) {
-
             console.warn('[CACHE] Erreur écriture:', e);
-
             return false;
         }
     },
 
     get(key) {
-
         try {
-
-            const raw = localStorage.getItem(
-                this.PREFIX + key
-            );
-
-            if (!raw) {
-                return null;
-            }
-
+            if (!this.isCacheValid(key)) return null;
+            const raw = localStorage.getItem(this.PREFIX + key);
+            if (!raw) return null;
             const cacheItem = JSON.parse(raw);
-
-            if (
-                !cacheItem ||
-                typeof cacheItem.expires !== 'number'
-            ) {
-                this.remove(key);
-                return null;
-            }
-
-            if (Date.now() > cacheItem.expires) {
-
-                this.remove(key);
-
-                return null;
-            }
-
             return cacheItem.data;
-
         } catch (e) {
-
             console.warn('[CACHE] Erreur lecture:', e);
+            return null;
+        }
+    },
 
+    getMetadata(key) {
+        try {
+            if (!this.isCacheValid(key)) return null;
+            const raw = localStorage.getItem(this.PREFIX + key);
+            if (!raw) return null;
+            const cacheItem = JSON.parse(raw);
+            return cacheItem.metadata || null;
+        } catch (e) {
+            return null;
+        }
+    },
+
+    getTimestamp(key) {
+        try {
+            const raw = localStorage.getItem(this.PREFIX + key);
+            if (!raw) return null;
+            const cacheItem = JSON.parse(raw);
+            return cacheItem.timestamp || null;
+        } catch (e) {
             return null;
         }
     },
 
     remove(key) {
-
         try {
-
-            localStorage.removeItem(
-                this.PREFIX + key
-            );
-
+            localStorage.removeItem(this.PREFIX + key);
         } catch (e) {
-
             console.warn('[CACHE] Erreur suppression:', e);
         }
     },
 
-    cleanExpired() {
-
+    clearAll() {
         try {
-
             const keys = Object.keys(localStorage);
-
-            let count = 0;
-
             for (const key of keys) {
-
-                if (!key.startsWith(this.PREFIX)) {
-                    continue;
+                if (key.startsWith(this.PREFIX)) {
+                    localStorage.removeItem(key);
                 }
+            }
+            localStorage.removeItem(this.VERSION_KEY);
+            console.log('[CACHE] Tous les caches supprimés');
+        } catch (e) {
+            console.warn('[CACHE] Erreur nettoyage:', e);
+        }
+    },
 
+    cleanExpired() {
+        try {
+            const keys = Object.keys(localStorage);
+            let count = 0;
+            for (const key of keys) {
+                if (!key.startsWith(this.PREFIX)) continue;
                 const raw = localStorage.getItem(key);
-
-                if (!raw) {
-                    continue;
-                }
-
+                if (!raw) continue;
                 try {
-
                     const cacheItem = JSON.parse(raw);
-
-                    if (
-                        !cacheItem ||
-                        Date.now() > cacheItem.expires
-                    ) {
-
+                    if (!cacheItem || Date.now() > cacheItem.expires) {
                         localStorage.removeItem(key);
-
                         count++;
                     }
-
                 } catch (e) {
-
                     localStorage.removeItem(key);
-
                     count++;
                 }
             }
-
             return count;
-
         } catch (e) {
-
             console.warn('[CACHE] Nettoyage impossible:', e);
-
             return 0;
         }
+    },
+
+    getCacheSize() {
+        let total = 0;
+        try {
+            const keys = Object.keys(localStorage);
+            for (const key of keys) {
+                if (key.startsWith(this.PREFIX)) {
+                    total += localStorage.getItem(key).length;
+                }
+            }
+        } catch (e) {}
+        return total;
     }
 };
 
 CacheManager.cleanExpired();
 
+/* ================================================================
+   SYNC MANAGER - SYNCHRONISATION AUTOMATIQUE
+================================================================ */
+const SyncManager = {
+    isSyncing: false,
+    pendingSyncs: [],
+    lastSyncTime: null,
+    retryCount: 0,
+    maxRetries: 3,
+    syncInterval: null,
+    syncIntervalDelay: 300000, // 5 minutes
+
+    // Obtenir la dernière synchronisation
+    getLastSync() {
+        const stored = localStorage.getItem('fsa_last_sync');
+        if (stored) {
+            try {
+                this.lastSyncTime = JSON.parse(stored);
+            } catch (e) {
+                this.lastSyncTime = null;
+            }
+        }
+        return this.lastSyncTime;
+    },
+
+    // Mettre à jour la dernière synchronisation
+    updateLastSync() {
+        this.lastSyncTime = Date.now();
+        try {
+            localStorage.setItem('fsa_last_sync', JSON.stringify(this.lastSyncTime));
+        } catch (e) {}
+        this.updateUI();
+    },
+
+    // Mettre à jour l'interface
+    updateUI() {
+        const statusText = document.getElementById('cacheStatusText');
+        const statusIcon = document.getElementById('statusIcon');
+        const lastSyncInfo = document.getElementById('lastSyncInfo');
+
+        if (statusText) {
+            if (this.isSyncing) {
+                statusText.textContent = 'Synchronisation en cours...';
+                statusText.className = 'status-text syncing';
+            } else if (!navigator.onLine) {
+                statusText.textContent = '📱 Mode hors ligne';
+                statusText.className = 'status-text cached';
+            } else {
+                statusText.textContent = '✅ Données à jour';
+                statusText.className = 'status-text live';
+            }
+        }
+
+        if (statusIcon) {
+            const icon = statusIcon.querySelector('i') || statusIcon;
+            if (this.isSyncing) {
+                icon.className = 'bi bi-arrow-repeat syncing';
+            } else if (!navigator.onLine) {
+                icon.className = 'bi bi-database-fill cached';
+            } else {
+                icon.className = 'bi bi-wifi live';
+            }
+        }
+
+        if (lastSyncInfo) {
+            const lastSync = this.getLastSync();
+            if (lastSync) {
+                const date = new Date(lastSync);
+                const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+                lastSyncInfo.textContent = `🕐 ${dateStr} ${timeStr}`;
+            } else {
+                lastSyncInfo.textContent = '🕐 Jamais synchronisé';
+            }
+        }
+
+        // Mise à jour du badge hors ligne
+        const offlineBadge = document.getElementById('offlineBadge');
+        if (offlineBadge) {
+            if (!navigator.onLine) {
+                offlineBadge.classList.add('show');
+            } else {
+                offlineBadge.classList.remove('show');
+            }
+        }
+    },
+
+    // Barre de progression
+    showProgress() {
+        const progress = document.getElementById('syncProgress');
+        if (progress) {
+            progress.classList.add('active');
+            progress.style.width = '0%';
+            progress.classList.remove('complete', 'error');
+        }
+        // Afficher le badge de synchro
+        const badge = document.getElementById('autoSyncBadge');
+        if (badge) {
+            badge.classList.add('show');
+        }
+    },
+
+    updateProgress(percent) {
+        const progress = document.getElementById('syncProgress');
+        if (progress) {
+            progress.style.width = Math.min(percent, 100) + '%';
+        }
+    },
+
+    hideProgress(success = true) {
+        const progress = document.getElementById('syncProgress');
+        if (progress) {
+            if (success) {
+                progress.classList.add('complete');
+            } else {
+                progress.classList.add('error');
+            }
+            setTimeout(() => {
+                progress.classList.remove('active', 'complete', 'error');
+                progress.style.width = '0%';
+            }, success ? 1000 : 2000);
+        }
+        const badge = document.getElementById('autoSyncBadge');
+        if (badge) {
+            badge.classList.remove('show');
+        }
+    },
+
+    // Synchronisation des données
+    async syncAll(forceRefresh = false) {
+        if (this.isSyncing) {
+            console.log('[SYNC] Déjà en cours...');
+            return false;
+        }
+
+        if (!navigator.onLine) {
+            console.log('[SYNC] Hors ligne, synchronisation impossible');
+            return false;
+        }
+
+        this.isSyncing = true;
+        this.showProgress();
+        this.updateUI();
+
+        try {
+            console.log('[SYNC] Début synchronisation automatique...');
+
+            // Étape 1: Promotions
+            this.updateProgress(20);
+            await chargerPromotions(true);
+
+            // Étape 2: Données étudiant
+            this.updateProgress(50);
+            await chargerEtudiant(true);
+
+            // Étape 3: Communiqués
+            this.updateProgress(75);
+            await forceSyncCommuniques();
+
+            // Étape 4: Mise à jour des badges
+            this.updateProgress(90);
+            updateNotificationBadgesFromCache();
+
+            // Finalisation
+            this.updateProgress(100);
+            this.updateLastSync();
+            await updateWelcomeMessage();
+
+            this.isSyncing = false;
+            this.hideProgress(true);
+            this.updateUI();
+
+            console.log('[SYNC] Synchronisation terminée avec succès');
+            return true;
+
+        } catch (error) {
+            console.error('[SYNC] Erreur:', error);
+            this.isSyncing = false;
+            this.hideProgress(false);
+            this.updateUI();
+            return false;
+        }
+    },
+
+    // Forcer la synchronisation des communiqués
+    async forceSyncCommuniques() {
+        if (!currentStudent) return;
+        const cacheKey = 'communiques_' + currentStudent.id;
+        try {
+            const dateLimite = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            const snapshot = await db.collection('communiques')
+                .where('dateFin', '>=', firebase.firestore.Timestamp.fromDate(dateLimite))
+                .orderBy('dateFin', 'asc')
+                .get();
+
+            const communiquesList = [];
+            const promo = currentStudent.promotion;
+            const maintenant = new Date();
+
+            snapshot.forEach(doc => {
+                const data = doc.data() || {};
+                if (data.promotions && Array.isArray(data.promotions) && data.promotions.length > 0) {
+                    if (!data.promotions.includes(promo)) return;
+                }
+                const dateFin = data.dateFin ? (typeof data.dateFin.toDate === 'function' ? data.dateFin.toDate() : new Date(data.dateFin)) : null;
+                if (dateFin && !isNaN(dateFin.getTime()) && dateFin < maintenant) return;
+                const dateDebut = data.dateDebut ? (typeof data.dateDebut.toDate === 'function' ? data.dateDebut.toDate() : new Date(data.dateDebut)) : null;
+                if (dateDebut && !isNaN(dateDebut.getTime()) && dateDebut > maintenant) return;
+                communiquesList.push({ id: doc.id, ...data });
+            });
+
+            CacheManager.set(cacheKey, communiquesList, 'COMMUNIQUES');
+            return communiquesList;
+        } catch (error) {
+            console.error('[SYNC] Erreur communiqués:', error);
+            throw error;
+        }
+    },
+
+    // Démarrer la synchronisation périodique
+    startPeriodicSync() {
+        if (this.syncInterval) {
+            clearInterval(this.syncInterval);
+        }
+        this.syncInterval = setInterval(() => {
+            if (navigator.onLine && !this.isSyncing) {
+                console.log('[SYNC] Sync périodique automatique...');
+                this.syncAll(false);
+            }
+        }, this.syncIntervalDelay);
+        console.log('[SYNC] Sync périodique démarrée (toutes les 5 min)');
+    },
+
+    // Arrêter la synchronisation périodique
+    stopPeriodicSync() {
+        if (this.syncInterval) {
+            clearInterval(this.syncInterval);
+            this.syncInterval = null;
+            console.log('[SYNC] Sync périodique arrêtée');
+        }
+    }
+};
 
 /* ================================================================
    SESSION
 ================================================================ */
-
 let currentStudent = null;
-
 let allPromotions = [];
-
 let unreadCount = 0;
-
 let snapshotUnsubscribe = null;
-
-/*
- * Permet d'éviter de considérer les anciens communiqués
- * comme de nouveaux communiqués au chargement initial.
- */
 let communiquesRealtimeInitialized = false;
 
-
-/* ================================================================
-   VÉRIFICATION SESSION
-================================================================ */
-
 function checkSession() {
-
-    const session =
-        localStorage.getItem('session_etudiant');
-
+    const session = localStorage.getItem('session_etudiant');
     if (!session) {
-
-        window.location.href =
-            'login-etudiant.html';
-
+        window.location.href = 'login-etudiant.html';
         return false;
     }
-
     try {
-
         const data = JSON.parse(session);
-
         if (!data || !data.expires) {
-
-            localStorage.removeItem(
-                'session_etudiant'
-            );
-
-            window.location.href =
-                'login-etudiant.html';
-
+            localStorage.removeItem('session_etudiant');
+            window.location.href = 'login-etudiant.html';
             return false;
         }
-
         if (Date.now() > Number(data.expires)) {
-
-            localStorage.removeItem(
-                'session_etudiant'
-            );
-
-            window.location.href =
-                'login-etudiant.html';
-
+            localStorage.removeItem('session_etudiant');
+            window.location.href = 'login-etudiant.html';
             return false;
         }
-
         currentStudent = data;
-
         return true;
-
     } catch (e) {
-
-        console.error(
-            '[SESSION] Session invalide:',
-            e
-        );
-
-        localStorage.removeItem(
-            'session_etudiant'
-        );
-
-        window.location.href =
-            'login-etudiant.html';
-
+        console.error('[SESSION] Session invalide:', e);
+        localStorage.removeItem('session_etudiant');
+        window.location.href = 'login-etudiant.html';
         return false;
     }
 }
-
 
 /* ================================================================
    TOAST
 ================================================================ */
-
-function showToast(
-    message,
-    type = 'success'
-) {
-
-    const container =
-        document.getElementById(
-            'toastContainer'
-        );
-
-    if (!container) {
-        return;
-    }
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
 
     const colors = {
-
-        success: {
-            bg: '#28a745',
-            icon: 'check-circle-fill'
-        },
-
-        warning: {
-            bg: '#ffc107',
-            icon: 'exclamation-triangle-fill',
-            textColor: '#333'
-        },
-
-        danger: {
-            bg: '#dc3545',
-            icon: 'x-circle-fill'
-        },
-
-        info: {
-            bg: '#17a2b8',
-            icon: 'info-circle-fill'
-        }
+        success: { bg: '#28a745', icon: 'check-circle-fill' },
+        warning: { bg: '#ffc107', icon: 'exclamation-triangle-fill', textColor: '#333' },
+        danger: { bg: '#dc3545', icon: 'x-circle-fill' },
+        info: { bg: '#17a2b8', icon: 'info-circle-fill' }
     };
 
-    const config =
-        colors[type] || colors.success;
+    const config = colors[type] || colors.success;
+    const textColor = config.textColor || 'white';
 
-    const textColor =
-        config.textColor || 'white';
-
-    const toast =
-        document.createElement('div');
-
-    toast.className =
-        'toast-custom';
-
-    toast.style.background =
-        config.bg;
-
-    toast.style.color =
-        textColor;
-
+    const toast = document.createElement('div');
+    toast.className = 'toast-custom';
+    toast.style.background = config.bg;
+    toast.style.color = textColor;
     toast.innerHTML = `
         <i class="bi ${config.icon}"></i>
         <span>${escapeHtml(message)}</span>
-        <button
-            class="close-toast"
-            type="button"
-            aria-label="Fermer"
-            onclick="this.parentElement.remove()"
-        >&times;</button>
+        <button class="close-toast" type="button" aria-label="Fermer" onclick="this.parentElement.remove()">&times;</button>
     `;
 
     container.prepend(toast);
-
-    setTimeout(() => {
-
-        if (toast.parentNode) {
-            toast.remove();
-        }
-
-    }, 5000);
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 5000);
 }
 
-
-/* ================================================================
-   PROTECTION HTML
-================================================================ */
-
 function escapeHtml(text) {
-
-    if (
-        text === null ||
-        text === undefined
-    ) {
-        return '';
-    }
-
-    const div =
-        document.createElement('div');
-
-    div.textContent =
-        String(text);
-
+    if (text === null || text === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(text);
     return div.innerHTML;
 }
 
-
 /* ================================================================
-   NOTIFICATIONS - VERSION CORRIGÉE
+   NOTIFICATIONS
 ================================================================ */
-
-/*
- * Cette fonction ne demande pas automatiquement la permission.
- *
- * Si la permission est déjà accordée :
- *      notificationManager.init()
- * enregistre le token.
- *
- * Si la permission est "default" :
- *      le bouton Activer utilise
- *      requestPermissionAndRegister().
- */
-
-async function enregistrerTokenFCM(
-    etudiantId,
-    etudiantNom,
-    promotion,
-    demanderPermission = false
-) {
-
+async function enregistrerTokenFCM(etudiantId, etudiantNom, promotion, demanderPermission = false) {
     try {
-
-        console.log('[FCM] 🔔 Tentative d\'activation des notifications...');
-        console.log('[FCM] 📋 Étudiant:', etudiantId);
-        console.log('[FCM] 📋 Demander permission:', demanderPermission);
-
-        /*
-         * Vérifier que NotificationManager existe.
-         * Si ce n'est pas le cas, on tente de le recharger.
-         */
+        console.log('[FCM] Tentative d\'activation des notifications...');
         if (!window.notificationManager) {
-
-            console.warn('[FCM] ⚠️ NotificationManager introuvable');
-
-            // Tentative de rechargement du script
+            console.warn('[FCM] NotificationManager introuvable');
             try {
-                console.log('[FCM] 🔄 Tentative de rechargement de notification-utils.js...');
                 const script = document.createElement('script');
                 script.src = 'notification-utils.js';
                 await new Promise((resolve, reject) => {
@@ -1579,1861 +1354,569 @@ async function enregistrerTokenFCM(
                     document.head.appendChild(script);
                 });
                 await new Promise(resolve => setTimeout(resolve, 500));
-                console.log('[FCM] ✅ Script rechargé');
+                console.log('[FCM] Script rechargé');
             } catch (error) {
-                console.error('[FCM] ❌ Échec rechargement:', error);
+                console.error('[FCM] Échec rechargement:', error);
             }
-
             if (!window.notificationManager) {
-                console.error('[FCM] ❌ NotificationManager toujours introuvable');
-                showToast(
-                    '❌ Gestionnaire de notifications indisponible. Veuillez rafraîchir la page.',
-                    'danger'
-                );
+                console.error('[FCM] NotificationManager toujours introuvable');
+                showToast('❌ Gestionnaire de notifications indisponible. Veuillez rafraîchir la page.', 'danger');
                 return null;
             }
         }
 
         if (!etudiantId) {
-
-            console.error(
-                '[FCM] ID étudiant manquant'
-            );
-
+            console.error('[FCM] ID étudiant manquant');
             return null;
         }
 
         let token = null;
-
-        /*
-         * Le bouton "Activer" passe par cette branche.
-         */
         if (demanderPermission) {
-
-            console.log('[FCM] 🔔 Demande de permission utilisateur...');
-
-            token =
-                await window.notificationManager
-                    .requestPermissionAndRegister(
-                        etudiantId,
-                        etudiantNom,
-                        promotion
-                    );
-
+            token = await window.notificationManager.requestPermissionAndRegister(etudiantId, etudiantNom, promotion);
         } else {
-
-            /*
-             * Au démarrage, on ne demande jamais
-             * automatiquement l'autorisation.
-             */
-            console.log('[FCM] 🔔 Initialisation silencieuse...');
-
-            token =
-                await window.notificationManager
-                    .init(
-                        etudiantId,
-                        etudiantNom,
-                        promotion
-                    );
+            token = await window.notificationManager.init(etudiantId, etudiantNom, promotion);
         }
 
         if (token) {
-
-            console.log(
-                '[FCM] ✅ Token enregistré avec succès'
-            );
-
-            const card =
-                document.getElementById(
-                    'notificationPermissionCard'
-                );
-
-            if (card) {
-                card.classList.remove('show');
-            }
-
+            console.log('[FCM] Token enregistré avec succès');
+            const card = document.getElementById('notificationPermissionCard');
+            if (card) card.classList.remove('show');
             if (demanderPermission) {
-
-                showToast(
-                    '🔔 Notifications activées !',
-                    'success'
-                );
+                showToast('🔔 Notifications activées !', 'success');
             }
-
         } else {
-
-            console.log(
-                '[FCM] ⚠️ Token non disponible'
-            );
-
-            // Vérifier si la permission a été refusée
+            console.log('[FCM] Token non disponible');
             if ('Notification' in window && Notification.permission === 'denied') {
-                showToast(
-                    '⚠️ Les notifications sont bloquées dans les paramètres du navigateur.',
-                    'warning'
-                );
-            } else if ('Notification' in window && Notification.permission === 'default') {
-                // La permission n'a pas été demandée ou a été ignorée
-                console.log('[FCM] Permission par défaut, en attente d\'action utilisateur');
+                showToast('⚠️ Les notifications sont bloquées dans les paramètres du navigateur.', 'warning');
             }
-
             checkNotificationStatus();
         }
-
         return token;
-
     } catch (error) {
-
-        console.error(
-            '[FCM] ❌ Erreur:',
-            error
-        );
-
-        console.error('  - Message:', error.message);
-        console.error('  - Stack:', error.stack);
-
-        showToast(
-            `❌ Erreur: ${error.message || 'Impossible d\'activer les notifications'}`,
-            'danger'
-        );
-
+        console.error('[FCM] Erreur:', error);
+        showToast(`❌ Erreur: ${error.message || 'Impossible d\'activer les notifications'}`, 'danger');
         checkNotificationStatus();
-
         return null;
     }
 }
 
-
-/* ================================================================
-   STATUT NOTIFICATIONS
-================================================================ */
-
 function checkNotificationStatus() {
-
-    const card =
-        document.getElementById(
-            'notificationPermissionCard'
-        );
-
-    if (!card) {
-        return;
-    }
-
-    /*
-     * Navigateur sans Notification API.
-     */
-    if (
-        !('Notification' in window)
-    ) {
-
+    const card = document.getElementById('notificationPermissionCard');
+    if (!card) return;
+    if (!('Notification' in window)) {
         card.classList.remove('show');
-
         return;
     }
-
-    /*
-     * Permission accordée.
-     */
-    if (
-        Notification.permission === 'granted'
-    ) {
-
+    if (Notification.permission === 'granted') {
         card.classList.remove('show');
-
         return;
     }
-
-    /*
-     * Permission refusée.
-     */
-    if (
-        Notification.permission === 'denied'
-    ) {
-
+    if (Notification.permission === 'denied') {
         card.classList.remove('show');
-
         return;
     }
-
-    /*
-     * Permission encore inconnue.
-     */
-    if (
-        Notification.permission === 'default'
-    ) {
-
+    if (Notification.permission === 'default') {
         card.classList.add('show');
     }
 }
 
-
-/* ================================================================
-   BOUTON ACTIVATION NOTIFICATIONS - VERSION CORRIGÉE
-================================================================ */
-
-document
-    .getElementById('enableNotificationsBtn')
-    ?.addEventListener(
-        'click',
-        async function () {
-
-            if (!currentStudent) {
-
-                showToast(
-                    'Session étudiant introuvable.',
-                    'danger'
-                );
-
-                return;
-            }
-
-            const btn =
-                document.getElementById(
-                    'enableNotificationsBtn'
-                );
-
-            if (!btn) {
-                return;
-            }
-
-            const oldContent =
-                btn.innerHTML;
-
-            btn.disabled = true;
-
-            btn.innerHTML =
-                '<span class="spinner-border spinner-border-sm me-1"></span> Activation...';
-
-            try {
-
-                console.log('[FCM] 🔔 Bouton "Activer" cliqué');
-                console.log('[FCM] 📋 Étudiant:', currentStudent.id);
-
-                const token =
-                    await enregistrerTokenFCM(
-                        currentStudent.id,
-                        currentStudent.nom ||
-                            currentStudent.nomComplet ||
-                            '',
-                        currentStudent.promotion ||
-                            '',
-                        true
-                    );
-
-                if (!token) {
-
-                    /*
-                     * Si le navigateur refuse ou si
-                     * FCM n'est pas disponible.
-                     */
-                    if (
-                        'Notification' in window &&
-                        Notification.permission === 'denied'
-                    ) {
-
-                        showToast(
-                            '⚠️ Les notifications sont bloquées dans les réglages du navigateur.',
-                            'warning'
-                        );
-
-                    } else {
-
-                        showToast(
-                            '⚠️ Impossible d\'activer les notifications. Vérifiez la console pour plus de détails.',
-                            'warning'
-                        );
-                    }
-                }
-
-            } catch (error) {
-
-                console.error(
-                    '[FCM] ❌ Activation:',
-                    error
-                );
-
-                showToast(
-                    '❌ Erreur lors de l\'activation des notifications.',
-                    'danger'
-                );
-
-            } finally {
-
-                btn.disabled = false;
-
-                btn.innerHTML =
-                    oldContent;
-            }
-        }
-    );
-
-
-/* ================================================================
-   COMMUNIQUÉS - LECTURE
-================================================================ */
-
-function getReadCommuniques() {
-
+document.getElementById('enableNotificationsBtn')?.addEventListener('click', async function() {
+    if (!currentStudent) {
+        showToast('Session étudiant introuvable.', 'danger');
+        return;
+    }
+    const btn = this;
+    const oldContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Activation...';
     try {
+        await enregistrerTokenFCM(currentStudent.id, currentStudent.nom || currentStudent.nomComplet || '', currentStudent.promotion || '', true);
+    } catch (error) {
+        console.error('[FCM] Activation:', error);
+        showToast('❌ Erreur lors de l\'activation des notifications.', 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = oldContent;
+    }
+});
 
-        const value =
-            localStorage.getItem(
-                'communiques_lus'
-            );
-
-        const parsed =
-            JSON.parse(value || '[]');
-
-        return Array.isArray(parsed)
-            ? parsed
-            : [];
-
+/* ================================================================
+   COMMUNIQUÉS
+================================================================ */
+function getReadCommuniques() {
+    try {
+        const value = localStorage.getItem('communiques_lus');
+        const parsed = JSON.parse(value || '[]');
+        return Array.isArray(parsed) ? parsed : [];
     } catch (e) {
-
         return [];
     }
 }
 
-
-/* ================================================================
-   MARQUER COMMUNIQUÉ LU
-================================================================ */
-
 function markCommuniqueAsRead(id) {
-
-    if (!id) {
-        return;
-    }
-
-    const readIds =
-        getReadCommuniques();
-
+    if (!id) return;
+    const readIds = getReadCommuniques();
     if (!readIds.includes(id)) {
-
         readIds.push(id);
-
         try {
-
-            localStorage.setItem(
-                'communiques_lus',
-                JSON.stringify(readIds)
-            );
-
+            localStorage.setItem('communiques_lus', JSON.stringify(readIds));
         } catch (e) {
-
-            console.warn(
-                '[COMMUNIQUES] Impossible de sauvegarder:',
-                e
-            );
+            console.warn('[COMMUNIQUES] Impossible de sauvegarder:', e);
         }
     }
-
     updateNotificationBadgesFromCache();
 }
 
-
-/* ================================================================
-   BADGES NOTIFICATIONS
-================================================================ */
-
 function updateNotificationBadges(count) {
-
-    unreadCount =
-        Number(count) || 0;
-
-    const dot =
-        document.getElementById(
-            'notificationDot'
-        );
-
-    const badge =
-        document.getElementById(
-            'communiqueBadge'
-        );
-
+    unreadCount = Number(count) || 0;
+    const dot = document.getElementById('notificationDot');
+    const badge = document.getElementById('communiqueBadge');
     if (dot) {
-
-        dot.style.display =
-            unreadCount > 0
-                ? 'block'
-                : 'none';
+        dot.style.display = unreadCount > 0 ? 'block' : 'none';
     }
-
     if (badge) {
-
         if (unreadCount > 0) {
-
-            badge.textContent =
-                unreadCount > 99
-                    ? '99+'
-                    : String(unreadCount);
-
-            badge.style.display =
-                'flex';
-
+            badge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+            badge.style.display = 'flex';
         } else {
-
-            badge.style.display =
-                'none';
+            badge.style.display = 'none';
         }
     }
 }
 
-
-/* ================================================================
-   BADGES DEPUIS CACHE
-================================================================ */
-
 function updateNotificationBadgesFromCache() {
-
-    if (!currentStudent) {
-        return;
-    }
-
-    const cacheKey =
-        'communiques_' +
-        currentStudent.id;
-
-    const cached =
-        CacheManager.get(cacheKey);
-
+    if (!currentStudent) return;
+    const cacheKey = 'communiques_' + currentStudent.id;
+    const cached = CacheManager.get(cacheKey);
     if (!Array.isArray(cached)) {
-
         updateNotificationBadges(0);
-
         return;
     }
-
-    const readIds =
-        getReadCommuniques();
-
-    const count =
-        cached.filter(
-            comm =>
-                comm &&
-                comm.id &&
-                !readIds.includes(comm.id)
-        ).length;
-
+    const readIds = getReadCommuniques();
+    const count = cached.filter(comm => comm && comm.id && !readIds.includes(comm.id)).length;
     updateNotificationBadges(count);
 }
 
-
-/* ================================================================
-   REALTIME COMMUNIQUÉS
-================================================================ */
-
 function setupRealtimeCommuniques() {
-
-    if (!currentStudent) {
-        return;
-    }
-
+    if (!currentStudent) return;
     if (snapshotUnsubscribe) {
-
-        try {
-            snapshotUnsubscribe();
-        } catch (e) {
-            console.warn(
-                '[FIRESTORE] Désabonnement:',
-                e
-            );
-        }
-
+        try { snapshotUnsubscribe(); } catch (e) {}
         snapshotUnsubscribe = null;
     }
 
     communiquesRealtimeInitialized = false;
+    const promo = currentStudent.promotion;
+    const cacheKey = 'communiques_' + currentStudent.id;
 
-    const promo =
-        currentStudent.promotion;
-
-    const cacheKey =
-        'communiques_' +
-        currentStudent.id;
-
-    /*
-     * Affichage immédiat depuis le cache.
-     */
-    const cachedCommuniques =
-        CacheManager.get(cacheKey);
-
-    if (
-        Array.isArray(cachedCommuniques)
-    ) {
-
-        const readIds =
-            getReadCommuniques();
-
-        const count =
-            cachedCommuniques.filter(
-                comm =>
-                    comm &&
-                    comm.id &&
-                    !readIds.includes(comm.id)
-            ).length;
-
+    const cachedCommuniques = CacheManager.get(cacheKey);
+    if (Array.isArray(cachedCommuniques)) {
+        const readIds = getReadCommuniques();
+        const count = cachedCommuniques.filter(comm => comm && comm.id && !readIds.includes(comm.id)).length;
         updateNotificationBadges(count);
     }
 
-    const dateLimite =
-        new Date(
-            Date.now() -
-            24 * 60 * 60 * 1000
-        );
+    const dateLimite = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    snapshotUnsubscribe = db.collection('communiques')
+        .where('dateFin', '>=', firebase.firestore.Timestamp.fromDate(dateLimite))
+        .orderBy('dateFin', 'asc')
+        .onSnapshot(
+            snapshot => {
+                const maintenant = new Date();
+                const readIds = getReadCommuniques();
+                const communiquesList = [];
+                let hasNew = communiquesRealtimeInitialized && snapshot.docChanges().some(change => change.type === 'added');
 
-    snapshotUnsubscribe =
-        db.collection('communiques')
-            .where(
-                'dateFin',
-                '>=',
-                firebase.firestore.Timestamp.fromDate(
-                    dateLimite
-                )
-            )
-            .orderBy(
-                'dateFin',
-                'asc'
-            )
-            .onSnapshot(
-
-                snapshot => {
-
-                    const maintenant =
-                        new Date();
-
-                    const readIds =
-                        getReadCommuniques();
-
-                    const communiquesList =
-                        [];
-
-                    /*
-                     * IMPORTANT :
-                     * docChanges() sur le premier snapshot
-                     * renvoie les documents existants en "added".
-                     *
-                     * On ne doit donc pas les traiter
-                     * comme de nouveaux communiqués.
-                     */
-                    let hasNew =
-                        communiquesRealtimeInitialized &&
-                        snapshot.docChanges()
-                            .some(
-                                change =>
-                                    change.type === 'added'
-                            );
-
-                    snapshot.forEach(doc => {
-
-                        const data =
-                            doc.data() || {};
-
-                        /*
-                         * Filtre promotion.
-                         */
-                        if (
-                            data.promotions &&
-                            Array.isArray(data.promotions) &&
-                            data.promotions.length > 0
-                        ) {
-
-                            if (
-                                !data.promotions.includes(
-                                    promo
-                                )
-                            ) {
-
-                                return;
-                            }
-                        }
-
-                        /*
-                         * Date de fin.
-                         */
-                        const dateFin =
-                            data.dateFin
-                                ? (
-                                    typeof data.dateFin.toDate === 'function'
-                                        ? data.dateFin.toDate()
-                                        : new Date(data.dateFin)
-                                )
-                                : null;
-
-                        if (
-                            dateFin &&
-                            !isNaN(dateFin.getTime()) &&
-                            dateFin < maintenant
-                        ) {
-
-                            return;
-                        }
-
-                        /*
-                         * Date de début.
-                         */
-                        const dateDebut =
-                            data.dateDebut
-                                ? (
-                                    typeof data.dateDebut.toDate === 'function'
-                                        ? data.dateDebut.toDate()
-                                        : new Date(data.dateDebut)
-                                )
-                                : null;
-
-                        if (
-                            dateDebut &&
-                            !isNaN(dateDebut.getTime()) &&
-                            dateDebut > maintenant
-                        ) {
-
-                            return;
-                        }
-
-                        communiquesList.push({
-                            id: doc.id,
-                            ...data
-                        });
-                    });
-
-                    /*
-                     * Sauvegarde cache.
-                     */
-                    CacheManager.set(
-                        cacheKey,
-                        communiquesList,
-                        'COMMUNIQUES'
-                    );
-
-                    /*
-                     * Nombre de non lus.
-                     */
-                    const newUnreadCount =
-                        communiquesList.filter(
-                            comm =>
-                                comm &&
-                                comm.id &&
-                                !readIds.includes(
-                                    comm.id
-                                )
-                        ).length;
-
-                    updateNotificationBadges(
-                        newUnreadCount
-                    );
-
-                    /*
-                     * Notification locale uniquement pour
-                     * l'interface si une nouvelle donnée
-                     * arrive pendant que l'étudiant n'est
-                     * pas sur la page.
-                     *
-                     * Le PUSH réel est envoyé par Cloud Functions.
-                     *
-                     * NE PAS appeler :
-                     * notificationManager.envoyerNotification()
-                     */
-                    if (
-                        hasNew &&
-                        newUnreadCount > 0 &&
-                        document.hidden
-                    ) {
-
-                        showToast(
-                            `📢 ${newUnreadCount} nouveau(x) communiqué(s)`,
-                            'info'
-                        );
+                snapshot.forEach(doc => {
+                    const data = doc.data() || {};
+                    if (data.promotions && Array.isArray(data.promotions) && data.promotions.length > 0) {
+                        if (!data.promotions.includes(promo)) return;
                     }
+                    const dateFin = data.dateFin ? (typeof data.dateFin.toDate === 'function' ? data.dateFin.toDate() : new Date(data.dateFin)) : null;
+                    if (dateFin && !isNaN(dateFin.getTime()) && dateFin < maintenant) return;
+                    const dateDebut = data.dateDebut ? (typeof data.dateDebut.toDate === 'function' ? data.dateDebut.toDate() : new Date(data.dateDebut)) : null;
+                    if (dateDebut && !isNaN(dateDebut.getTime()) && dateDebut > maintenant) return;
+                    communiquesList.push({ id: doc.id, ...data });
+                });
 
-                    communiquesRealtimeInitialized = true;
+                CacheManager.set(cacheKey, communiquesList, 'COMMUNIQUES');
+                const newUnreadCount = communiquesList.filter(comm => comm && comm.id && !readIds.includes(comm.id)).length;
+                updateNotificationBadges(newUnreadCount);
 
-                    console.log(
-                        '[FIRESTORE] Communiqués synchronisés:',
-                        communiquesList.length
-                    );
-                },
-
-                error => {
-
-                    console.error(
-                        '[FIRESTORE] Erreur communiqués:',
-                        error
-                    );
-
-                    updateNotificationBadgesFromCache();
+                if (hasNew && newUnreadCount > 0 && document.hidden) {
+                    showToast(`📢 ${newUnreadCount} nouveau(x) communiqué(s)`, 'info');
                 }
-            );
-}
 
+                communiquesRealtimeInitialized = true;
+                console.log('[FIRESTORE] Communiqués synchronisés:', communiquesList.length);
+            },
+            error => {
+                console.error('[FIRESTORE] Erreur communiqués:', error);
+                updateNotificationBadgesFromCache();
+            }
+        );
+}
 
 /* ================================================================
    PROMOTIONS
 ================================================================ */
-
-async function chargerPromotions(
-    forceRefresh = false
-) {
-
-    const cacheKey =
-        'promotions';
-
+async function chargerPromotions(forceRefresh = false) {
+    const cacheKey = 'promotions';
     if (!forceRefresh) {
-
-        const cached =
-            CacheManager.get(cacheKey);
-
-        if (
-            Array.isArray(cached) &&
-            cached.length > 0
-        ) {
-
-            allPromotions =
-                cached;
-
+        const cached = CacheManager.get(cacheKey);
+        if (Array.isArray(cached) && cached.length > 0) {
+            allPromotions = cached;
             return allPromotions;
         }
     }
 
     try {
-
-        const snapshot =
-            await db
-                .collection('promotions')
-                .get();
-
+        const snapshot = await db.collection('promotions').get();
         allPromotions = [];
-
         snapshot.forEach(doc => {
-
-            allPromotions.push({
-                id: doc.id,
-                ...doc.data()
-            });
+            allPromotions.push({ id: doc.id, ...doc.data() });
         });
-
-        CacheManager.set(
-            cacheKey,
-            allPromotions,
-            'PROMOTIONS'
-        );
-
+        CacheManager.set(cacheKey, allPromotions, 'PROMOTIONS');
         return allPromotions;
-
     } catch (error) {
-
-        console.error(
-            '[PROMOTIONS] Erreur:',
-            error
-        );
-
-        const cached =
-            CacheManager.get(cacheKey);
-
-        if (
-            Array.isArray(cached) &&
-            cached.length > 0
-        ) {
-
-            allPromotions =
-                cached;
-
+        console.error('[PROMOTIONS] Erreur:', error);
+        const cached = CacheManager.get(cacheKey);
+        if (Array.isArray(cached) && cached.length > 0) {
+            allPromotions = cached;
             return allPromotions;
         }
-
         return [];
     }
 }
 
-
-/* ================================================================
-   NOM PROMOTION
-================================================================ */
-
-function getPromotionNom(
-    promotionId
-) {
-
-    if (!promotionId) {
-        return 'Non définie';
-    }
-
-    const promo =
-        allPromotions.find(
-            p => p.id === promotionId
-        );
-
-    return promo
-        ? (
-            promo.nom ||
-            promo.name ||
-            promotionId
-        )
-        : promotionId;
+function getPromotionNom(promotionId) {
+    if (!promotionId) return 'Non définie';
+    const promo = allPromotions.find(p => p.id === promotionId);
+    return promo ? (promo.nom || promo.name || promotionId) : promotionId;
 }
-
 
 /* ================================================================
    ÉTUDIANT
 ================================================================ */
-
-async function chargerEtudiant(
-    forceRefresh = false
-) {
-
-    if (!currentStudent) {
-        return null;
-    }
-
-    const cacheKey =
-        'etudiants_' +
-        currentStudent.id;
+async function chargerEtudiant(forceRefresh = false) {
+    if (!currentStudent) return null;
+    const cacheKey = 'etudiants_' + currentStudent.id;
 
     if (!forceRefresh) {
-
-        const cached =
-            CacheManager.get(cacheKey);
-
-        if (cached) {
-            return cached;
-        }
+        const cached = CacheManager.get(cacheKey);
+        if (cached) return cached;
     }
 
     try {
-
-        const doc =
-            await db
-                .collection('etudiants')
-                .doc(currentStudent.id)
-                .get();
-
+        const doc = await db.collection('etudiants').doc(currentStudent.id).get();
         if (!doc.exists) {
-
-            console.warn(
-                '[ETUDIANT] Document introuvable:',
-                currentStudent.id
-            );
-
+            console.warn('[ETUDIANT] Document introuvable:', currentStudent.id);
             return null;
         }
-
-        const data = {
-            id: doc.id,
-            ...doc.data()
-        };
-
-        CacheManager.set(
-            cacheKey,
-            data,
-            'ETUDIANT'
-        );
-
+        const data = { id: doc.id, ...doc.data() };
+        CacheManager.set(cacheKey, data, 'ETUDIANT');
         return data;
-
     } catch (error) {
-
-        console.error(
-            '[ETUDIANT] Erreur:',
-            error
-        );
-
-        const cached =
-            CacheManager.get(cacheKey);
-
+        console.error('[ETUDIANT] Erreur:', error);
+        const cached = CacheManager.get(cacheKey);
         return cached || null;
     }
 }
 
-
 /* ================================================================
    MESSAGE BIENVENUE
 ================================================================ */
-
 async function updateWelcomeMessage() {
-
     await chargerPromotions();
+    const etudiantData = await chargerEtudiant();
 
-    const etudiantData =
-        await chargerEtudiant();
+    const nom = (etudiantData && (etudiantData.nom || etudiantData.nomComplet)) || currentStudent.nom || currentStudent.nomComplet || 'Étudiant';
+    const matricule = (etudiantData && etudiantData.matricule) || currentStudent.matricule || 'N/A';
+    const promotionId = (etudiantData && etudiantData.promotion) || currentStudent.promotion;
+    const promo = getPromotionNom(promotionId);
 
-    const nom =
-        (
-            etudiantData &&
-            (
-                etudiantData.nom ||
-                etudiantData.nomComplet
-            )
-        ) ||
-        currentStudent.nom ||
-        currentStudent.nomComplet ||
-        'Étudiant';
+    const welcomeName = document.getElementById('welcomeName');
+    const welcomeInfo = document.getElementById('welcomeInfo');
+    if (welcomeName) welcomeName.textContent = `Bonjour, ${nom}`;
+    if (welcomeInfo) welcomeInfo.textContent = `Matricule: ${matricule} | ${promo}`;
 
-    const matricule =
-        (
-            etudiantData &&
-            etudiantData.matricule
-        ) ||
-        currentStudent.matricule ||
-        'N/A';
-
-    const promotionId =
-        (
-            etudiantData &&
-            etudiantData.promotion
-        ) ||
-        currentStudent.promotion;
-
-    const promo =
-        getPromotionNom(
-            promotionId
-        );
-
-    const welcomeName =
-        document.getElementById(
-            'welcomeName'
-        );
-
-    const welcomeInfo =
-        document.getElementById(
-            'welcomeInfo'
-        );
-
-    if (welcomeName) {
-
-        welcomeName.textContent =
-            `Bonjour, ${nom}`;
-    }
-
-    if (welcomeInfo) {
-
-        welcomeInfo.textContent =
-            `Matricule: ${matricule} | ${promo}`;
-    }
-
-    /*
-     * Mise à jour du statut cache.
-     */
-    const cacheStatusText =
-        document.getElementById(
-            'cacheStatusText'
-        );
-
-    const cacheStatus =
-        document.getElementById(
-            'cacheStatus'
-        );
-
-    if (cacheStatusText) {
-
-        if (navigator.onLine) {
-
-            cacheStatusText.textContent =
-                'Données synchronisées';
-
-        } else {
-
-            cacheStatusText.textContent =
-                'Données hors ligne';
-        }
-    }
-
-    if (cacheStatus) {
-
-        const icon =
-            cacheStatus.querySelector('i');
-
-        if (icon) {
-
-            icon.classList.remove(
-                'cached',
-                'live'
-            );
-
-            icon.classList.add(
-                navigator.onLine
-                    ? 'live'
-                    : 'cached'
-            );
-        }
-    }
+    SyncManager.updateUI();
 }
-
 
 /* ================================================================
    PROFIL
 ================================================================ */
-
 async function loadProfileData() {
-
     await chargerPromotions();
+    const etudiantData = await chargerEtudiant();
 
-    const etudiantData =
-        await chargerEtudiant();
+    const nom = (etudiantData && (etudiantData.nom || etudiantData.nomComplet)) || currentStudent.nom || currentStudent.nomComplet || 'Étudiant';
+    const matricule = (etudiantData && etudiantData.matricule) || currentStudent.matricule || 'N/A';
+    const promotionId = (etudiantData && etudiantData.promotion) || currentStudent.promotion;
+    const promo = getPromotionNom(promotionId);
 
-    const nom =
-        (
-            etudiantData &&
-            (
-                etudiantData.nom ||
-                etudiantData.nomComplet
-            )
-        ) ||
-        currentStudent.nom ||
-        currentStudent.nomComplet ||
-        'Étudiant';
+    const profilNom = document.getElementById('profilNom');
+    const profilMatricule = document.getElementById('profilMatricule');
+    const profilPromotion = document.getElementById('profilPromotion');
 
-    const matricule =
-        (
-            etudiantData &&
-            etudiantData.matricule
-        ) ||
-        currentStudent.matricule ||
-        'N/A';
-
-    const promotionId =
-        (
-            etudiantData &&
-            etudiantData.promotion
-        ) ||
-        currentStudent.promotion;
-
-    const promo =
-        getPromotionNom(
-            promotionId
-        );
-
-    const profilNom =
-        document.getElementById(
-            'profilNom'
-        );
-
-    const profilMatricule =
-        document.getElementById(
-            'profilMatricule'
-        );
-
-    const profilPromotion =
-        document.getElementById(
-            'profilPromotion'
-        );
-
-    if (profilNom) {
-        profilNom.textContent = nom;
-    }
-
-    if (profilMatricule) {
-
-        profilMatricule.textContent =
-            `Matricule: ${matricule}`;
-    }
-
-    if (profilPromotion) {
-
-        profilPromotion.textContent =
-            `Promotion: ${promo}`;
-    }
+    if (profilNom) profilNom.textContent = nom;
+    if (profilMatricule) profilMatricule.textContent = `Matricule: ${matricule}`;
+    if (profilPromotion) profilPromotion.textContent = `Promotion: ${promo}`;
 }
 
-
-/* ================================================================
-   OUVERTURE PROFIL
-================================================================ */
-
-document
-    .getElementById('profileBtn')
-    ?.addEventListener(
-        'click',
-        async function () {
-
-            try {
-
-                await loadProfileData();
-
-                const modal =
-                    document.getElementById(
-                        'profileModal'
-                    );
-
-                if (modal) {
-                    modal.style.display =
-                        'flex';
-                }
-
-            } catch (error) {
-
-                console.error(
-                    '[PROFIL] Erreur:',
-                    error
-                );
-
-                showToast(
-                    'Impossible de charger le profil.',
-                    'danger'
-                );
-            }
-        }
-    );
-
-
-/* ================================================================
-   FERMER PROFIL
-================================================================ */
+document.getElementById('profileBtn')?.addEventListener('click', async function() {
+    try {
+        await loadProfileData();
+        const modal = document.getElementById('profileModal');
+        if (modal) modal.style.display = 'flex';
+    } catch (error) {
+        console.error('[PROFIL] Erreur:', error);
+        showToast('Impossible de charger le profil.', 'danger');
+    }
+});
 
 function closeProfileModal() {
-
-    const modal =
-        document.getElementById(
-            'profileModal'
-        );
-
-    if (modal) {
-        modal.style.display =
-            'none';
-    }
-
-    const newPassword =
-        document.getElementById(
-            'newPassword'
-        );
-
-    const confirmNewPassword =
-        document.getElementById(
-            'confirmNewPassword'
-        );
-
-    if (newPassword) {
-        newPassword.value = '';
-    }
-
-    if (confirmNewPassword) {
-        confirmNewPassword.value = '';
-    }
+    const modal = document.getElementById('profileModal');
+    if (modal) modal.style.display = 'none';
+    const newPassword = document.getElementById('newPassword');
+    const confirmNewPassword = document.getElementById('confirmNewPassword');
+    if (newPassword) newPassword.value = '';
+    if (confirmNewPassword) confirmNewPassword.value = '';
 }
 
-window.closeProfileModal =
-    closeProfileModal;
+window.closeProfileModal = closeProfileModal;
+document.getElementById('closeProfileBtn')?.addEventListener('click', closeProfileModal);
+document.getElementById('profileModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeProfileModal();
+});
 
-document
-    .getElementById('closeProfileBtn')
-    ?.addEventListener(
-        'click',
-        closeProfileModal
-    );
+document.getElementById('changePasswordBtn')?.addEventListener('click', async function() {
+    const newPwd = document.getElementById('newPassword')?.value.trim();
+    const confirmPwd = document.getElementById('confirmNewPassword')?.value.trim();
 
+    if (!newPwd || !confirmPwd) {
+        showToast('Remplissez tous les champs', 'warning');
+        return;
+    }
+    if (newPwd !== confirmPwd) {
+        showToast('Les mots de passe sont différents', 'warning');
+        return;
+    }
+    if (newPwd.length < 4) {
+        showToast('Minimum 4 caractères', 'warning');
+        return;
+    }
+    if (!currentStudent || !currentStudent.id) {
+        showToast('Session invalide', 'danger');
+        return;
+    }
 
-/* ================================================================
-   FERMER MODAL EN CLIQUANT À L'EXTÉRIEUR
-================================================================ */
-
-document
-    .getElementById('profileModal')
-    ?.addEventListener(
-        'click',
-        function (e) {
-
-            if (e.target === this) {
-
-                closeProfileModal();
-            }
-        }
-    );
-
-
-/* ================================================================
-   CHANGEMENT MOT DE PASSE
-================================================================ */
-
-document
-    .getElementById('changePasswordBtn')
-    ?.addEventListener(
-        'click',
-        async function () {
-
-            const newPwd =
-                document.getElementById(
-                    'newPassword'
-                )?.value.trim();
-
-            const confirmPwd =
-                document.getElementById(
-                    'confirmNewPassword'
-                )?.value.trim();
-
-            if (!newPwd || !confirmPwd) {
-
-                showToast(
-                    'Remplissez tous les champs',
-                    'warning'
-                );
-
-                return;
-            }
-
-            if (newPwd !== confirmPwd) {
-
-                showToast(
-                    'Les mots de passe sont différents',
-                    'warning'
-                );
-
-                return;
-            }
-
-            if (newPwd.length < 4) {
-
-                showToast(
-                    'Minimum 4 caractères',
-                    'warning'
-                );
-
-                return;
-            }
-
-            if (
-                !currentStudent ||
-                !currentStudent.id
-            ) {
-
-                showToast(
-                    'Session invalide',
-                    'danger'
-                );
-
-                return;
-            }
-
-            const btn =
-                document.getElementById(
-                    'changePasswordBtn'
-                );
-
-            if (btn) {
-                btn.disabled = true;
-            }
-
-            try {
-
-                await db
-                    .collection('etudiants')
-                    .doc(currentStudent.id)
-                    .update({
-                        motDePasse: newPwd
-                    });
-
-                CacheManager.remove(
-                    'etudiants_' +
-                    currentStudent.id
-                );
-
-                showToast(
-                    '✅ Mot de passe modifié',
-                    'success'
-                );
-
-                closeProfileModal();
-
-            } catch (error) {
-
-                console.error(
-                    '[PASSWORD] Erreur:',
-                    error
-                );
-
-                showToast(
-                    '❌ Erreur: ' +
-                    (error.message ||
-                        'Modification impossible'),
-                    'danger'
-                );
-
-            } finally {
-
-                if (btn) {
-                    btn.disabled = false;
-                }
-            }
-        }
-    );
-
+    const btn = this;
+    btn.disabled = true;
+    try {
+        await db.collection('etudiants').doc(currentStudent.id).update({ motDePasse: newPwd });
+        CacheManager.remove('etudiants_' + currentStudent.id);
+        showToast('✅ Mot de passe modifié', 'success');
+        closeProfileModal();
+    } catch (error) {
+        console.error('[PASSWORD] Erreur:', error);
+        showToast('❌ Erreur: ' + (error.message || 'Modification impossible'), 'danger');
+    } finally {
+        btn.disabled = false;
+    }
+});
 
 /* ================================================================
    DÉCONNEXION
 ================================================================ */
-
-document
-    .getElementById('logoutBtn')
-    ?.addEventListener(
-        'click',
-        async function () {
-
-            if (
-                !confirm(
-                    'Voulez-vous vous déconnecter ?'
-                )
-            ) {
-
-                return;
-            }
-
-            try {
-
-                /*
-                 * Supprime le token FCM local/remote
-                 * via le gestionnaire centralisé.
-                 */
-                if (
-                    window.notificationManager
-                ) {
-
-                    await window
-                        .notificationManager
-                        .reset();
-                }
-
-            } catch (error) {
-
-                console.warn(
-                    '[FCM] Reset déconnexion:',
-                    error
-                );
-            }
-
-            /*
-             * Suppression session.
-             */
-            localStorage.removeItem(
-                'session_etudiant'
-            );
-
-            localStorage.removeItem(
-                'communiques_lus'
-            );
-
-            /*
-             * Nettoyage cache étudiant.
-             */
-            if (
-                currentStudent &&
-                currentStudent.id
-            ) {
-
-                CacheManager.remove(
-                    'etudiants_' +
-                    currentStudent.id
-                );
-
-                CacheManager.remove(
-                    'communiques_' +
-                    currentStudent.id
-                );
-            }
-
-            /*
-             * Arrêt listener Firestore.
-             */
-            if (snapshotUnsubscribe) {
-
-                try {
-                    snapshotUnsubscribe();
-                } catch (e) {}
-
-                snapshotUnsubscribe =
-                    null;
-            }
-
-            /*
-             * Retour login.
-             */
-            window.location.href =
-                'login-etudiant.html';
+document.getElementById('logoutBtn')?.addEventListener('click', async function() {
+    if (!confirm('Voulez-vous vous déconnecter ?')) return;
+    try {
+        if (window.notificationManager) {
+            await window.notificationManager.reset();
         }
-    );
-
+    } catch (error) {
+        console.warn('[FCM] Reset déconnexion:', error);
+    }
+    localStorage.removeItem('session_etudiant');
+    localStorage.removeItem('communiques_lus');
+    if (currentStudent && currentStudent.id) {
+        CacheManager.remove('etudiants_' + currentStudent.id);
+        CacheManager.remove('communiques_' + currentStudent.id);
+    }
+    if (snapshotUnsubscribe) {
+        try { snapshotUnsubscribe(); } catch (e) {}
+        snapshotUnsubscribe = null;
+    }
+    SyncManager.stopPeriodicSync();
+    window.location.href = 'login-etudiant.html';
+});
 
 /* ================================================================
    NAVIGATION
 ================================================================ */
-
-document
-    .querySelectorAll('.menu-card')
-    .forEach(card => {
-
-        card.addEventListener(
-            'click',
-            function () {
-
-                const page =
-                    this.dataset.page;
-
-                if (!page) {
-                    return;
-                }
-
-                /*
-                 * Paiement en ligne
-                 */
-                if (
-                    page === 'paiement-ligne'
-                ) {
-
-                    window.location.href =
-                        'paiement-ligne.html';
-
-                    return;
-                }
-
-                /*
-                 * Toutes les autres pages.
-                 */
-                window.location.href =
-                    `${page}.html`;
-            }
-        );
+document.querySelectorAll('.menu-card').forEach(card => {
+    card.addEventListener('click', function() {
+        const page = this.dataset.page;
+        if (!page) return;
+        if (page === 'paiement-ligne') {
+            window.location.href = 'paiement-ligne.html';
+            return;
+        }
+        if (page === 'ia') {
+            window.location.href = 'ia.html';
+            return;
+        }
+        window.location.href = `${page}.html`;
     });
+});
 
 /* ================================================================
-   NAVIGATION - AVEC IA
+   DÉTECTION HORS LIGNE - SYNCHRONISATION AUTO
 ================================================================ */
-
-document
-    .querySelectorAll('.menu-card')
-    .forEach(card => {
-
-        card.addEventListener(
-            'click',
-            function () {
-
-                const page =
-                    this.dataset.page;
-
-                if (!page) {
-                    return;
-                }
-
-                /*
-                 * Paiement en ligne
-                 */
-                if (
-                    page === 'paiement-ligne'
-                ) {
-
-                    window.location.href =
-                        'paiement-ligne.html';
-
-                    return;
-                }
-
-                /*
-                 * IA FSA - redirection vers ia.html
-                 */
-                if (
-                    page === 'ia'
-                ) {
-
-                    window.location.href =
-                        'ia.html';
-
-                    return;
-                }
-
-                /*
-                 * Toutes les autres pages.
-                 */
-                window.location.href =
-                    `${page}.html`;
-            }
-        );
-    });
-
-
-/* ================================================================
-   MODE HORS LIGNE
-================================================================ */
-
 function setupOfflineDetection() {
-
-    const offlineBadge =
-        document.getElementById(
-            'offlineBadge'
-        );
-
-    if (!offlineBadge) {
-        return;
+    function handleOnline() {
+        console.log('[SYNC] 🔌 Connexion rétablie - Synchronisation automatique...');
+        showToast('🔄 Connexion rétablie, synchronisation en cours...', 'info');
+        setTimeout(() => SyncManager.syncAll(false), 1500);
     }
 
-    function updateStatus() {
-
-        if (!navigator.onLine) {
-
-            offlineBadge.classList.add(
-                'show'
-            );
-
-        } else {
-
-            offlineBadge.classList.remove(
-                'show'
-            );
-        }
-
-        /*
-         * Mise à jour du statut cache.
-         */
-        const cacheStatusText =
-            document.getElementById(
-                'cacheStatusText'
-            );
-
-        if (cacheStatusText) {
-
-            cacheStatusText.textContent =
-                navigator.onLine
-                    ? 'Connexion en ligne'
-                    : 'Données disponibles hors ligne';
-        }
+    function handleOffline() {
+        console.log('[SYNC] 📱 Mode hors ligne - Utilisation du cache');
+        showToast('📱 Mode hors ligne - Données disponibles', 'warning');
+        SyncManager.updateUI();
     }
 
-    window.addEventListener(
-        'online',
-        updateStatus
-    );
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
-    window.addEventListener(
-        'offline',
-        updateStatus
-    );
-
-    updateStatus();
+    // État initial
+    if (!navigator.onLine) {
+        handleOffline();
+    }
 }
 
-
 /* ================================================================
-   SERVICE WORKER - VERSION CORRIGÉE
+   SERVICE WORKER
 ================================================================ */
-
-/*
- * IMPORTANT :
- *
- * Le projet utilise maintenant UN SEUL Service Worker :
- *
- *      /Espace-etudiant/sw.js
- *
- * Le Service Worker Firebase séparé :
- *
- *      firebase-messaging-sw.js
- *
- * ne doit plus être enregistré.
- */
-
 async function registerServiceWorker() {
-
-    if (
-        !('serviceWorker' in navigator)
-    ) {
-
-        console.warn(
-            '[SW] Service Worker non supporté'
-        );
-
+    if (!('serviceWorker' in navigator)) {
+        console.warn('[SW] Service Worker non supporté');
         return null;
     }
-
     try {
-
-        console.log('[SW] 🔄 Enregistrement du Service Worker...');
-
-        /*
-         * Utilise le gestionnaire centralisé.
-         */
-        if (
-            typeof window.registerAppServiceWorker ===
-            'function'
-        ) {
-
-            console.log('[SW] 📋 Utilisation du gestionnaire centralisé');
-
-            const registration =
-                await window.registerAppServiceWorker();
-
+        console.log('[SW] Enregistrement du Service Worker...');
+        if (typeof window.registerAppServiceWorker === 'function') {
+            console.log('[SW] Utilisation du gestionnaire centralisé');
+            const registration = await window.registerAppServiceWorker();
             if (registration) {
-
-                console.log(
-                    '[SW] ✅ Service Worker principal enregistré'
-                );
+                console.log('[SW] Service Worker principal enregistré');
             } else {
-
-                console.warn('[SW] ⚠️ Échec enregistrement via gestionnaire');
+                console.warn('[SW] Échec enregistrement via gestionnaire');
             }
-
             return registration;
         }
-
-        /*
-         * Fallback si notification-utils.js
-         * n'est pas disponible.
-         */
-        console.log('[SW] 📋 Fallback: enregistrement direct');
-
-        const registration =
-            await navigator.serviceWorker.register(
-                '/Espace-etudiant/sw.js',
-                {
-                    scope:
-                        '/Espace-etudiant/'
-                }
-            );
-
-        console.log(
-            '[SW] ✅ Service Worker enregistré en fallback'
-        );
-
+        console.log('[SW] Fallback: enregistrement direct');
+        const registration = await navigator.serviceWorker.register('/Espace-etudiant/sw.js', {
+            scope: '/Espace-etudiant/'
+        });
+        console.log('[SW] Service Worker enregistré en fallback');
         return registration;
-
     } catch (error) {
-
-        console.error(
-            '[SW] ❌ Erreur:',
-            error
-        );
-
-        console.error('  - Message:', error.message);
-        console.error('  - Stack:', error.stack);
-
-        // Afficher un message à l'utilisateur
-        showToast(
-            '⚠️ Service Worker indisponible. Les notifications pourraient ne pas fonctionner.',
-            'warning'
-        );
-
+        console.error('[SW] Erreur:', error);
         return null;
     }
 }
 
-
 /* ================================================================
-   ÉVÉNEMENTS DE NOTIFICATION DU GESTIONNAIRE CENTRALISÉ
+   ÉVÉNEMENTS DE NOTIFICATION
 ================================================================ */
-
-window.addEventListener(
-    'fsa:notification',
-    function (event) {
-
-        try {
-
-            const detail =
-                event.detail || {};
-
-            console.log(
-                '[FCM] Notification reçue au premier plan:',
-                detail
-            );
-
-            /*
-             * Ici on ne recrée PAS une deuxième notification.
-             *
-             * notification-utils.js s'occupe déjà
-             * de l'affichage de la notification/du toast.
-             *
-             * On peut simplement mettre à jour le badge
-             * des communiqués lorsqu'il s'agit d'un communiqué.
-             */
-            const type =
-                detail.type ||
-                detail.data?.type ||
-                '';
-
-            if (
-                type === 'communique'
-            ) {
-
-                updateNotificationBadgesFromCache();
+window.addEventListener('fsa:notification', function(event) {
+    try {
+        const detail = event.detail || {};
+        console.log('[FCM] Notification reçue au premier plan:', detail);
+        const type = detail.type || detail.data?.type || '';
+        if (type === 'communique') {
+            updateNotificationBadgesFromCache();
+            // Forcer une synchronisation des communiqués
+            if (navigator.onLine) {
+                setTimeout(() => SyncManager.forceSyncCommuniques(), 1000);
             }
-
-        } catch (error) {
-
-            console.warn(
-                '[FCM] Traitement événement:',
-                error
-            );
         }
+    } catch (error) {
+        console.warn('[FCM] Traitement événement:', error);
     }
-);
-
+});
 
 /* ================================================================
-   INITIALISATION - VERSION CORRIGÉE
+   INITIALISATION
 ================================================================ */
-
 async function init() {
-
     console.log('🚀 Dashboard Étudiant - Démarrage');
 
-    /*
-     * 1. Vérification session.
-     */
-    if (!checkSession()) {
-        return;
-    }
+    if (!checkSession()) return;
+    console.log('👤 Étudiant:', currentStudent.nom || currentStudent.nomComplet || currentStudent.id);
 
-    console.log(
-        '👤 Étudiant:',
-        currentStudent.nom ||
-        currentStudent.nomComplet ||
-        currentStudent.id
-    );
-
-    /*
-     * 2. Nettoyage cache.
-     */
     CacheManager.cleanExpired();
-
-    /*
-     * 3. Promotions.
-     */
     await chargerPromotions();
-
-    /*
-     * 4. Service Worker principal.
-     */
     await registerServiceWorker();
-
-    /*
-     * 5. Détection hors ligne.
-     */
     setupOfflineDetection();
-
-    /*
-     * 6. Communiqués temps réel.
-     */
     setupRealtimeCommuniques();
-
-    /*
-     * 7. Message de bienvenue.
-     */
     await updateWelcomeMessage();
 
-    /*
-     * 8. Initialisation FCM.
-     *
-     * IMPORTANT :
-     * cette fonction ne demande PAS la permission
-     * si l'étudiant ne l'a jamais donnée.
-     *
-     * Le bouton "Activer" s'en charge.
-     */
-    console.log('[FCM] 🔔 Initialisation des notifications...');
-    
+    // Initialisation FCM silencieuse
+    console.log('[FCM] Initialisation des notifications...');
     await enregistrerTokenFCM(
         currentStudent.id,
-        currentStudent.nom ||
-            currentStudent.nomComplet ||
-            '',
-        currentStudent.promotion ||
-            '',
+        currentStudent.nom || currentStudent.nomComplet || '',
+        currentStudent.promotion || '',
         false
     );
 
-    /*
-     * 9. Affichage carte permission.
-     */
     checkNotificationStatus();
 
-    /*
-     * 10. État final.
-     */
-    console.log(
-        '✅ Dashboard prêt'
-    );
-
-    if (
-        window.notificationManager
-    ) {
-
-        console.log(
-            '🔔 NotificationManager actif:',
-            window.notificationManager.isActive()
-        );
-
-        const token = window.notificationManager.getToken();
-        if (token) {
-            console.log('🔑 Token FCM:', token.substring(0, 20) + '...');
-        }
-
+    // Synchronisation automatique au démarrage si en ligne
+    if (navigator.onLine) {
+        console.log('[SYNC] Synchronisation initiale automatique...');
+        setTimeout(() => SyncManager.syncAll(false), 2000);
     } else {
+        console.log('[SYNC] Hors ligne - Utilisation des données en cache');
+        SyncManager.updateUI();
+        showToast('📱 Mode hors ligne - Données disponibles', 'warning');
+    }
 
-        console.warn(
-            '⚠️ NotificationManager indisponible'
-        );
+    // Démarrer la synchronisation périodique
+    SyncManager.startPeriodicSync();
+
+    console.log('✅ Dashboard prêt');
+    if (window.notificationManager) {
+        console.log('🔔 NotificationManager actif:', window.notificationManager.isActive());
+        const token = window.notificationManager.getToken();
+        if (token) console.log('🔑 Token FCM:', token.substring(0, 20) + '...');
+    } else {
+        console.warn('⚠️ NotificationManager indisponible');
     }
 }
 
-
-/* ================================================================
-   DOM READY
-================================================================ */
-
-if (
-    document.readyState === 'loading'
-) {
-
-    document.addEventListener(
-        'DOMContentLoaded',
-        init
-    );
-
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
 } else {
-
     init();
 }
 
-
 /* ================================================================
-   NETTOYAGE À LA FERMETURE DE LA PAGE
+   EXPORTS
 ================================================================ */
-
-window.addEventListener(
-    'beforeunload',
-    function () {
-
-        /*
-         * Ne pas supprimer la session ici.
-         *
-         * Le Service Worker et Firebase doivent
-         * continuer à fonctionner normalement.
-         */
-    }
-);
-
-
-/* ================================================================
-   EXPORTS UTILES
-================================================================ */
-
-window.showToast =
-    showToast;
-
-window.markCommuniqueAsRead =
-    markCommuniqueAsRead;
-
-window.updateNotificationBadges =
-    updateNotificationBadges;
-
-window.updateNotificationBadgesFromCache =
-    updateNotificationBadgesFromCache;
-
-window.checkNotificationStatus =
-    checkNotificationStatus;
-
-window.enregistrerTokenFCM =
-    enregistrerTokenFCM;
-
-window.chargerEtudiant =
-    chargerEtudiant;
-
-window.chargerPromotions =
-    chargerPromotions;
-
-window.getPromotionNom =
-    getPromotionNom;
+window.showToast = showToast;
+window.markCommuniqueAsRead = markCommuniqueAsRead;
+window.updateNotificationBadges = updateNotificationBadges;
+window.updateNotificationBadgesFromCache = updateNotificationBadgesFromCache;
+window.checkNotificationStatus = checkNotificationStatus;
+window.enregistrerTokenFCM = enregistrerTokenFCM;
+window.chargerEtudiant = chargerEtudiant;
+window.chargerPromotions = chargerPromotions;
+window.getPromotionNom = getPromotionNom;
+window.SyncManager = SyncManager;
+window.CacheManager = CacheManager;
 
 </script>
 
