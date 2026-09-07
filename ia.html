@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <title>FSA-IA - Assistant Étudiant Intelligent</title>
+
+    <meta name="theme-color" content="#003366">
+    <meta name="description" content="FSA-IA - Assistant IA intelligent pour les étudiants - Faculté des Sciences Agronomiques UNILU">
+
+    <!-- ================================================================
+         EMPÊCHER LE ZOOM SUR TOUS LES NAVIGATEURS
+    ================================================================ -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- ================================================================
+         PWA
+    ================================================================ -->
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+
+    <!-- ================================================================
+         BOOTSTRAP
+    ================================================================ -->
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- ================================================================
+         MARKED
+    ================================================================ -->
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- ================================================================
+         GOOGLE FONT
+    ================================================================ -->
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+
+        /* ============================================================
+           RESET - EMPÊCHER LE ZOOM
+        ============================================================ */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-text-size-adjust: 100%;
+            -moz-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            overflow: hidden;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* ============================================================
+           VARIABLES
+        ============================================================ */
+
+        :root {
+
+            /* Couleurs FSA */
+            --fsa-blue: #003366;
+            --fsa-blue-dark: #002244;
+            --fsa-blue-light: #0b4f8a;
+
+            --fsa-green: #4caf50;
+            --fsa-green-light: #68c56a;
+
+            --dark-bg: #111318;
+            --dark-bg-2: #15171d;
+            --dark-card: #202126;
+            --dark-card-2: #292a2f;
+            --dark-border: #393b42;
+            --dark-border-light: #454750;
+
+            --text-main: #f5f7fa;
+            --text-secondary: #a6a9b2;
+            --text-muted: #747780;
+
+            --white: #ffffff;
+
+            --radius-xl: 28px;
+            --radius-lg: 22px;
+            --radius-md: 16px;
+
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ============================================================
+           BODY
+        ============================================================ */
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            background: radial-gradient(circle at 50% 45%, rgba(0, 51, 102, 0.10), transparent 35%), var(--dark-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        /* ============================================================
+           APP
+        ============================================================ */
+
+        .ai-app {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ============================================================
+           TOP BAR
+        ============================================================ */
+
+        .top-bar {
+            width: 100%;
+            height: 76px;
+            min-height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ============================================================
+           BRAND
+        ============================================================ */
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: var(--text-main);
+            text-decoration: none;
+            user-select: none;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, var(--fsa-blue), var(--fsa-blue-dark));
+            border: 1px solid rgba(255,255,255,0.10);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+            font-size: 18px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .brand-text {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            white-space: nowrap;
+        }
+
+        /* ============================================================
+           RIGHT TOP
+        ============================================================ */
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .top-btn {
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 16px;
+            border-radius: 22px;
+            border: 1px solid var(--dark-border);
+            background: rgba(255,255,255,0.035);
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: var(--transition);
+            white-space: nowrap;
+            cursor: pointer;
+            border: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .top-btn:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: var(--dark-border-light);
+            color: white;
+        }
+
+        .top-btn:active {
+            transform: scale(0.96);
+        }
+
+        .top-btn i {
+            margin-right: 7px;
+            font-size: 15px;
+        }
+
+        /* ============================================================
+           MAIN
+        ============================================================ */
+
+        .main-content {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 20px 35px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ============================================================
+           CENTER CONTENT
+        ============================================================ */
+
+        .center-content {
+            width: 100%;
+            max-width: 820px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: -35px;
+            height: 100%;
+        }
+
+        /* ============================================================
+           WELCOME
+        ============================================================ */
+
+        .welcome-area {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .welcome-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            color: var(--text-main);
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.8px;
+            margin-bottom: 20px;
+        }
+
+        .welcome-title .ai-symbol {
+            color: var(--fsa-green-light);
+            font-size: 30px;
+            display: inline-flex;
+            filter: drop-shadow(0 0 10px rgba(76,175,80,0.18));
+        }
+
+        /* ============================================================
+           CHAT CENTER
+        ============================================================ */
+
+        .chat-zone {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* ============================================================
+           MESSAGES
+        ============================================================ */
+
+        .messages-container {
+            width: 100%;
+            max-height: 45vh;
+            overflow-y: auto;
+            padding: 10px 8px 20px;
+            display: none;
+            flex: 1;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .messages-container.has-messages {
+            display: block;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #45474e;
+            border-radius: 10px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        /* ============================================================
+           MESSAGE
+        ============================================================ */
+
+        .message {
+            display: flex;
+            width: 100%;
+            margin-bottom: 18px;
+            animation: fadeInUp 0.25s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.ai {
+            justify-content: flex-start;
+        }
+
+        .message .bubble {
+            max-width: 82%;
+            padding: 13px 17px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.65;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .message.user .bubble {
+            background: linear-gradient(145deg, var(--fsa-blue), var(--fsa-blue-dark));
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.ai .bubble {
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            color: var(--text-main);
+            border-bottom-left-radius: 5px;
+        }
+
+        .message .bubble p {
+            margin-bottom: 8px;
+        }
+
+        .message .bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message .bubble ul,
+        .message .bubble ol {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .message .bubble li {
+            margin-bottom: 4px;
+        }
+
+        .message .bubble code {
+            background: rgba(255,255,255,0.08);
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+
+        .message .bubble pre {
+            background: #0b0d11;
+            color: #e7e9ed;
+            padding: 14px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin: 9px 0;
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
+        }
+
+        .message .bubble pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+        }
+
+        .message .bubble blockquote {
+            border-left: 3px solid var(--fsa-green);
+            padding-left: 13px;
+            margin: 8px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .timestamp {
+            display: block;
+            font-size: 9px;
+            color: rgba(255,255,255,0.45);
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        .message.ai .timestamp {
+            color: var(--text-muted);
+        }
+
+        /* ============================================================
+           TYPING
+        ============================================================ */
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            width: fit-content;
+            padding: 12px 16px;
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 17px;
+            border-bottom-left-radius: 5px;
+        }
+
+        .typing-indicator.show {
+            display: flex;
+        }
+
+        .typing-indicator span {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--fsa-green);
+            opacity: 0.45;
+            animation: typingBounce 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingBounce {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.35;
+            }
+            30% {
+                transform: translateY(-6px);
+                opacity: 1;
+            }
+        }
+
+        /* ============================================================
+           INPUT CONTAINER
+        ============================================================ */
+
+        .input-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        /* ============================================================
+           INPUT
+        ============================================================ */
+
+        .input-area {
+            width: 100%;
+            min-height: 128px;
+            background: linear-gradient(145deg, #292a2f, #25262b);
+            border: 1px solid #3d3f46;
+            border-radius: var(--radius-xl);
+            padding: 18px 16px 12px 20px;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.025);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .input-area:focus-within {
+            border-color: rgba(0,51,102,0.95);
+            box-shadow: 0 0 0 1px rgba(0,51,102,0.55), 0 15px 45px rgba(0,0,0,0.30);
+        }
+
+        /* ============================================================
+           TEXTAREA
+        ============================================================ */
+
+        .input-area textarea {
+            width: 100%;
+            min-height: 48px;
+            max-height: 140px;
+            resize: none;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 15px;
+            line-height: 1.5;
+            padding: 0 5px;
+            scrollbar-width: thin;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        .input-area textarea::placeholder {
+            color: #858891;
+            font-weight: 400;
+        }
+
+        .input-area textarea::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .input-area textarea::-webkit-scrollbar-thumb {
+            background: #50525a;
+            border-radius: 10px;
+        }
+
+        /* ============================================================
+           INPUT BOTTOM
+        ============================================================ */
+
+        .input-bottom {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+            flex-shrink: 0;
+        }
+
+        /* ============================================================
+           SEND
+        ============================================================ */
+
+        .btn-send {
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            min-height: 48px;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #315aa0, var(--fsa-blue));
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.20);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-send:hover {
+            transform: scale(1.04);
+            background: linear-gradient(145deg, #3d6ebd, #003f78);
+        }
+
+        .btn-send:active {
+            transform: scale(0.93);
+        }
+
+        .btn-send:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-send .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.30);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn-send.loading .spinner {
+            display: block;
+        }
+
+        .btn-send.loading i {
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ============================================================
+           DISCLAIMER
+        ============================================================ */
+
+        .bottom-note {
+            margin-top: 13px;
+            text-align: center;
+            color: #666a73;
+            font-size: 9px;
+            line-height: 1.4;
+        }
+
+        /* ============================================================
+           TOAST
+        ============================================================ */
+
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+            width: min(360px, calc(100vw - 40px));
+        }
+
+        .toast-custom {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 50px;
+            padding: 12px 15px;
+            margin-bottom: 9px;
+            border-radius: 13px;
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.30);
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        .toast-custom .close-toast {
+            margin-left: auto;
+            border: none;
+            background: transparent;
+            color: inherit;
+            font-size: 20px;
+            opacity: 0.65;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .toast-custom .close-toast:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ============================================================
+           MOBILE
+        ============================================================ */
+
+        @media (max-width: 768px) {
+            body {
+                overflow: hidden;
+                position: fixed;
+                width: 100%;
+                height: 100%;
+            }
+
+            .top-bar {
+                height: 68px;
+                min-height: 68px;
+                padding: 0 16px;
+            }
+
+            .brand-text {
+                font-size: 14px;
+            }
+
+            .brand-icon {
+                width: 34px;
+                height: 34px;
+                border-radius: 10px;
+                font-size: 16px;
+            }
+
+            .top-btn {
+                height: 39px;
+                padding: 0 13px;
+                font-size: 12px;
+            }
+
+            .main-content {
+                padding: 10px 14px 25px;
+            }
+
+            .center-content {
+                max-width: 100%;
+                margin-top: -25px;
+            }
+
+            .welcome-title {
+                font-size: 23px;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+
+            .welcome-title .ai-symbol {
+                font-size: 25px;
+            }
+
+            .input-area {
+                min-height: 116px;
+                padding: 15px 13px 10px 17px;
+                border-radius: 24px;
+            }
+
+            .input-area textarea {
+                font-size: 14px;
+                min-height: 45px;
+            }
+
+            .input-bottom {
+                margin-top: 8px;
+            }
+
+            .btn-send {
+                width: 43px;
+                height: 43px;
+                min-width: 43px;
+                min-height: 43px;
+                font-size: 18px;
+            }
+
+            .bottom-note {
+                font-size: 8px;
+            }
+
+            .messages-container {
+                max-height: 35vh;
+            }
+        }
+
+        /* ============================================================
+           PETITS TÉLÉPHONES
+        ============================================================ */
+
+        @media (max-width: 400px) {
+            .top-bar {
+                padding: 0 12px;
+            }
+
+            .brand-text {
+                font-size: 12px;
+            }
+
+            .top-btn {
+                padding: 0 10px;
+                font-size: 11px;
+            }
+
+            .top-btn i {
+                font-size: 13px;
+            }
+
+            .welcome-title {
+                font-size: 18px;
+            }
+
+            .welcome-title .ai-symbol {
+                font-size: 20px;
+            }
+
+            .input-area {
+                min-height: 100px;
+                padding: 12px 10px 8px 14px;
+            }
+
+            .input-area textarea {
+                font-size: 13px;
+                min-height: 38px;
+            }
+
+            .btn-send {
+                width: 38px;
+                height: 38px;
+                min-width: 38px;
+                min-height: 38px;
+                font-size: 16px;
+            }
+
+            .message .bubble {
+                font-size: 13px;
+                padding: 11px 14px;
+            }
+        }
+
+        /* ============================================================
+           TRÈS PETITS ÉCRANS (EX: montres, petits smartphones)
+        ============================================================ */
+
+        @media (max-width: 340px) {
+            .top-bar {
+                padding: 0 8px;
+                height: 58px;
+                min-height: 58px;
+            }
+
+            .brand-text {
+                font-size: 11px;
+            }
+
+            .brand-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 13px;
+            }
+
+            .top-btn {
+                height: 34px;
+                padding: 0 8px;
+                font-size: 10px;
+            }
+
+            .top-btn i {
+                font-size: 11px;
+                margin-right: 4px;
+            }
+
+            .welcome-title {
+                font-size: 16px;
+                gap: 6px;
+                margin-bottom: 10px;
+            }
+
+            .welcome-title .ai-symbol {
+                font-size: 17px;
+            }
+
+            .input-area {
+                min-height: 88px;
+                padding: 10px 8px 6px 12px;
+                border-radius: 18px;
+            }
+
+            .input-area textarea {
+                font-size: 12px;
+                min-height: 32px;
+                max-height: 80px;
+            }
+
+            .btn-send {
+                width: 34px;
+                height: 34px;
+                min-width: 34px;
+                min-height: 34px;
+                font-size: 14px;
+            }
+
+            .bottom-note {
+                font-size: 7px;
+                margin-top: 8px;
+            }
+
+            .message .bubble {
+                font-size: 12px;
+                padding: 9px 12px;
+                max-width: 90%;
+            }
+
+            .messages-container {
+                max-height: 30vh;
+                padding: 6px 4px 12px;
+            }
+
+            .main-content {
+                padding: 6px 8px 16px;
+            }
+
+            .center-content {
+                margin-top: -15px;
+            }
+        }
+
+        /* ============================================================
+           ORIENTATION PAYSAGE - EMPÊCHER LE ZOOM
+        ============================================================ */
+
+        @media (orientation: landscape) and (max-height: 500px) {
+            .top-bar {
+                height: 54px;
+                min-height: 54px;
+                padding: 0 16px;
+            }
+
+            .brand-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+
+            .brand-text {
+                font-size: 12px;
+            }
+
+            .main-content {
+                padding: 6px 16px 16px;
+            }
+
+            .welcome-title {
+                font-size: 18px;
+                margin-bottom: 8px;
+            }
+
+            .messages-container {
+                max-height: 30vh;
+                padding: 6px 6px 12px;
+            }
+
+            .input-area {
+                min-height: 80px;
+                padding: 12px 12px 8px 16px;
+            }
+
+            .input-area textarea {
+                min-height: 32px;
+                max-height: 80px;
+                font-size: 13px;
+            }
+
+            .btn-send {
+                width: 38px;
+                height: 38px;
+                min-width: 38px;
+                min-height: 38px;
+                font-size: 16px;
+            }
+
+            .bottom-note {
+                font-size: 7px;
+                margin-top: 6px;
+            }
+
+            .center-content {
+                margin-top: -10px;
+            }
+
+            .message .bubble {
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="ai-app">
+
+    <!-- ============================================================
+         TOP BAR
+    ============================================================ -->
+
+    <header class="top-bar">
+
+        <a href="#" class="brand">
+            <span class="brand-icon">
+                <i class="bi bi-robot"></i>
+            </span>
+            <span class="brand-text">
+                FSA-IA
+            </span>
+        </a>
+
+        <div class="top-actions">
+            <a href="etudiant.html" class="top-btn">
+                <i class="bi bi-arrow-left"></i>
+                Retour
+            </a>
+
+            <button class="top-btn" id="clearChatBtn">
+                <i class="bi bi-trash3"></i>
+                Effacer
+            </button>
+        </div>
+
+    </header>
+
+    <!-- ============================================================
+         MAIN
+    ============================================================ -->
+
+    <main class="main-content">
+
+        <div class="center-content">
+
+            <!-- ====================================================
+                 WELCOME
+            ==================================================== -->
+
+            <section class="welcome-area">
+
+                <div class="welcome-title">
+                    <span class="ai-symbol">
+                        <i class="bi bi-stars"></i>
+                    </span>
+                    <span id="welcomeTitle">
+                        🌿 FSA-IA - Votre assistant intelligent
+                    </span>
+                </div>
+
+            </section>
+
+            <!-- ====================================================
+                 CHAT
+            ==================================================== -->
+
+            <section class="chat-zone">
+
+                <!-- ==================================================
+                     MESSAGES
+                ================================================== -->
+
+                <div class="messages-container" id="messagesContainer">
+                    <div id="messagesWrapper"></div>
+                    <div class="typing-indicator" id="typingIndicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+
+                <!-- ==================================================
+                     INPUT
+                ================================================== -->
+
+                <div class="input-section">
+
+                    <div class="input-area">
+
+                        <textarea
+                            id="messageInput"
+                            rows="1"
+                            placeholder="Posez votre question à FSA-IA..."
+                            aria-label="Message"
+                        ></textarea>
+
+                        <div class="input-bottom">
+
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <span style="color:#666a73; font-size:12px;">
+                                    <i class="bi bi-database"></i> Temps réel
+                                </span>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="btn-send"
+                                id="sendBtn"
+                                aria-label="Envoyer"
+                            >
+                                <i class="bi bi-arrow-up"></i>
+                                <div class="spinner"></div>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <div class="bottom-note">
+                        🤖 FSA-IA en temps réel • Réponses instantanées • Toujours en français
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+    <!-- ============================================================
+         TOAST
+    ============================================================ -->
+
+    <div id="toastContainer" class="toast-notification" aria-live="polite" aria-atomic="true"></div>
+
+</div>
+
+<!-- ================================================================
+     FIREBASE
+================================================================ -->
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<script>
+
+/* ================================================================
+   CONFIGURATION GROQ - Clé API valide
+================================================================ */
+
+const GROQ_CONFIG = {
+    apiKey: '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',
+    endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+    model: 'allam-2-7b', // Modèle plus fiable
+};
+
+/* ================================================================
+   FIREBASE CONFIG
+================================================================ */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
+    authDomain: "fsa-unilu.firebaseapp.com",
+    projectId: "fsa-unilu",
+    storageBucket: "fsa-unilu.firebasestorage.app",
+    messagingSenderId: "36551990738",
+    appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+const db = firebase.firestore();
+
+/* ================================================================
+   SESSION ÉTUDIANT
+================================================================ */
+
+let currentStudent = null;
+
+function checkSession() {
+    const session = localStorage.getItem('session_etudiant');
+    if (!session) {
+        window.location.href = 'login-etudiant.html';
+        return false;
+    }
+
+    try {
+        const data = JSON.parse(session);
+        if (!data || !data.expires || Date.now() > Number(data.expires)) {
+            localStorage.removeItem('session_etudiant');
+            window.location.href = 'login-etudiant.html';
+            return false;
+        }
+        currentStudent = data;
+        return true;
+    } catch (e) {
+        localStorage.removeItem('session_etudiant');
+        window.location.href = 'login-etudiant.html';
+        return false;
+    }
+}
+
+/* ================================================================
+   TOAST
+================================================================ */
+
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const colors = {
+        success: { bg: '#059669', icon: 'bi-check-circle-fill' },
+        warning: { bg: '#d97706', icon: 'bi-exclamation-triangle-fill' },
+        danger: { bg: '#dc2626', icon: 'bi-x-circle-fill' },
+        info: { bg: '#2563eb', icon: 'bi-info-circle-fill' }
+    };
+
+    const config = colors[type] || colors.success;
+    const toast = document.createElement('div');
+    toast.className = 'toast-custom';
+    toast.style.background = config.bg;
+    toast.innerHTML = `
+        <i class="bi ${config.icon}"></i>
+        <span>${escapeHtml(message)}</span>
+        <button class="close-toast" type="button" onclick="this.parentElement.remove()">&times;</button>
+    `;
+
+    container.prepend(toast);
+    setTimeout(() => {
+        if (toast.parentNode) toast.remove();
+    }, 5000);
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+}
+
+/* ================================================================
+   DOM
+================================================================ */
+
+const messagesContainer = document.getElementById('messagesContainer');
+const messagesWrapper = document.getElementById('messagesWrapper');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const typingIndicator = document.getElementById('typingIndicator');
+
+/* ================================================================
+   CHAT
+================================================================ */
+
+let conversationHistory = [];
+let isProcessing = false;
+
+/* ================================================================
+   AJOUT MESSAGE
+================================================================ */
+
+function addMessage(content, sender = 'user') {
+    const div = document.createElement('div');
+    div.className = `message ${sender}`;
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+
+    if (sender === 'ai') {
+        if (typeof marked !== 'undefined') {
+            try {
+                bubble.innerHTML = marked.parse(content);
+            } catch (e) {
+                bubble.textContent = content;
+            }
+        } else {
+            bubble.textContent = content;
+        }
+    } else {
+        bubble.textContent = content;
+    }
+
+    const timestamp = document.createElement('span');
+    timestamp.className = 'timestamp';
+    timestamp.textContent = new Date().toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    bubble.appendChild(timestamp);
+    div.appendChild(bubble);
+    messagesWrapper.appendChild(div);
+
+    messagesContainer.classList.add('has-messages');
+    scrollToBottom();
+
+    conversationHistory.push({
+        role: sender === 'ai' ? 'assistant' : 'user',
+        content: content
+    });
+}
+
+/* ================================================================
+   TYPING
+================================================================ */
+
+function showTyping() {
+    typingIndicator.classList.add('show');
+    messagesContainer.classList.add('has-messages');
+    scrollToBottom();
+}
+
+function hideTyping() {
+    typingIndicator.classList.remove('show');
+}
+
+/* ================================================================
+   SCROLL
+================================================================ */
+
+function scrollToBottom() {
+    setTimeout(() => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }, 50);
+}
+
+/* ================================================================
+   ENVOI MESSAGE - AVEC GESTION D'ERREUR AMÉLIORÉE
+================================================================ */
+
+async function sendMessage() {
+    const message = messageInput.value.trim();
+
+    if (!message || isProcessing) return;
+
+    messageInput.value = '';
+    messageInput.style.height = 'auto';
+
+    addMessage(message, 'user');
+
+    isProcessing = true;
+    sendBtn.classList.add('loading');
+    sendBtn.disabled = true;
+    messageInput.disabled = true;
+
+    showTyping();
+
+    try {
+        const response = await queryGroq(message);
+        hideTyping();
+        addMessage(response, 'ai');
+
+    } catch (error) {
+        hideTyping();
+        console.error('[GROQ] Erreur:', error);
+        
+        let errorMessage = '❌ Désolé, une erreur est survenue. Veuillez réessayer.';
+        
+        // Messages d'erreur plus précis
+        if (error.message.includes('API key')) {
+            errorMessage = '❌ Clé API invalide. Veuillez contacter l\'administrateur.';
+        } else if (error.message.includes('rate limit')) {
+            errorMessage = '⏳ Trop de requêtes. Veuillez patienter quelques secondes.';
+        } else if (error.message.includes('network')) {
+            errorMessage = '📡 Problème de connexion. Vérifiez votre réseau.';
+        } else if (error.message.includes('timeout')) {
+            errorMessage = '⏰ Délai d\'attente dépassé. Réessayez.';
+        }
+        
+        showToast(errorMessage, 'danger');
+        addMessage(errorMessage + ' 🔄 Réessayez avec une question plus simple.', 'ai');
+
+    } finally {
+        isProcessing = false;
+        sendBtn.classList.remove('loading');
+        sendBtn.disabled = false;
+        messageInput.disabled = false;
+        messageInput.focus();
+    }
+}
+
+/* ================================================================
+   GROQ - AVEC TIMEOUT ET GESTION D'ERREUR
+================================================================ */
+
+async function queryGroq(userMessage) {
+    const messages = [];
+
+    messages.push({
+        role: 'system',
+        content: `Tu es FSA-IA, l'assistant académique intelligent pour la Faculté des Sciences Agronomiques de l'UNILU.
+
+RÈGLE ABSOLUE ET OBLIGATOIRE :
+- Tu dois TOUJOURS répondre en FRANÇAIS
+- Tu ne dois JAMAIS répondre en anglais
+- Ta langue maternelle est le français
+
+Instructions :
+- Réponds de manière claire, précise et pédagogique
+- Si tu ne connais pas une information, dis-le honnêtement
+- Utilise le format Markdown pour structurer tes réponses
+- Sois toujours utile et bienveillant
+
+Contexte :
+- Faculté: Sciences Agronomiques
+- Université: UNILU (Lubumbashi)
+- Étudiant: ${currentStudent?.nom || 'Étudiant'}
+
+IMPORTANT - RÉPONDS UNIQUEMENT EN FRANÇAIS`
+    });
+
+    const historyLimit = conversationHistory.slice(-8);
+    for (const msg of historyLimit) {
+        if (msg.role === 'user' || msg.role === 'assistant') {
+            messages.push({
+                role: msg.role,
+                content: msg.content
+            });
+        }
+    }
+
+    const payload = {
+        model: GROQ_CONFIG.model,
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 1024,
+        stream: false
+    };
+
+    // Timeout de 30 secondes
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    try {
+        const response = await fetch(GROQ_CONFIG.endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${GROQ_CONFIG.apiKey}`
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('[GROQ] Erreur API:', response.status, errorText);
+            
+            if (response.status === 401) {
+                throw new Error('API key invalide');
+            } else if (response.status === 429) {
+                throw new Error('rate limit dépassé');
+            } else {
+                throw new Error(`Erreur API (${response.status})`);
+            }
+        }
+
+        const data = await response.json();
+
+        if (!data.choices || data.choices.length === 0) {
+            throw new Error('Réponse vide');
+        }
+
+        return data.choices[0].message.content;
+
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('timeout');
+        }
+        throw error;
+    }
+}
+
+/* ================================================================
+   AUTO RESIZE
+================================================================ */
+
+function autoResize(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 140) + 'px';
+}
+
+messageInput.addEventListener('input', function() {
+    autoResize(this);
+});
+
+/* ================================================================
+   SEND BUTTON
+================================================================ */
+
+sendBtn.addEventListener('click', sendMessage);
+
+/* ================================================================
+   ENTER
+================================================================ */
+
+messageInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+/* ================================================================
+   CLEAR CHAT
+================================================================ */
+
+document.getElementById('clearChatBtn').addEventListener('click', function() {
+    if (conversationHistory.length === 0) {
+        showToast('💬 La conversation est déjà vide', 'info');
+        return;
+    }
+
+    if (confirm('Voulez-vous vraiment effacer toute la conversation ?')) {
+        messagesWrapper.innerHTML = '';
+        conversationHistory = [];
+        messagesContainer.classList.remove('has-messages');
+        showToast('🗑️ Conversation effacée', 'success');
+        setTimeout(() => messageInput.focus(), 300);
+    }
+});
+
+/* ================================================================
+   INITIALISATION
+================================================================ */
+
+function init() {
+    if (!checkSession()) return;
+
+    console.log('🚀 FSA-IA - Assistant intelligent activé');
+    console.log('👤 Étudiant:', currentStudent?.nom || 'Inconnu');
+    console.log('📡 Mode: Réponses UNIQUEMENT en français');
+    console.log('🤖 Modèle:', GROQ_CONFIG.model);
+
+    setTimeout(() => {
+        addMessage('👋 Bonjour ! Je suis **FSA-IA**, votre assistant intelligent pour la Faculté des Sciences Agronomiques. Posez-moi n\'importe quelle question en français.', 'ai');
+        setTimeout(() => messageInput.focus(), 300);
+    }, 500);
+}
+
+/* ================================================================
+   DOM READY
+================================================================ */
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+
+/* ================================================================
+   EXPORTS
+================================================================ */
+
+window.showToast = showToast;
+window.sendMessage = sendMessage;
+window.addMessage = addMessage;
+
+</script>
+
+</body>
+</html>
