@@ -47,6 +47,12 @@
     <script src="notification-utils.js"></script>
 
     <!-- ================================================================
+         PDF.JS
+         Utilisé uniquement pour afficher conduite.pdf dans Canvas.
+    ================================================================ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <!-- ================================================================
          ERUDA - CONSOLE SUR LE TÉLÉPHONE
     ================================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
@@ -536,6 +542,188 @@
         }
 
         /* ============================================================
+           LECTEUR PDF — CANVAS
+        ============================================================ */
+
+        .conduite-viewer {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background: #f0f2f5;
+            display: none;
+            flex-direction: column;
+            z-index: 10000;
+        }
+
+        .conduite-viewer.show {
+            display: flex;
+        }
+
+        .conduite-header {
+            min-height: 58px;
+            background: var(--primary-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+            padding-top: max(8px, env(safe-area-inset-top));
+        }
+
+        .conduite-header-title {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-weight: 700;
+            font-size: 15px;
+            min-width: 0;
+        }
+
+        .conduite-header-title i {
+            color: var(--accent-yellow);
+            font-size: 21px;
+            flex-shrink: 0;
+        }
+
+        .conduite-header-title span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conduite-close {
+            width: 40px;
+            height: 40px;
+            border: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.12);
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .conduite-close:hover {
+            background: rgba(255,255,255,0.22);
+        }
+
+        .conduite-toolbar {
+            min-height: 50px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 6px 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        .conduite-toolbar button {
+            border: none;
+            background: var(--primary-blue);
+            color: white;
+            border-radius: 9px;
+            width: 38px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .conduite-toolbar button:hover {
+            background: var(--dark-blue);
+        }
+
+        .conduite-toolbar button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .conduite-page-info {
+            color: var(--primary-blue);
+            font-weight: 700;
+            font-size: 12px;
+            min-width: 75px;
+            text-align: center;
+        }
+
+        .conduite-canvas-container {
+            flex: 1;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 15px;
+            position: relative;
+        }
+
+        #conduiteCanvas {
+            display: block;
+            background: white;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.18);
+            max-width: none;
+            height: auto;
+        }
+
+        .conduite-loading {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            color: var(--primary-blue);
+            background: rgba(240,242,245,0.95);
+            z-index: 3;
+        }
+
+        .conduite-loading.hidden {
+            display: none;
+        }
+
+        .conduite-loading i {
+            font-size: 35px;
+        }
+
+        .conduite-error {
+            max-width: 400px;
+            text-align: center;
+            background: white;
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            margin: auto;
+        }
+
+        .conduite-error i {
+            font-size: 45px;
+            color: var(--danger-red);
+            margin-bottom: 10px;
+        }
+
+        .conduite-error h5 {
+            color: var(--primary-blue);
+            margin-bottom: 8px;
+        }
+
+        .conduite-error p {
+            color: #777;
+            font-size: 13px;
+        }
+
+        /* ============================================================
            RESPONSIVE
         ============================================================ */
 
@@ -574,6 +762,19 @@
             .etudiant-info-card {
                 padding: 18px;
             }
+
+            .conduite-canvas-container {
+                padding: 8px;
+            }
+
+            .conduite-toolbar {
+                gap: 5px;
+            }
+
+            .conduite-toolbar button {
+                width: 36px;
+                height: 34px;
+            }
         }
 
         @media (max-width: 400px) {
@@ -588,6 +789,10 @@
 
             .navbar-brand {
                 max-width: 190px;
+            }
+
+            .conduite-page-info {
+                min-width: 65px;
             }
         }
     </style>
@@ -1044,9 +1249,10 @@
                 </div>
             </div>
 
-        </div> <!-- Fin de menu-grid -->
-    </div> <!-- Fin de homePage -->
-</div> <!-- Fin de container -->
+        </div>
+    </div>
+</div>
+
 <!-- ================================================================
      MODAL PROFIL
 ================================================================ -->
@@ -1115,6 +1321,117 @@
 </div>
 
 <!-- ================================================================
+     LECTEUR DU RÈGLEMENT DE CONDUITE
+     PDF -> PDF.JS -> CANVAS
+================================================================ -->
+
+<div
+    id="conduiteViewer"
+    class="conduite-viewer"
+    aria-hidden="true"
+>
+
+    <div class="conduite-header">
+
+        <div class="conduite-header-title">
+            <i class="bi bi-flag-fill"></i>
+
+            <span>
+                Règlement de conduite
+            </span>
+        </div>
+
+        <button
+            type="button"
+            class="conduite-close"
+            id="closeConduiteBtn"
+            aria-label="Fermer le règlement"
+            title="Fermer"
+        >
+            <i class="bi bi-x-lg"></i>
+        </button>
+
+    </div>
+
+    <div class="conduite-toolbar">
+
+        <button
+            type="button"
+            id="conduitePrevBtn"
+            title="Page précédente"
+            aria-label="Page précédente"
+        >
+            <i class="bi bi-chevron-left"></i>
+        </button>
+
+        <div
+            class="conduite-page-info"
+            id="conduitePageInfo"
+        >
+            Page 0 / 0
+        </div>
+
+        <button
+            type="button"
+            id="conduiteNextBtn"
+            title="Page suivante"
+            aria-label="Page suivante"
+        >
+            <i class="bi bi-chevron-right"></i>
+        </button>
+
+        <button
+            type="button"
+            id="conduiteZoomOutBtn"
+            title="Zoom arrière"
+            aria-label="Zoom arrière"
+        >
+            <i class="bi bi-dash-lg"></i>
+        </button>
+
+        <button
+            type="button"
+            id="conduiteZoomInBtn"
+            title="Zoom avant"
+            aria-label="Zoom avant"
+        >
+            <i class="bi bi-plus-lg"></i>
+        </button>
+
+    </div>
+
+    <div
+        class="conduite-canvas-container"
+        id="conduiteCanvasContainer"
+    >
+
+        <canvas
+            id="conduiteCanvas"
+        ></canvas>
+
+        <div
+            class="conduite-loading"
+            id="conduiteLoading"
+        >
+            <div
+                class="spinner-border"
+                role="status"
+            ></div>
+
+            <strong>
+                Chargement du règlement...
+            </strong>
+
+            <small>
+                Préparation du document
+            </small>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================================================================
      FOOTER
 ================================================================ -->
 
@@ -1145,13 +1462,14 @@
 ================================================================ */
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",  // ✅ Clé corrigée
+    apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
     authDomain: "fsa-unilu.firebaseapp.com",
     projectId: "fsa-unilu",
     storageBucket: "fsa-unilu.firebasestorage.app",
     messagingSenderId: "36551990738",
     appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
 };
+
 /* Initialisation Firebase */
 
 if (!firebase.apps.length) {
@@ -1171,6 +1489,23 @@ try {
     console.log('[FCM] Firebase Messaging disponible');
 } catch (error) {
     console.warn('[FCM] Firebase Messaging indisponible:', error);
+}
+
+
+/* ================================================================
+   PDF.JS / CANVAS
+================================================================ */
+
+if (window.pdfjsLib) {
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    console.log('[PDF] ✅ PDF.js disponible');
+
+} else {
+
+    console.error('[PDF] ❌ PDF.js indisponible');
 }
 
 
@@ -1350,10 +1685,6 @@ let unreadCount = 0;
 
 let snapshotUnsubscribe = null;
 
-/*
- * Permet d'éviter de considérer les anciens communiqués
- * comme de nouveaux communiqués au chargement initial.
- */
 let communiquesRealtimeInitialized = false;
 
 
@@ -1532,20 +1863,8 @@ function escapeHtml(text) {
 
 
 /* ================================================================
-   NOTIFICATIONS - VERSION CORRIGÉE
+   NOTIFICATIONS
 ================================================================ */
-
-/*
- * Cette fonction ne demande pas automatiquement la permission.
- *
- * Si la permission est déjà accordée :
- *      notificationManager.init()
- * enregistre le token.
- *
- * Si la permission est "default" :
- *      le bouton Activer utilise
- *      requestPermissionAndRegister().
- */
 
 async function enregistrerTokenFCM(
     etudiantId,
@@ -1560,36 +1879,65 @@ async function enregistrerTokenFCM(
         console.log('[FCM] 📋 Étudiant:', etudiantId);
         console.log('[FCM] 📋 Demander permission:', demanderPermission);
 
-        /*
-         * Vérifier que NotificationManager existe.
-         * Si ce n'est pas le cas, on tente de le recharger.
-         */
         if (!window.notificationManager) {
 
             console.warn('[FCM] ⚠️ NotificationManager introuvable');
 
-            // Tentative de rechargement du script
             try {
-                console.log('[FCM] 🔄 Tentative de rechargement de notification-utils.js...');
-                const script = document.createElement('script');
-                script.src = 'notification-utils.js';
-                await new Promise((resolve, reject) => {
-                    script.onload = resolve;
-                    script.onerror = reject;
-                    document.head.appendChild(script);
-                });
-                await new Promise(resolve => setTimeout(resolve, 500));
-                console.log('[FCM] ✅ Script rechargé');
+
+                console.log(
+                    '[FCM] 🔄 Tentative de rechargement de notification-utils.js...'
+                );
+
+                const script =
+                    document.createElement('script');
+
+                script.src =
+                    'notification-utils.js';
+
+                await new Promise(
+                    (resolve, reject) => {
+
+                        script.onload = resolve;
+                        script.onerror = reject;
+
+                        document.head.appendChild(
+                            script
+                        );
+                    }
+                );
+
+                await new Promise(
+                    resolve =>
+                        setTimeout(
+                            resolve,
+                            500
+                        )
+                );
+
+                console.log(
+                    '[FCM] ✅ Script rechargé'
+                );
+
             } catch (error) {
-                console.error('[FCM] ❌ Échec rechargement:', error);
+
+                console.error(
+                    '[FCM] ❌ Échec rechargement:',
+                    error
+                );
             }
 
             if (!window.notificationManager) {
-                console.error('[FCM] ❌ NotificationManager toujours introuvable');
+
+                console.error(
+                    '[FCM] ❌ NotificationManager toujours introuvable'
+                );
+
                 showToast(
                     '❌ Gestionnaire de notifications indisponible. Veuillez rafraîchir la page.',
                     'danger'
                 );
+
                 return null;
             }
         }
@@ -1605,12 +1953,11 @@ async function enregistrerTokenFCM(
 
         let token = null;
 
-        /*
-         * Le bouton "Activer" passe par cette branche.
-         */
         if (demanderPermission) {
 
-            console.log('[FCM] 🔔 Demande de permission utilisateur...');
+            console.log(
+                '[FCM] 🔔 Demande de permission utilisateur...'
+            );
 
             token =
                 await window.notificationManager
@@ -1622,11 +1969,9 @@ async function enregistrerTokenFCM(
 
         } else {
 
-            /*
-             * Au démarrage, on ne demande jamais
-             * automatiquement l'autorisation.
-             */
-            console.log('[FCM] 🔔 Initialisation silencieuse...');
+            console.log(
+                '[FCM] 🔔 Initialisation silencieuse...'
+            );
 
             token =
                 await window.notificationManager
@@ -1666,15 +2011,24 @@ async function enregistrerTokenFCM(
                 '[FCM] ⚠️ Token non disponible'
             );
 
-            // Vérifier si la permission a été refusée
-            if ('Notification' in window && Notification.permission === 'denied') {
+            if (
+                'Notification' in window &&
+                Notification.permission === 'denied'
+            ) {
+
                 showToast(
                     '⚠️ Les notifications sont bloquées dans les paramètres du navigateur.',
                     'warning'
                 );
-            } else if ('Notification' in window && Notification.permission === 'default') {
-                // La permission n'a pas été demandée ou a été ignorée
-                console.log('[FCM] Permission par défaut, en attente d\'action utilisateur');
+
+            } else if (
+                'Notification' in window &&
+                Notification.permission === 'default'
+            ) {
+
+                console.log(
+                    '[FCM] Permission par défaut, en attente d\'action utilisateur'
+                );
             }
 
             checkNotificationStatus();
@@ -1689,8 +2043,15 @@ async function enregistrerTokenFCM(
             error
         );
 
-        console.error('  - Message:', error.message);
-        console.error('  - Stack:', error.stack);
+        console.error(
+            '  - Message:',
+            error.message
+        );
+
+        console.error(
+            '  - Stack:',
+            error.stack
+        );
 
         showToast(
             `❌ Erreur: ${error.message || 'Impossible d\'activer les notifications'}`,
@@ -1719,21 +2080,13 @@ function checkNotificationStatus() {
         return;
     }
 
-    /*
-     * Navigateur sans Notification API.
-     */
-    if (
-        !('Notification' in window)
-    ) {
+    if (!('Notification' in window)) {
 
         card.classList.remove('show');
 
         return;
     }
 
-    /*
-     * Permission accordée.
-     */
     if (
         Notification.permission === 'granted'
     ) {
@@ -1743,9 +2096,6 @@ function checkNotificationStatus() {
         return;
     }
 
-    /*
-     * Permission refusée.
-     */
     if (
         Notification.permission === 'denied'
     ) {
@@ -1755,9 +2105,6 @@ function checkNotificationStatus() {
         return;
     }
 
-    /*
-     * Permission encore inconnue.
-     */
     if (
         Notification.permission === 'default'
     ) {
@@ -1768,7 +2115,7 @@ function checkNotificationStatus() {
 
 
 /* ================================================================
-   BOUTON ACTIVATION NOTIFICATIONS - VERSION CORRIGÉE
+   BOUTON ACTIVATION NOTIFICATIONS
 ================================================================ */
 
 document
@@ -1806,8 +2153,14 @@ document
 
             try {
 
-                console.log('[FCM] 🔔 Bouton "Activer" cliqué');
-                console.log('[FCM] 📋 Étudiant:', currentStudent.id);
+                console.log(
+                    '[FCM] 🔔 Bouton "Activer" cliqué'
+                );
+
+                console.log(
+                    '[FCM] 📋 Étudiant:',
+                    currentStudent.id
+                );
 
                 const token =
                     await enregistrerTokenFCM(
@@ -1822,10 +2175,6 @@ document
 
                 if (!token) {
 
-                    /*
-                     * Si le navigateur refuse ou si
-                     * FCM n'est pas disponible.
-                     */
                     if (
                         'Notification' in window &&
                         Notification.permission === 'denied'
@@ -2034,6 +2383,7 @@ function setupRealtimeCommuniques() {
         try {
             snapshotUnsubscribe();
         } catch (e) {
+
             console.warn(
                 '[FIRESTORE] Désabonnement:',
                 e
@@ -2052,9 +2402,6 @@ function setupRealtimeCommuniques() {
         'communiques_' +
         currentStudent.id;
 
-    /*
-     * Affichage immédiat depuis le cache.
-     */
     const cachedCommuniques =
         CacheManager.get(cacheKey);
 
@@ -2108,14 +2455,6 @@ function setupRealtimeCommuniques() {
                     const communiquesList =
                         [];
 
-                    /*
-                     * IMPORTANT :
-                     * docChanges() sur le premier snapshot
-                     * renvoie les documents existants en "added".
-                     *
-                     * On ne doit donc pas les traiter
-                     * comme de nouveaux communiqués.
-                     */
                     let hasNew =
                         communiquesRealtimeInitialized &&
                         snapshot.docChanges()
@@ -2129,9 +2468,6 @@ function setupRealtimeCommuniques() {
                         const data =
                             doc.data() || {};
 
-                        /*
-                         * Filtre promotion.
-                         */
                         if (
                             data.promotions &&
                             Array.isArray(data.promotions) &&
@@ -2148,9 +2484,6 @@ function setupRealtimeCommuniques() {
                             }
                         }
 
-                        /*
-                         * Date de fin.
-                         */
                         const dateFin =
                             data.dateFin
                                 ? (
@@ -2169,9 +2502,6 @@ function setupRealtimeCommuniques() {
                             return;
                         }
 
-                        /*
-                         * Date de début.
-                         */
                         const dateDebut =
                             data.dateDebut
                                 ? (
@@ -2196,18 +2526,12 @@ function setupRealtimeCommuniques() {
                         });
                     });
 
-                    /*
-                     * Sauvegarde cache.
-                     */
                     CacheManager.set(
                         cacheKey,
                         communiquesList,
                         'COMMUNIQUES'
                     );
 
-                    /*
-                     * Nombre de non lus.
-                     */
                     const newUnreadCount =
                         communiquesList.filter(
                             comm =>
@@ -2222,17 +2546,6 @@ function setupRealtimeCommuniques() {
                         newUnreadCount
                     );
 
-                    /*
-                     * Notification locale uniquement pour
-                     * l'interface si une nouvelle donnée
-                     * arrive pendant que l'étudiant n'est
-                     * pas sur la page.
-                     *
-                     * Le PUSH réel est envoyé par Cloud Functions.
-                     *
-                     * NE PAS appeler :
-                     * notificationManager.envoyerNotification()
-                     */
                     if (
                         hasNew &&
                         newUnreadCount > 0 &&
@@ -2509,9 +2822,6 @@ async function updateWelcomeMessage() {
             `Matricule: ${matricule} | ${promo}`;
     }
 
-    /*
-     * Mise à jour du statut cache.
-     */
     const cacheStatusText =
         document.getElementById(
             'cacheStatusText'
@@ -2876,10 +3186,6 @@ document
 
             try {
 
-                /*
-                 * Supprime le token FCM local/remote
-                 * via le gestionnaire centralisé.
-                 */
                 if (
                     window.notificationManager
                 ) {
@@ -2897,9 +3203,6 @@ document
                 );
             }
 
-            /*
-             * Suppression session.
-             */
             localStorage.removeItem(
                 'session_etudiant'
             );
@@ -2908,9 +3211,6 @@ document
                 'communiques_lus'
             );
 
-            /*
-             * Nettoyage cache étudiant.
-             */
             if (
                 currentStudent &&
                 currentStudent.id
@@ -2927,9 +3227,6 @@ document
                 );
             }
 
-            /*
-             * Arrêt listener Firestore.
-             */
             if (snapshotUnsubscribe) {
 
                 try {
@@ -2940,9 +3237,6 @@ document
                     null;
             }
 
-            /*
-             * Retour login.
-             */
             window.location.href =
                 'login-etudiant.html';
         }
@@ -2950,48 +3244,733 @@ document
 
 
 /* ================================================================
-   NAVIGATION
+   LECTEUR PDF — CONDUITE
 ================================================================ */
 
-document
-    .querySelectorAll('.menu-card')
-    .forEach(card => {
+(function () {
 
-        card.addEventListener(
-            'click',
-            function () {
-
-                const page =
-                    this.dataset.page;
-
-                if (!page) {
-                    return;
-                }
-
-                /*
-                 * Paiement en ligne
-                 */
-                if (
-                    page === 'paiement-ligne'
-                ) {
-
-                    window.location.href =
-                        'paiement-ligne.html';
-
-                    return;
-                }
-
-                /*
-                 * Toutes les autres pages.
-                 */
-                window.location.href =
-                    `${page}.html`;
-            }
+    const viewer =
+        document.getElementById(
+            'conduiteViewer'
         );
-    });
+
+    const canvas =
+        document.getElementById(
+            'conduiteCanvas'
+        );
+
+    const canvasContainer =
+        document.getElementById(
+            'conduiteCanvasContainer'
+        );
+
+    const loading =
+        document.getElementById(
+            'conduiteLoading'
+        );
+
+    const pageInfo =
+        document.getElementById(
+            'conduitePageInfo'
+        );
+
+    const prevBtn =
+        document.getElementById(
+            'conduitePrevBtn'
+        );
+
+    const nextBtn =
+        document.getElementById(
+            'conduiteNextBtn'
+        );
+
+    const zoomOutBtn =
+        document.getElementById(
+            'conduiteZoomOutBtn'
+        );
+
+    const zoomInBtn =
+        document.getElementById(
+            'conduiteZoomInBtn'
+        );
+
+    const closeBtn =
+        document.getElementById(
+            'closeConduiteBtn'
+        );
+
+    if (
+        !viewer ||
+        !canvas ||
+        !canvasContainer
+    ) {
+
+        console.error(
+            '[PDF] Éléments du lecteur manquants'
+        );
+
+        return;
+    }
+
+    let pdfDocument = null;
+
+    let currentPage = 1;
+
+    let totalPages = 0;
+
+    let zoom = 1;
+
+    let rendering = false;
+
+    let renderQueued = false;
+
+    let pdfLoadingPromise = null;
+
+
+    /* ============================================================
+       AFFICHAGE CHARGEMENT
+    ============================================================ */
+
+    function setLoading(
+        state
+    ) {
+
+        if (!loading) {
+            return;
+        }
+
+        if (state) {
+            loading.classList.remove(
+                'hidden'
+            );
+        } else {
+            loading.classList.add(
+                'hidden'
+            );
+        }
+    }
+
+
+    /* ============================================================
+       ERREUR PDF
+    ============================================================ */
+
+    function showPdfError(
+        message
+    ) {
+
+        setLoading(false);
+
+        const container =
+            document.getElementById(
+                'conduiteCanvasContainer'
+            );
+
+        if (!container) {
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="conduite-error">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+
+                <h5>
+                    Impossible d'afficher le règlement
+                </h5>
+
+                <p>
+                    ${escapeHtml(message)}
+                </p>
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="retryConduiteBtn"
+                    style="background:#003366;border:none;border-radius:10px;"
+                >
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Réessayer
+                </button>
+            </div>
+        `;
+
+        document
+            .getElementById(
+                'retryConduiteBtn'
+            )
+            ?.addEventListener(
+                'click',
+                function () {
+
+                    container.innerHTML = `
+                        <canvas id="conduiteCanvas"></canvas>
+
+                        <div
+                            class="conduite-loading"
+                            id="conduiteLoading"
+                        >
+                            <div
+                                class="spinner-border"
+                                role="status"
+                            ></div>
+
+                            <strong>
+                                Chargement du règlement...
+                            </strong>
+
+                            <small>
+                                Préparation du document
+                            </small>
+                        </div>
+                    `;
+
+                    showToast(
+                        '🔄 Nouvelle tentative...',
+                        'info'
+                    );
+
+                    window.location.reload();
+                }
+            );
+    }
+
+
+    /* ============================================================
+       CALCUL SCALE
+    ============================================================ */
+
+    function calculateScale(
+        page
+    ) {
+
+        const viewport =
+            page.getViewport({
+                scale: 1
+            });
+
+        const availableWidth =
+            Math.max(
+                250,
+                canvasContainer.clientWidth - 20
+            );
+
+        const responsiveScale =
+            availableWidth /
+            viewport.width;
+
+        return Math.max(
+            0.5,
+            responsiveScale * zoom
+        );
+    }
+
+
+    /* ============================================================
+       RENDRE PAGE
+    ============================================================ */
+
+    async function renderPage(
+        pageNumber
+    ) {
+
+        if (!pdfDocument) {
+            return;
+        }
+
+        if (rendering) {
+
+            renderQueued = true;
+
+            return;
+        }
+
+        rendering = true;
+
+        try {
+
+            const page =
+                await pdfDocument.getPage(
+                    pageNumber
+                );
+
+            const scale =
+                calculateScale(
+                    page
+                );
+
+            const viewport =
+                page.getViewport({
+                    scale: scale
+                });
+
+            const devicePixelRatio =
+                Math.min(
+                    window.devicePixelRatio || 1,
+                    2
+                );
+
+            canvas.width =
+                Math.floor(
+                    viewport.width *
+                    devicePixelRatio
+                );
+
+            canvas.height =
+                Math.floor(
+                    viewport.height *
+                    devicePixelRatio
+                );
+
+            canvas.style.width =
+                `${viewport.width}px`;
+
+            canvas.style.height =
+                `${viewport.height}px`;
+
+            const context =
+                canvas.getContext(
+                    '2d',
+                    {
+                        alpha: false
+                    }
+                );
+
+            context.setTransform(
+                devicePixelRatio,
+                0,
+                0,
+                devicePixelRatio,
+                0,
+                0
+            );
+
+            context.fillStyle =
+                '#ffffff';
+
+            context.fillRect(
+                0,
+                0,
+                viewport.width,
+                viewport.height
+            );
+
+            await page.render({
+                canvasContext: context,
+                viewport: viewport
+            }).promise;
+
+            currentPage =
+                pageNumber;
+
+            totalPages =
+                pdfDocument.numPages;
+
+            pageInfo.textContent =
+                `Page ${currentPage} / ${totalPages}`;
+
+            prevBtn.disabled =
+                currentPage <= 1;
+
+            nextBtn.disabled =
+                currentPage >= totalPages;
+
+            setLoading(false);
+
+        } catch (error) {
+
+            console.error(
+                '[PDF] Erreur rendu page:',
+                error
+            );
+
+            showToast(
+                '❌ Impossible d\'afficher cette page.',
+                'danger'
+            );
+
+        } finally {
+
+            rendering = false;
+
+            if (renderQueued) {
+
+                renderQueued = false;
+
+                renderPage(
+                    currentPage
+                );
+            }
+        }
+    }
+
+
+    /* ============================================================
+       CHARGER PDF
+    ============================================================ */
+
+    async function loadPdf() {
+
+        if (pdfDocument) {
+
+            await renderPage(
+                currentPage
+            );
+
+            return;
+        }
+
+        if (pdfLoadingPromise) {
+
+            await pdfLoadingPromise;
+
+            return;
+        }
+
+        if (!window.pdfjsLib) {
+
+            showPdfError(
+                'Le moteur PDF n\'est pas disponible. Vérifiez votre connexion Internet puis réessayez.'
+            );
+
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+
+            console.log(
+                '[PDF] 📄 Chargement de conduite.pdf...'
+            );
+
+            pdfLoadingPromise =
+                pdfjsLib
+                    .getDocument({
+                        url: 'conduite.pdf',
+                        withCredentials: false
+                    })
+                    .promise;
+
+            pdfDocument =
+                await pdfLoadingPromise;
+
+            pdfLoadingPromise = null;
+
+            totalPages =
+                pdfDocument.numPages;
+
+            currentPage = 1;
+
+            zoom = 1;
+
+            console.log(
+                '[PDF] ✅ Document chargé:',
+                totalPages,
+                'pages'
+            );
+
+            await renderPage(
+                currentPage
+            );
+
+        } catch (error) {
+
+            pdfLoadingPromise = null;
+
+            pdfDocument = null;
+
+            console.error(
+                '[PDF] ❌ Erreur chargement:',
+                error
+            );
+
+            let message =
+                'Impossible de charger le fichier conduite.pdf.';
+
+            if (
+                error &&
+                error.name === 'MissingPDFException'
+            ) {
+
+                message =
+                    'Le fichier conduite.pdf est introuvable. Place-le dans le même dossier que etudiant.html.';
+
+            } else if (
+                error &&
+                error.name === 'InvalidPDFException'
+            ) {
+
+                message =
+                    'Le fichier conduite.pdf semble être invalide ou endommagé.';
+            }
+
+            showPdfError(
+                message
+            );
+        }
+    }
+
+
+    /* ============================================================
+       OUVRIR
+    ============================================================ */
+
+    async function ouvrirConduite() {
+
+        console.log(
+            '[PDF] 📖 Ouverture du règlement'
+        );
+
+        viewer.classList.add(
+            'show'
+        );
+
+        viewer.setAttribute(
+            'aria-hidden',
+            'false'
+        );
+
+        document.body.style.overflow =
+            'hidden';
+
+        /*
+         * Recrée le canvas si le précédent
+         * a été remplacé par un message d'erreur.
+         */
+        if (
+            !document.getElementById(
+                'conduiteCanvas'
+            )
+        ) {
+
+            canvasContainer.innerHTML = `
+                <canvas id="conduiteCanvas"></canvas>
+
+                <div
+                    class="conduite-loading"
+                    id="conduiteLoading"
+                >
+                    <div
+                        class="spinner-border"
+                        role="status"
+                    ></div>
+
+                    <strong>
+                        Chargement du règlement...
+                    </strong>
+
+                    <small>
+                        Préparation du document
+                    </small>
+                </div>
+            `;
+        }
+
+        await loadPdf();
+    }
+
+
+    /* ============================================================
+       FERMER
+    ============================================================ */
+
+    function fermerConduite() {
+
+        console.log(
+            '[PDF] 📕 Fermeture du règlement'
+        );
+
+        viewer.classList.remove(
+            'show'
+        );
+
+        viewer.setAttribute(
+            'aria-hidden',
+            'true'
+        );
+
+        document.body.style.overflow =
+            '';
+    }
+
+
+    /* ============================================================
+       PAGE PRÉCÉDENTE
+    ============================================================ */
+
+    prevBtn?.addEventListener(
+        'click',
+        async function () {
+
+            if (
+                pdfDocument &&
+                currentPage > 1
+            ) {
+
+                await renderPage(
+                    currentPage - 1
+                );
+            }
+        }
+    );
+
+
+    /* ============================================================
+       PAGE SUIVANTE
+    ============================================================ */
+
+    nextBtn?.addEventListener(
+        'click',
+        async function () {
+
+            if (
+                pdfDocument &&
+                currentPage < totalPages
+            ) {
+
+                await renderPage(
+                    currentPage + 1
+                );
+            }
+        }
+    );
+
+
+    /* ============================================================
+       ZOOM -
+    ============================================================ */
+
+    zoomOutBtn?.addEventListener(
+        'click',
+        async function () {
+
+            if (!pdfDocument) {
+                return;
+            }
+
+            zoom =
+                Math.max(
+                    0.6,
+                    zoom - 0.15
+                );
+
+            await renderPage(
+                currentPage
+            );
+        }
+    );
+
+
+    /* ============================================================
+       ZOOM +
+    ============================================================ */
+
+    zoomInBtn?.addEventListener(
+        'click',
+        async function () {
+
+            if (!pdfDocument) {
+                return;
+            }
+
+            zoom =
+                Math.min(
+                    3,
+                    zoom + 0.15
+                );
+
+            await renderPage(
+                currentPage
+            );
+        }
+    );
+
+
+    /* ============================================================
+       FERMETURE
+    ============================================================ */
+
+    closeBtn?.addEventListener(
+        'click',
+        fermerConduite
+    );
+
+
+    /* ============================================================
+       TOUCHE ESCAPE
+    ============================================================ */
+
+    document.addEventListener(
+        'keydown',
+        function (event) {
+
+            if (
+                event.key === 'Escape' &&
+                viewer.classList.contains('show')
+            ) {
+
+                fermerConduite();
+            }
+        }
+    );
+
+
+    /* ============================================================
+       REDIMENSIONNEMENT
+    ============================================================ */
+
+    let resizeTimer = null;
+
+    window.addEventListener(
+        'resize',
+        function () {
+
+            if (
+                !viewer.classList.contains(
+                    'show'
+                ) ||
+                !pdfDocument
+            ) {
+
+                return;
+            }
+
+            clearTimeout(
+                resizeTimer
+            );
+
+            resizeTimer =
+                setTimeout(
+                    function () {
+
+                        renderPage(
+                            currentPage
+                        );
+
+                    },
+                    150
+                );
+        }
+    );
+
+
+    /* ============================================================
+       EXPORTS
+    ============================================================ */
+
+    window.ouvrirConduite =
+        ouvrirConduite;
+
+    window.fermerConduite =
+        fermerConduite;
+
+})();
+
 
 /* ================================================================
-   NAVIGATION - AVEC IA
+   NAVIGATION
+   IMPORTANT :
+   UNE SEULE écoute pour éviter les doubles redirections.
 ================================================================ */
 
 document
@@ -3010,6 +3989,34 @@ document
                 }
 
                 /*
+                 * CONDUITE
+                 *
+                 * Ne redirige plus vers conduite.html.
+                 * Le PDF est ouvert directement dans Canvas.
+                 */
+                if (
+                    page === 'conduite'
+                ) {
+
+                    if (
+                        typeof window.ouvrirConduite ===
+                        'function'
+                    ) {
+
+                        window.ouvrirConduite();
+
+                    } else {
+
+                        showToast(
+                            '❌ Lecteur du règlement indisponible.',
+                            'danger'
+                        );
+                    }
+
+                    return;
+                }
+
+                /*
                  * Paiement en ligne
                  */
                 if (
@@ -3023,7 +4030,7 @@ document
                 }
 
                 /*
-                 * IA FSA - redirection vers ia.html
+                 * IA FSA
                  */
                 if (
                     page === 'ia'
@@ -3036,7 +4043,7 @@ document
                 }
 
                 /*
-                 * Toutes les autres pages.
+                 * Toutes les autres pages
                  */
                 window.location.href =
                     `${page}.html`;
@@ -3075,9 +4082,6 @@ function setupOfflineDetection() {
             );
         }
 
-        /*
-         * Mise à jour du statut cache.
-         */
         const cacheStatusText =
             document.getElementById(
                 'cacheStatusText'
@@ -3107,22 +4111,8 @@ function setupOfflineDetection() {
 
 
 /* ================================================================
-   SERVICE WORKER - VERSION CORRIGÉE
+   SERVICE WORKER
 ================================================================ */
-
-/*
- * IMPORTANT :
- *
- * Le projet utilise maintenant UN SEUL Service Worker :
- *
- *      /Espace-etudiant/sw.js
- *
- * Le Service Worker Firebase séparé :
- *
- *      firebase-messaging-sw.js
- *
- * ne doit plus être enregistré.
- */
 
 async function registerServiceWorker() {
 
@@ -3139,17 +4129,18 @@ async function registerServiceWorker() {
 
     try {
 
-        console.log('[SW] 🔄 Enregistrement du Service Worker...');
+        console.log(
+            '[SW] 🔄 Enregistrement du Service Worker...'
+        );
 
-        /*
-         * Utilise le gestionnaire centralisé.
-         */
         if (
             typeof window.registerAppServiceWorker ===
             'function'
         ) {
 
-            console.log('[SW] 📋 Utilisation du gestionnaire centralisé');
+            console.log(
+                '[SW] 📋 Utilisation du gestionnaire centralisé'
+            );
 
             const registration =
                 await window.registerAppServiceWorker();
@@ -3159,19 +4150,20 @@ async function registerServiceWorker() {
                 console.log(
                     '[SW] ✅ Service Worker principal enregistré'
                 );
+
             } else {
 
-                console.warn('[SW] ⚠️ Échec enregistrement via gestionnaire');
+                console.warn(
+                    '[SW] ⚠️ Échec enregistrement via gestionnaire'
+                );
             }
 
             return registration;
         }
 
-        /*
-         * Fallback si notification-utils.js
-         * n'est pas disponible.
-         */
-        console.log('[SW] 📋 Fallback: enregistrement direct');
+        console.log(
+            '[SW] 📋 Fallback: enregistrement direct'
+        );
 
         const registration =
             await navigator.serviceWorker.register(
@@ -3195,10 +4187,16 @@ async function registerServiceWorker() {
             error
         );
 
-        console.error('  - Message:', error.message);
-        console.error('  - Stack:', error.stack);
+        console.error(
+            '  - Message:',
+            error.message
+        );
 
-        // Afficher un message à l'utilisateur
+        console.error(
+            '  - Stack:',
+            error.stack
+        );
+
         showToast(
             '⚠️ Service Worker indisponible. Les notifications pourraient ne pas fonctionner.',
             'warning'
@@ -3210,7 +4208,7 @@ async function registerServiceWorker() {
 
 
 /* ================================================================
-   ÉVÉNEMENTS DE NOTIFICATION DU GESTIONNAIRE CENTRALISÉ
+   ÉVÉNEMENTS NOTIFICATION
 ================================================================ */
 
 window.addEventListener(
@@ -3227,15 +4225,6 @@ window.addEventListener(
                 detail
             );
 
-            /*
-             * Ici on ne recrée PAS une deuxième notification.
-             *
-             * notification-utils.js s'occupe déjà
-             * de l'affichage de la notification/du toast.
-             *
-             * On peut simplement mettre à jour le badge
-             * des communiqués lorsqu'il s'agit d'un communiqué.
-             */
             const type =
                 detail.type ||
                 detail.data?.type ||
@@ -3260,12 +4249,14 @@ window.addEventListener(
 
 
 /* ================================================================
-   INITIALISATION - VERSION CORRIGÉE
+   INITIALISATION
 ================================================================ */
 
 async function init() {
 
-    console.log('🚀 Dashboard Étudiant - Démarrage');
+    console.log(
+        '🚀 Dashboard Étudiant - Démarrage'
+    );
 
     /*
      * 1. Vérification session.
@@ -3313,15 +4304,11 @@ async function init() {
 
     /*
      * 8. Initialisation FCM.
-     *
-     * IMPORTANT :
-     * cette fonction ne demande PAS la permission
-     * si l'étudiant ne l'a jamais donnée.
-     *
-     * Le bouton "Activer" s'en charge.
      */
-    console.log('[FCM] 🔔 Initialisation des notifications...');
-    
+    console.log(
+        '[FCM] 🔔 Initialisation des notifications...'
+    );
+
     await enregistrerTokenFCM(
         currentStudent.id,
         currentStudent.nom ||
@@ -3353,9 +4340,15 @@ async function init() {
             window.notificationManager.isActive()
         );
 
-        const token = window.notificationManager.getToken();
+        const token =
+            window.notificationManager.getToken();
+
         if (token) {
-            console.log('🔑 Token FCM:', token.substring(0, 20) + '...');
+
+            console.log(
+                '🔑 Token FCM:',
+                token.substring(0, 20) + '...'
+            );
         }
 
     } else {
@@ -3387,7 +4380,7 @@ if (
 
 
 /* ================================================================
-   NETTOYAGE À LA FERMETURE DE LA PAGE
+   NETTOYAGE À LA FERMETURE
 ================================================================ */
 
 window.addEventListener(
