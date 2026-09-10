@@ -1204,6 +1204,48 @@
                 </div>
             </div>
 
+            <!-- IA FSA -->
+
+            <div
+                class="menu-card"
+                data-page="ia"
+                id="iaCard"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-robot"></i>
+                </div>
+
+                <div class="menu-title">
+                    IA FSA
+                </div>
+
+                <div class="menu-subtitle">
+                    Assistant intelligent
+                </div>
+            </div>
+
+            <!-- ====================================================
+                 NOUVELLE CARTE : SUJET PUBLIER (vers projet.html)
+            ===================================================== -->
+
+            <div
+                class="menu-card"
+                data-page="projet"
+                id="sujetPublierCard"
+            >
+                <div class="menu-icon">
+                    <i class="bi bi-journal-richtext"></i>
+                </div>
+
+                <div class="menu-title">
+                    Sujet Publier
+                </div>
+
+                <div class="menu-subtitle">
+                    Voir les sujets publiés
+                </div>
+            </div>
+
             <!-- À PROPOS -->
 
             <div
@@ -1239,28 +1281,6 @@
 
                 <div class="menu-subtitle">
                     Mon compte
-                </div>
-            </div>
-
-            <!-- ====================================================
-                 CARTE IA FSA - MÊME DESIGN, PLACÉE À LA FIN
-            ===================================================== -->
-
-            <div
-                class="menu-card"
-                data-page="ia"
-                id="iaCard"
-            >
-                <div class="menu-icon">
-                    <i class="bi bi-robot"></i>
-                </div>
-
-                <div class="menu-title">
-                    IA FSA
-                </div>
-
-                <div class="menu-subtitle">
-                    Assistant intelligent
                 </div>
             </div>
 
@@ -4053,6 +4073,19 @@ document
 
                     window.location.href =
                         'ia.html';
+
+                    return;
+                }
+
+                /*
+                 * SUJET PUBLIER -> redirige vers projet.html
+                 */
+                if (
+                    page === 'projet'
+                ) {
+
+                    window.location.href =
+                        'projet.html';
 
                     return;
                 }
