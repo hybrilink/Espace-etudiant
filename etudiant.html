@@ -94,7 +94,6 @@
 
         html {
             scroll-behavior: smooth;
-            /* Désactive le zoom par pincement sur iOS */
             -webkit-text-size-adjust: 100%;
             touch-action: pan-x pan-y;
         }
@@ -104,11 +103,9 @@
             font-family: 'Segoe UI', Arial, sans-serif;
             padding-bottom: 20px;
             min-height: 100vh;
-            /* Empêche le zoom sur les double-clics sur iOS */
             touch-action: manipulation;
         }
 
-        /* Désactive le zoom sur tous les éléments interactifs */
         button,
         input,
         select,
@@ -1147,11 +1144,13 @@
 
             </div>
 
-            <!-- SUJET -->
+            <!-- SUJET (carte conditionnelle selon config promotion) -->
 
             <div
                 class="menu-card"
                 data-page="tp"
+                id="sujetFeuVertCard"
+                style="display: none;"
             >
                 <div class="menu-icon">
                     <i class="bi bi-laptop-fill"></i>
@@ -1225,13 +1224,16 @@
             </div>
 
             <!-- ====================================================
-                 NOUVELLE CARTE : SUJET PUBLIER (vers projet.html)
+                 CARTE : SUJET PUBLIER (vers projet.html)
+                 Conditionnelle : visible seulement si la promotion
+                 de l'étudiant est concernée par le projet.
             ===================================================== -->
 
             <div
                 class="menu-card"
                 data-page="projet"
                 id="sujetPublierCard"
+                style="display: none;"
             >
                 <div class="menu-icon">
                     <i class="bi bi-journal-richtext"></i>
@@ -1721,6 +1723,18 @@ let unreadCount = 0;
 let snapshotUnsubscribe = null;
 
 let communiquesRealtimeInitialized = false;
+
+
+/* ================================================================
+   CONFIGURATION PROJET - PROMOTIONS CONCERNÉES
+   Ces deux variables permettent de savoir si la promotion de
+   l'étudiant est concernée par le projet de fin d'études.
+   Si oui : on affiche les cartes "SUJET" et "Sujet Publier".
+   Si non : on les cache complètement.
+================================================================ */
+
+let promotionConcerneeParProjet = false;
+let configProjetUnsubscribe = null;
 
 
 /* ================================================================
@@ -2793,6 +2807,182 @@ async function chargerEtudiant(
 
 
 /* ================================================================
+   VÉRIFIER SI LA PROMOTION EST CONCERNÉE PAR LE PROJET
+   Lit le document `configurations/promotionsProjet` et vérifie
+   si l'ID de la promotion de l'étudiant est présent dans le
+   tableau `promotions`.
+================================================================ */
+
+async function verifierPromotionProjet() {
+
+    if (!currentStudent || !currentStudent.promotion) {
+
+        promotionConcerneeParProjet = false;
+
+        return false;
+    }
+
+    try {
+
+        const doc =
+            await db
+                .collection('configurations')
+                .doc('promotionsProjet')
+                .get();
+
+        if (doc.exists) {
+
+            const data =
+                doc.data() || {};
+
+            const promotions =
+                Array.isArray(data.promotions)
+                    ? data.promotions
+                    : [];
+
+            promotionConcerneeParProjet =
+                promotions.includes(
+                    currentStudent.promotion
+                );
+
+        } else {
+
+            promotionConcerneeParProjet = false;
+        }
+
+        console.log(
+            '[PROJET] Promotion concernée:',
+            promotionConcerneeParProjet
+        );
+
+        return promotionConcerneeParProjet;
+
+    } catch (error) {
+
+        console.error(
+            '[PROJET] Erreur vérification:',
+            error
+        );
+
+        promotionConcerneeParProjet = false;
+
+        return false;
+    }
+}
+
+
+/* ================================================================
+   ÉCOUTER LA CONFIGURATION EN TEMPS RÉEL
+   Si le Vice-Doyen ajoute ou retire la promotion de l'étudiant
+   dans la configuration, l'interface se met à jour automatiquement.
+================================================================ */
+
+function setupRealtimeProjectConfig() {
+
+    if (configProjetUnsubscribe) {
+
+        try {
+            configProjetUnsubscribe();
+        } catch (e) {}
+
+        configProjetUnsubscribe = null;
+    }
+
+    if (!currentStudent || !currentStudent.promotion) {
+        return;
+    }
+
+    configProjetUnsubscribe =
+        db.collection('configurations')
+            .doc('promotionsProjet')
+            .onSnapshot((doc) => {
+
+                const oldValue =
+                    promotionConcerneeParProjet;
+
+                if (doc.exists) {
+
+                    const data =
+                        doc.data() || {};
+
+                    const promotions =
+                        Array.isArray(data.promotions)
+                            ? data.promotions
+                            : [];
+
+                    promotionConcerneeParProjet =
+                        promotions.includes(
+                            currentStudent.promotion
+                        );
+
+                } else {
+
+                    promotionConcerneeParProjet = false;
+                }
+
+                /* Mettre à jour l'interface si la valeur a changé */
+
+                if (oldValue !== promotionConcerneeParProjet) {
+
+                    console.log(
+                        '[PROJET] Mise à jour affichage:',
+                        promotionConcerneeParProjet
+                    );
+
+                    updateProjectCardsVisibility();
+                }
+
+            }, (error) => {
+
+                console.error(
+                    '[PROJET] Erreur écoute config:',
+                    error
+                );
+
+                promotionConcerneeParProjet = false;
+            });
+}
+
+
+/* ================================================================
+   METTRE À JOUR LA VISIBILITÉ DES CARTES PROJET
+   - Carte "SUJET" (tp.html)
+   - Carte "Sujet Publier" (projet.html)
+================================================================ */
+
+function updateProjectCardsVisibility() {
+
+    const cardSujetFeuVert =
+        document.getElementById(
+            'sujetFeuVertCard'
+        );
+
+    const cardSujetPublier =
+        document.getElementById(
+            'sujetPublierCard'
+        );
+
+    const display =
+        promotionConcerneeParProjet
+            ? ''
+            : 'none';
+
+    if (cardSujetFeuVert) {
+        cardSujetFeuVert.style.display = display;
+    }
+
+    if (cardSujetPublier) {
+        cardSujetPublier.style.display = display;
+    }
+
+    console.log(
+        '[PROJET] Cartes visibles:',
+        promotionConcerneeParProjet
+    );
+}
+
+
+/* ================================================================
    MESSAGE BIENVENUE
 ================================================================ */
 
@@ -3269,6 +3459,16 @@ document
                 } catch (e) {}
 
                 snapshotUnsubscribe =
+                    null;
+            }
+
+            if (configProjetUnsubscribe) {
+
+                try {
+                    configProjetUnsubscribe();
+                } catch (e) {}
+
+                configProjetUnsubscribe =
                     null;
             }
 
@@ -4079,6 +4279,8 @@ document
 
                 /*
                  * SUJET PUBLIER -> redirige vers projet.html
+                 * (seulement si la promotion est concernée,
+                 *  mais le bouton ne s'affiche que dans ce cas)
                  */
                 if (
                     page === 'projet'
@@ -4331,27 +4533,43 @@ async function init() {
     await chargerPromotions();
 
     /*
-     * 4. Service Worker principal.
+     * 4. ✅ VÉRIFIER SI LA PROMOTION EST CONCERNÉE PAR LE PROJET
+     *    Détermine si les cartes SUJET et Sujet Publier
+     *    doivent être affichées ou non.
+     */
+    await verifierPromotionProjet();
+
+    updateProjectCardsVisibility();
+
+    /*
+     * 5. ✅ ÉCOUTER LA CONFIGURATION EN TEMPS RÉEL
+     *    Si le Vice-Doyen modifie la configuration,
+     *    l'interface s'adapte automatiquement.
+     */
+    setupRealtimeProjectConfig();
+
+    /*
+     * 6. Service Worker principal.
      */
     await registerServiceWorker();
 
     /*
-     * 5. Détection hors ligne.
+     * 7. Détection hors ligne.
      */
     setupOfflineDetection();
 
     /*
-     * 6. Communiqués temps réel.
+     * 8. Communiqués temps réel.
      */
     setupRealtimeCommuniques();
 
     /*
-     * 7. Message de bienvenue.
+     * 9. Message de bienvenue.
      */
     await updateWelcomeMessage();
 
     /*
-     * 8. Initialisation FCM.
+     * 10. Initialisation FCM.
      */
     console.log(
         '[FCM] 🔔 Initialisation des notifications...'
@@ -4368,12 +4586,12 @@ async function init() {
     );
 
     /*
-     * 9. Affichage carte permission.
+     * 11. Affichage carte permission.
      */
     checkNotificationStatus();
 
     /*
-     * 10. État final.
+     * 12. État final.
      */
     console.log(
         '✅ Dashboard prêt'
@@ -4475,6 +4693,15 @@ window.chargerPromotions =
 
 window.getPromotionNom =
     getPromotionNom;
+
+window.verifierPromotionProjet =
+    verifierPromotionProjet;
+
+window.setupRealtimeProjectConfig =
+    setupRealtimeProjectConfig;
+
+window.updateProjectCardsVisibility =
+    updateProjectCardsVisibility;
 
 </script>
 
