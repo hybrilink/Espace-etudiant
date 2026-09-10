@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Choisir un Sujet - Étudiant</title>
+    <meta name="theme-color" content="#003366">
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-96x96.png">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --primary-blue: #003366;
+            --dark-blue: #002244;
+            --accent-yellow: #ffb347;
+            --light-gray: #f0f2f5;
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--light-gray);
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+
+        .navbar-custom {
+            background: var(--primary-blue);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1rem;
+            color: white !important;
+        }
+
+        .btn-back {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 18px;
+            border-radius: 25px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateX(-3px);
+            color: white;
+        }
+
+        .container-custom {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px 15px 40px;
+        }
+
+        /* ============================================================
+           BANNIÈRE INFO ÉTUDIANT
+        ============================================================ */
+
+        .etudiant-banner {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            border-radius: 20px;
+            padding: 20px 25px;
+            color: white;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .etudiant-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+
+        .etudiant-banner h4 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .etudiant-banner h4 i {
+            color: var(--accent-yellow);
+        }
+
+        .etudiant-banner p {
+            margin: 0;
+            font-size: 0.85rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+
+        .etudiant-banner .badge-promo {
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-top: 8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ============================================================
+           SECTION CARD
+        ============================================================ */
+
+        .section-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+
+        .section-card h3 {
+            color: var(--primary-blue);
+            font-weight: 700;
+            margin-bottom: 5px;
+            font-size: 1.25rem;
+        }
+
+        .section-card .subtitle {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        /* ============================================================
+           FILTRES
+        ============================================================ */
+
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-search {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .filter-search input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .filter-search input:focus {
+            border-color: var(--primary-blue);
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(0,51,102,0.15);
+        }
+
+        .filter-search i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+
+        .filter-select:focus {
+            border-color: var(--primary-blue);
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(0,51,102,0.15);
+        }
+
+        /* ============================================================
+           CARTE SUJET
+        ============================================================ */
+
+        .sujet-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-blue);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .sujet-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border-left-color: var(--success-green);
+        }
+
+        .sujet-card .sujet-titre {
+            font-weight: 700;
+            color: var(--primary-blue);
+            font-size: 1.05rem;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .sujet-card .sujet-meta {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sujet-card .sujet-meta i {
+            color: var(--primary-blue);
+            font-size: 14px;
+            width: 18px;
+            text-align: center;
+        }
+
+        .sujet-card .sujet-description {
+            font-size: 13px;
+            color: #555;
+            margin-top: 12px;
+            padding: 12px 14px;
+            background: white;
+            border-radius: 10px;
+            line-height: 1.6;
+            border-left: 3px solid var(--accent-yellow);
+        }
+
+        .sujet-card .sujet-footer {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .badge-departement {
+            background: #e8f4fd;
+            color: var(--primary-blue);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .badge-professeur {
+            background: #f0e8ff;
+            color: #6f42c1;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-choisir {
+            background: var(--success-green);
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-choisir:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(40,167,69,0.3);
+        }
+
+        .btn-choisir:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ============================================================
+           ÉTAT VIDE
+        ============================================================ */
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #888;
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+
+        .empty-state h5 {
+            color: var(--primary-blue);
+            margin-bottom: 8px;
+        }
+
+        /* ============================================================
+           MODAL CONFIRMATION
+        ============================================================ */
+
+        .confirm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .confirm-modal.show {
+            display: flex;
+        }
+
+        .confirm-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            animation: modalFadeIn 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .confirm-modal-content h4 {
+            color: var(--primary-blue);
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .confirm-modal-content .modal-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .confirm-modal-content .alert-warning-custom {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 13px;
+            color: #856404;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .btn-annuler {
+            background: #e0e0e0;
+            color: #333;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-annuler:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-confirmer {
+            background: var(--success-green);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-confirmer:hover {
+            background: #218838;
+        }
+
+        .btn-confirmer:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* ============================================================
+           TOAST
+        ============================================================ */
+
+        .toast-custom {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            max-width: 350px;
+            font-weight: 500;
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-overlay-box {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .loading-overlay-box .spinner-lg {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #e0e0e0;
+            border-top: 5px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+
+        @media (max-width: 768px) {
+            .container-custom { padding: 15px 10px 30px; }
+            .section-card { padding: 20px 15px; border-radius: 15px; }
+            .etudiant-banner { padding: 18px; }
+            .etudiant-banner h4 { font-size: 1rem; }
+            .sujet-card .sujet-footer { flex-direction: column; align-items: stretch; }
+            .btn-choisir { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-journal-check"></i>
+                SUJETS DISPONIBLES
+            </a>
+            <a href="etudiant.html" class="btn-back">
+                <i class="bi bi-arrow-left"></i>
+                Retour
+            </a>
+        </div>
+    </nav>
+
+    <!-- ==================== CONTENU ==================== -->
+    <div class="container-custom" id="mainContent">
+
+        <div id="loadingIndicator" class="text-center mt-5">
+            <div style="width:50px;height:50px;border:5px solid #e0e0e0;border-top:5px solid var(--primary-blue);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 15px;"></div>
+            <p class="text-muted mt-3">Chargement des sujets...</p>
+        </div>
+
+    </div>
+
+    <!-- ==================== MODAL CONFIRMATION ==================== -->
+    <div class="confirm-modal" id="confirmModal">
+        <div class="confirm-modal-content">
+            <h4>
+                <i class="bi bi-question-circle-fill me-2" style="color: var(--accent-yellow);"></i>
+                Confirmer votre choix
+            </h4>
+
+            <div class="modal-info" id="confirmModalInfo">
+                <!-- Contenu dynamique -->
+            </div>
+
+            <div class="alert-warning-custom">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Attention :</strong> Une fois ce sujet choisi, votre directeur de projet sera automatiquement assigné et vous ne pourrez plus changer de sujet.
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-annuler" onclick="fermerModal()">
+                    Annuler
+                </button>
+                <button class="btn-confirmer" id="btnConfirmer">
+                    <i class="bi bi-check-circle-fill"></i>
+                    Confirmer le choix
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== LOADING OVERLAY ==================== -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-overlay-box">
+            <div class="spinner-lg"></div>
+            <p class="mb-0" id="loadingText">Traitement en cours...</p>
+        </div>
+    </div>
+
+    <script>
+
+        // ================================================================
+        // FIREBASE
+        // ================================================================
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
+            authDomain: "fsa-unilu.firebaseapp.com",
+            projectId: "fsa-unilu",
+            storageBucket: "fsa-unilu.firebasestorage.app",
+            messagingSenderId: "36551990738",
+            appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        const db = firebase.firestore();
+
+        // ================================================================
+        // SESSION ÉTUDIANT
+        // ================================================================
+
+        let currentStudent = null;
+
+        function checkSession() {
+            const session = localStorage.getItem('session_etudiant');
+
+            if (!session) {
+                window.location.href = 'login-etudiant.html';
+                return false;
+            }
+
+            try {
+                const data = JSON.parse(session);
+
+                if (!data.expires || Date.now() > data.expires) {
+                    localStorage.removeItem('session_etudiant');
+                    window.location.href = 'login-etudiant.html';
+                    return false;
+                }
+
+                if (!data.id) {
+                    localStorage.removeItem('session_etudiant');
+                    window.location.href = 'login-etudiant.html';
+                    return false;
+                }
+
+                currentStudent = data;
+                return true;
+
+            } catch (e) {
+                localStorage.removeItem('session_etudiant');
+                window.location.href = 'login-etudiant.html';
+                return false;
+            }
+        }
+
+        // ================================================================
+        // UTILITAIRES
+        // ================================================================
+
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
+        }
+
+        function showToast(message, type = 'success') {
+            const existing = document.querySelector('.toast-custom');
+            if (existing) existing.remove();
+
+            const colors = {
+                success: { bg: '#28a745', icon: 'check-circle-fill' },
+                warning: { bg: '#ffc107', icon: 'exclamation-triangle-fill', textColor: '#333' },
+                danger: { bg: '#dc3545', icon: 'x-circle-fill' },
+                info: { bg: '#17a2b8', icon: 'info-circle-fill' }
+            };
+
+            const config = colors[type] || colors.success;
+            const textColor = config.textColor || 'white';
+
+            const toastHtml = `
+                <div class="toast-custom" style="background:${config.bg};color:${textColor};">
+                    <i class="bi bi-${config.icon} me-2"></i>
+                    ${message}
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', toastHtml);
+            setTimeout(() => {
+                const t = document.querySelector('.toast-custom');
+                if (t) t.remove();
+            }, 4000);
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return '-';
+            try {
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                return date.toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                });
+            } catch (e) {
+                return '-';
+            }
+        }
+
+        function showLoading(show, message = 'Traitement en cours...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const text = document.getElementById('loadingText');
+            if (overlay) {
+                overlay.classList.toggle('show', show);
+            }
+            if (text) {
+                text.textContent = message;
+            }
+        }
+
+        // ================================================================
+        // ÉTAT GLOBAL
+        // ================================================================
+
+        let allSujets = [];       // Sujets validés disponibles
+        let allPromotions = [];   // Pour afficher le nom de la promotion
+        let myProject = null;     // Projet actuel de l'étudiant
+        let selectedSujet = null; // Sujet en cours de confirmation
+
+        let sujetsUnsubscribe = null;
+        let projectUnsubscribe = null;
+
+        let searchTerm = '';
+        let filterDepartement = '';
+
+        // ================================================================
+        // CHARGEMENT DES PROMOTIONS
+        // ================================================================
+
+        async function loadPromotions() {
+            try {
+                const snapshot = await db.collection('promotions').get();
+                allPromotions = [];
+                snapshot.forEach(doc => {
+                    allPromotions.push({ id: doc.id, ...doc.data() });
+                });
+                return allPromotions;
+            } catch (error) {
+                console.error('Erreur chargement promotions:', error);
+                allPromotions = [];
+                return [];
+            }
+        }
+
+        function getPromotionNom(promotionId) {
+            if (!promotionId) return 'Non définie';
+            const promo = allPromotions.find(p => p.id === promotionId);
+            return promo ? (promo.nom || promotionId) : promotionId;
+        }
+
+        // ================================================================
+        // ÉCOUTE DU PROJET DE L'ÉTUDIANT (pour savoir s'il a déjà un projet)
+        // ================================================================
+
+        function listenMyProject() {
+            if (projectUnsubscribe) {
+                projectUnsubscribe();
+                projectUnsubscribe = null;
+            }
+
+            if (!currentStudent || !currentStudent.id) return;
+
+            projectUnsubscribe = db.collection('projets')
+                .where('etudiantId', '==', currentStudent.id)
+                .onSnapshot((snapshot) => {
+                    if (!snapshot.empty) {
+                        myProject = {
+                            id: snapshot.docs[0].id,
+                            ...snapshot.docs[0].data()
+                        };
+                    } else {
+                        myProject = null;
+                    }
+                    renderPage();
+                }, (error) => {
+                    console.error('Erreur écoute projet:', error);
+                    myProject = null;
+                    renderPage();
+                });
+        }
+
+        // ================================================================
+        // ÉCOUTE DES SUJETS VALIDÉS
+        // ================================================================
+
+        function listenSujetsValides() {
+            if (sujetsUnsubscribe) {
+                sujetsUnsubscribe();
+                sujetsUnsubscribe = null;
+            }
+
+            sujetsUnsubscribe = db.collection('sujets')
+                .where('statut', '==', 'valide')
+                .onSnapshot((snapshot) => {
+                    allSujets = [];
+                    snapshot.forEach(doc => {
+                        allSujets.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    // Tri client par date décroissante
+                    allSujets.sort((a, b) => {
+                        const dateA = a.dateValidation?.toDate
+                            ? a.dateValidation.toDate().getTime()
+                            : 0;
+                        const dateB = b.dateValidation?.toDate
+                            ? b.dateValidation.toDate().getTime()
+                            : 0;
+                        return dateB - dateA;
+                    });
+
+                    renderPage();
+                }, (error) => {
+                    console.error('Erreur écoute sujets:', error);
+                    allSujets = [];
+                    renderPage();
+                });
+        }
+
+        // ================================================================
+        // FILTRAGE
+        // ================================================================
+
+        function getFilteredSujets() {
+            let filtered = [...allSujets];
+
+            // Filtre par département
+            if (filterDepartement) {
+                filtered = filtered.filter(s => s.departement === filterDepartement);
+            }
+
+            // Filtre par recherche
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+                filtered = filtered.filter(s =>
+                    (s.titre && s.titre.toLowerCase().includes(term)) ||
+                    (s.description && s.description.toLowerCase().includes(term)) ||
+                    (s.professeurNom && s.professeurNom.toLowerCase().includes(term)) ||
+                    (s.departement && s.departement.toLowerCase().includes(term))
+                );
+            }
+
+            return filtered;
+        }
+
+        function getDepartementsDisponibles() {
+            const depts = new Set();
+            allSujets.forEach(s => {
+                if (s.departement) depts.add(s.departement);
+            });
+            return Array.from(depts).sort();
+        }
+
+        // ================================================================
+        // RENDU
+        // ================================================================
+
+        function renderBanner() {
+            const nom = currentStudent?.nom || currentStudent?.nomComplet || 'Étudiant';
+            const matricule = currentStudent?.matricule || 'N/A';
+            const promo = getPromotionNom(currentStudent?.promotion);
+
+            return `
+                <div class="etudiant-banner">
+                    <h4>
+                        <i class="bi bi-person-circle me-2"></i>
+                        ${escapeHtml(nom)}
+                    </h4>
+                    <p>
+                        <i class="bi bi-card-list"></i>
+                        Matricule: ${escapeHtml(matricule)}
+                    </p>
+                    <span class="badge-promo">
+                        <i class="bi bi-trophy-fill"></i>
+                        ${escapeHtml(promo)}
+                    </span>
+                </div>
+            `;
+        }
+
+        function renderFilterBar() {
+            const depts = getDepartementsDisponibles();
+            let deptOptions = '<option value="">Tous les départements</option>';
+            depts.forEach(d => {
+                deptOptions += `<option value="${escapeHtml(d)}" ${filterDepartement === d ? 'selected' : ''}>${escapeHtml(d)}</option>`;
+            });
+
+            return `
+                <div class="filter-bar">
+                    <div class="filter-search">
+                        <i class="bi bi-search"></i>
+                        <input type="text"
+                               id="searchInput"
+                               placeholder="Rechercher un sujet, un professeur..."
+                               value="${escapeHtml(searchTerm)}"
+                               oninput="onSearchInput(this.value)">
+                    </div>
+                    <select class="filter-select" onchange="onFilterDepartement(this.value)">
+                        ${deptOptions}
+                    </select>
+                </div>
+            `;
+        }
+
+        function renderSujetCard(sujet) {
+            const dateValidation = formatDate(sujet.dateValidation);
+
+            return `
+                <div class="sujet-card">
+                    <div class="sujet-titre">
+                        ${escapeHtml(sujet.titre)}
+                    </div>
+
+                    <div class="sujet-meta">
+                        <i class="bi bi-building"></i>
+                        <span>${escapeHtml(sujet.departement || 'Non défini')}</span>
+                    </div>
+
+                    <div class="sujet-meta">
+                        <i class="bi bi-person-badge"></i>
+                        <span>${escapeHtml(sujet.professeurNom || 'Professeur inconnu')}</span>
+                    </div>
+
+                    <div class="sujet-meta">
+                        <i class="bi bi-calendar-check"></i>
+                        <span>Validé le ${dateValidation}</span>
+                    </div>
+
+                    ${sujet.description ? `
+                        <div class="sujet-description">
+                            ${escapeHtml(sujet.description)}
+                        </div>
+                    ` : ''}
+
+                    <div class="sujet-footer">
+                        <div>
+                            <span class="badge-departement">
+                                <i class="bi bi-building"></i>
+                                ${escapeHtml(sujet.departement || 'N/A')}
+                            </span>
+                            <span class="badge-professeur ms-2">
+                                <i class="bi bi-person-badge"></i>
+                                ${escapeHtml(sujet.professeurNom || 'N/A')}
+                            </span>
+                        </div>
+
+                        <button class="btn-choisir" onclick="ouvrirModalConfirmation('${sujet.id}')">
+                            <i class="bi bi-check-circle-fill"></i>
+                            Choisir ce sujet
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSujetsList() {
+            const filtered = getFilteredSujets();
+
+            if (allSujets.length === 0) {
+                return `
+                    <div class="empty-state">
+                        <i class="bi bi-journal-x"></i>
+                        <h5>Aucun sujet disponible</h5>
+                        <p class="text-muted">
+                            Les sujets validés par le Vice-Doyen apparaîtront ici.
+                        </p>
+                    </div>
+                `;
+            }
+
+            if (filtered.length === 0) {
+                return `
+                    <div class="empty-state">
+                        <i class="bi bi-search"></i>
+                        <h5>Aucun résultat</h5>
+                        <p class="text-muted">
+                            Aucun sujet ne correspond à votre recherche.
+                        </p>
+                    </div>
+                `;
+            }
+
+            let html = `
+                <div style="font-size:13px;color:#888;margin-bottom:15px;">
+                    <i class="bi bi-info-circle"></i>
+                    ${filtered.length} sujet(s) disponible(s)
+                </div>
+            `;
+
+            filtered.forEach(sujet => {
+                html += renderSujetCard(sujet);
+            });
+
+            return html;
+        }
+
+        function renderPage() {
+            const container = document.getElementById('mainContent');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
+            }
+
+            // ====================================================
+            // CAS 1 : L'ÉTUDIANT A DÉJÀ UN PROJET
+            // ====================================================
+            if (myProject) {
+                const sujetTitre = myProject.sujet || 'Sujet non défini';
+                const directeurNom = myProject.directeurNom || 'Directeur assigné';
+                const dateSoumission = formatDate(myProject.dateSoumission);
+
+                container.innerHTML = `
+                    ${renderBanner()}
+
+                    <div class="section-card" style="text-align:center;padding:40px 25px;">
+                        <i class="bi bi-check-circle-fill"
+                           style="font-size:70px;color:var(--success-green);margin-bottom:15px;"></i>
+
+                        <h3 style="color:var(--success-green);margin-bottom:15px;">
+                            Vous avez déjà un sujet de projet
+                        </h3>
+
+                        <p class="subtitle" style="margin-bottom:25px;">
+                            Votre projet est en cours de suivi.
+                        </p>
+
+                        <div style="background:#f0fff4;border-radius:15px;padding:20px;text-align:left;margin-bottom:20px;border-left:4px solid var(--success-green);">
+                            <p style="margin-bottom:10px;">
+                                <strong><i class="bi bi-journal-text me-2" style="color:var(--primary-blue);"></i>Sujet :</strong>
+                            </p>
+                            <div style="background:white;padding:12px;border-radius:8px;font-size:14px;line-height:1.5;">
+                                ${escapeHtml(sujetTitre)}
+                            </div>
+
+                            <p style="margin-top:15px;margin-bottom:10px;">
+                                <strong><i class="bi bi-person-badge me-2" style="color:var(--primary-blue);"></i>Directeur :</strong>
+                                ${escapeHtml(directeurNom)}
+                            </p>
+
+                            <p style="margin-bottom:0;">
+                                <strong><i class="bi bi-calendar-check me-2" style="color:var(--primary-blue);"></i>Soumis le :</strong>
+                                ${dateSoumission}
+                            </p>
+                        </div>
+
+                        <a href="tp.html"
+                           style="display:inline-flex;align-items:center;gap:8px;background:var(--primary-blue);color:white;padding:14px 30px;border-radius:12px;font-weight:700;text-decoration:none;transition:all 0.3s;"
+                           onmouseover="this.style.background='var(--dark-blue)'"
+                           onmouseout="this.style.background='var(--primary-blue)'">
+                            <i class="bi bi-flag-fill"></i>
+                            Voir mon suivi Feu Vert
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            // ====================================================
+            // CAS 2 : L'ÉTUDIANT N'A PAS ENCORE DE PROJET
+            // ====================================================
+            let html = '';
+
+            html += renderBanner();
+
+            html += `
+                <div class="section-card">
+                    <h3><i class="bi bi-journal-check me-2"></i>Choisissez votre sujet de projet</h3>
+                    <p class="subtitle">
+                        Sélectionnez un sujet parmi ceux proposés par les professeurs. 
+                        Le professeur propriétaire du sujet deviendra automatiquement votre directeur de projet.
+                    </p>
+
+                    <div style="background:#fff8e1;border-radius:12px;padding:12px 15px;margin-bottom:20px;border-left:4px solid #ffc107;font-size:13px;color:#856404;">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Important :</strong> Une fois un sujet choisi, votre directeur sera assigné définitivement et vous ne pourrez plus changer.
+                    </div>
+
+                    ${renderFilterBar()}
+
+                    ${renderSujetsList()}
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // ================================================================
+        // ÉVÉNEMENTS FILTRES
+        // ================================================================
+
+        let searchTimeout = null;
+
+        window.onSearchInput = function(value) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchTerm = value;
+                renderPage();
+                // Replacer le focus sur l'input
+                const input = document.getElementById('searchInput');
+                if (input) {
+                    input.focus();
+                    input.setSelectionRange(input.value.length, input.value.length);
+                }
+            }, 300);
+        };
+
+        window.onFilterDepartement = function(value) {
+            filterDepartement = value;
+            renderPage();
+        };
+
+        // ================================================================
+        // MODAL DE CONFIRMATION
+        // ================================================================
+
+        window.ouvrirModalConfirmation = function(sujetId) {
+            const sujet = allSujets.find(s => s.id === sujetId);
+            if (!sujet) return;
+
+            selectedSujet = sujet;
+
+            const info = document.getElementById('confirmModalInfo');
+            if (info) {
+                info.innerHTML = `
+                    <p style="margin-bottom:10px;">
+                        <strong><i class="bi bi-journal-text me-2" style="color:var(--primary-blue);"></i>Sujet :</strong>
+                    </p>
+                    <div style="background:white;padding:12px;border-radius:8px;margin-bottom:15px;font-size:13px;line-height:1.5;">
+                        ${escapeHtml(sujet.titre)}
+                    </div>
+
+                    <p style="margin-bottom:10px;">
+                        <strong><i class="bi bi-building me-2" style="color:var(--primary-blue);"></i>Département :</strong>
+                        ${escapeHtml(sujet.departement || 'N/A')}
+                    </p>
+
+                    <p style="margin-bottom:0;">
+                        <strong><i class="bi bi-person-badge me-2" style="color:var(--primary-blue);"></i>Directeur :</strong>
+                        ${escapeHtml(sujet.professeurNom || 'N/A')}
+                    </p>
+                `;
+            }
+
+            const modal = document.getElementById('confirmModal');
+            if (modal) {
+                modal.classList.add('show');
+            }
+
+            const btn = document.getElementById('btnConfirmer');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Confirmer le choix';
+                btn.onclick = confirmerChoixSujet;
+            }
+        };
+
+        window.fermerModal = function() {
+            const modal = document.getElementById('confirmModal');
+            if (modal) {
+                modal.classList.remove('show');
+            }
+            selectedSujet = null;
+        };
+
+        // ================================================================
+        // CONFIRMATION DU CHOIX
+        // ================================================================
+
+        async function confirmerChoixSujet() {
+            if (!selectedSujet) {
+                showToast('Aucun sujet sélectionné', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnConfirmer');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="loading-spinner me-2"></span> Assignation...';
+            }
+
+            showLoading(true, 'Assignation de votre directeur...');
+
+            try {
+                // Vérification de sécurité : l'étudiant n'a pas déjà un projet
+                const existing = await db.collection('projets')
+                    .where('etudiantId', '==', currentStudent.id)
+                    .limit(1)
+                    .get();
+
+                if (!existing.empty) {
+                    showLoading(false);
+                    fermerModal();
+                    showToast('Vous avez déjà un projet en cours.', 'warning');
+                    setTimeout(() => window.location.reload(), 1500);
+                    return;
+                }
+
+                // Création du projet avec le sujet choisi
+                const projetData = {
+                    etudiantId: currentStudent.id,
+                    etudiantNom: currentStudent.nom || currentStudent.nomComplet || '',
+                    etudiantMatricule: currentStudent.matricule || '',
+                    promotion: currentStudent.promotion || '',
+                    
+                    // Sujet choisi
+                    sujet: selectedSujet.titre,
+                    sujetId: selectedSujet.id,
+                    sujetDescription: selectedSujet.description || '',
+                    
+                    // Département
+                    departementId: selectedSujet.departement || '',
+                    
+                    // Directeur = professeur propriétaire du sujet
+                    directeurId: selectedSujet.professeurId,
+                    directeurNom: selectedSujet.professeurNom,
+                    directeurEmail: selectedSujet.professeurEmail || '',
+                    
+                    // Métadonnées
+                    dateSoumission: firebase.firestore.FieldValue.serverTimestamp(),
+                    sourceChoix: 'sujet_publie', // Pour distinguer de la soumission libre
+                    
+                    // Feu vert
+                    etape: 0,
+                    statut: 'soumis'
+                };
+
+                // Création du document projet
+                const docRef = await db.collection('projets').add(projetData);
+
+                // Mise à jour du sujet : incrémenter le nombre d'étudiants
+                await db.collection('sujets').doc(selectedSujet.id).update({
+                    nbEtudiants: firebase.firestore.FieldValue.increment(1)
+                });
+
+                // Création d'une notification pour le professeur
+                try {
+                    await db.collection('notifications').add({
+                        destinataireId: selectedSujet.professeurId,
+                        destinataireRole: 'professeur',
+                        titre: '🎓 Nouvel étudiant assigné',
+                        message: `${currentStudent.nom || 'Un étudiant'} a choisi votre sujet "${selectedSujet.titre}".`,
+                        type: 'assignation_projet',
+                        projetId: docRef.id,
+                        etudiantId: currentStudent.id,
+                        dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
+                        lu: false
+                    });
+                } catch (notifError) {
+                    console.warn('Notification non envoyée:', notifError);
+                }
+
+                showLoading(false);
+                fermerModal();
+
+                showToast('✅ Sujet choisi ! Votre directeur a été assigné.', 'success');
+
+                // Redirection vers tp.html après un court délai
+                setTimeout(() => {
+                    window.location.href = 'tp.html';
+                }, 1500);
+
+            } catch (error) {
+                showLoading(false);
+                console.error('Erreur confirmation:', error);
+                showToast('❌ Erreur: ' + error.message, 'danger');
+
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Confirmer le choix';
+                }
+            }
+        }
+
+        // ================================================================
+        // FERMETURE MODAL EN CLIQUANT À L'EXTÉRIEUR
+        // ================================================================
+
+        document.getElementById('confirmModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                fermerModal();
+            }
+        });
+
+        // ================================================================
+        // SERVICE WORKER
+        // ================================================================
+
+        async function registerServiceWorker() {
+            if (!('serviceWorker' in navigator)) {
+                return null;
+            }
+
+            try {
+                if (typeof window.registerAppServiceWorker === 'function') {
+                    return await window.registerAppServiceWorker();
+                }
+
+                const registration = await navigator.serviceWorker.register('./sw.js', {
+                    scope: './'
+                });
+
+                console.log('✅ Service Worker enregistré');
+                return registration;
+
+            } catch (error) {
+                console.error('❌ Service Worker:', error);
+                return null;
+            }
+        }
+
+        // ================================================================
+        // INITIALISATION
+        // ================================================================
+
+        async function init() {
+            if (!checkSession()) {
+                return;
+            }
+
+            console.log('🚀 Page Choix de Sujet - Étudiant');
+            console.log('👤 Étudiant:', currentStudent.nom || currentStudent.nomComplet);
+
+            await loadPromotions();
+            await registerServiceWorker();
+
+            // Écouter les sujets validés et le projet de l'étudiant
+            listenSujetsValides();
+            listenMyProject();
+
+            console.log('✅ Page prête');
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+
+</body>
+</html>
