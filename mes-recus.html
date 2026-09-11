@@ -927,33 +927,6 @@
             border: 1px solid #ff9800;
         }
 
-        /* ✅ NOUVEAU : Bannière d'état de vérification */
-        .auto-verification-banner {
-            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-            border-left: 5px solid var(--success-green);
-            border-radius: 15px;
-            padding: 12px 18px;
-            margin-bottom: 20px;
-            display: none;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .auto-verification-banner.show {
-            display: flex;
-        }
-
-        .auto-verification-banner i {
-            font-size: 24px;
-            color: var(--success-green);
-        }
-
-        .auto-verification-banner .text {
-            font-size: 13px;
-            color: #1b5e20;
-            font-weight: 500;
-        }
-
         @media (max-width: 600px) {
             .livre-contenu {
                 flex-direction: row !important;
@@ -1054,8 +1027,7 @@
             .qr-view-btn,
             .qr-modal,
             .offline-badge,
-            .pending-payment-banner,
-            .auto-verification-banner {
+            .pending-payment-banner {
                 display: none;
             }
 
@@ -1139,23 +1111,15 @@
         </button>
     </div>
 
-    <!-- ✅ NOUVELLE BANNIÈRE : Vérification automatique -->
-    <div id="autoVerificationBanner" class="auto-verification-banner">
-        <i class="bi bi-shield-check"></i>
-        <span class="text" id="autoVerificationText">
-            Vérification automatique en cours...
-        </span>
-    </div>
-
-    <!-- ✅ NOUVELLE BANNIÈRE : Paiement en attente -->
+    <!-- ✅ NOUVEAU : Bannière d'attente de paiement -->
     <div id="pendingPaymentBanner" class="pending-payment-banner">
         <h6>
             <i class="bi bi-hourglass-split"></i>
             En attente de paiement
         </h6>
         <p id="pendingPaymentMessage">
-            Vos fiches du semestre ne sont pas encore toutes réglées. 
-            Réglez-les pour recevoir automatiquement votre carte.
+            Vos fiches du semestre ne sont pas encore toutes réglées.
+            Réglez-les auprès de la comptabilité pour recevoir votre carte.
         </p>
         <div class="missing-fiches" id="missingFichesList"></div>
     </div>
@@ -1396,8 +1360,6 @@ let unsubscribeTransactions = null;
 let previousCartes = [];
 
 let firstRealtimeSnapshot = true;
-
-let autoGenerationEnCours = false;
 
 
 /* ================================================================
@@ -1844,29 +1806,13 @@ async function generateDigitalSignature(data) {
 
 
 /* ================================================================
-   10. AUTO-GÉNÉRATION DE CARTE  🔥
-   
-   Vérifie automatiquement si l'étudiant est en ordre
-   (toutes les fiches configurées par l'admin sont payées)
-   et génère sa carte sans intervention d'un agent.
+   10. CHARGER CONFIGURATIONS
 ================================================================ */
 
-function genererCodeAcces(nomEtudiant) {
-    const premiereLettre = nomEtudiant
-        ? nomEtudiant.charAt(0).toUpperCase()
-        : 'X';
-    const chiffres = Math.floor(
-        10000 + Math.random() * 90000
-    ).toString();
-    return `${chiffres}${premiereLettre}`;
-}
-
-
-/**
- * Charge les configurations admin (fiches par promo/semestre)
- */
 async function chargerConfigurations() {
+
     try {
+
         const configDoc = await db
             .collection('configurations')
             .doc('promotionsSemestres')
@@ -1883,51 +1829,67 @@ async function chargerConfigurations() {
         );
 
         return promoConfigs;
+
     } catch (error) {
+
         console.error(
             '❌ Erreur chargement configurations:',
             error
         );
+
         return {};
     }
 }
 
 
-/**
- * Charge les fiches depuis Firestore
- */
+/* ================================================================
+   11. CHARGER FICHES
+================================================================ */
+
 async function chargerFiches() {
+
     try {
+
         const snap = await db.collection('fiches').get();
+
         allFiches = [];
+
         snap.forEach(doc => {
             allFiches.push({ id: doc.id, ...doc.data() });
         });
+
         console.log(
             '📄 Fiches chargées:',
             allFiches.length
         );
+
         return allFiches;
+
     } catch (error) {
+
         console.error('❌ Erreur chargement fiches:', error);
         return [];
     }
 }
 
 
-/**
- * Charge les transactions de l'étudiant courant
- */
+/* ================================================================
+   12. CHARGER TRANSACTIONS
+================================================================ */
+
 async function chargerTransactionsEtudiant() {
+
     if (!currentStudent) return [];
 
     try {
+
         const snap = await db
             .collection('transactions')
             .where('etudiantId', '==', currentStudent.id)
             .get();
 
         allTransactions = [];
+
         snap.forEach(doc => {
             allTransactions.push({
                 id: doc.id,
@@ -1941,21 +1903,25 @@ async function chargerTransactionsEtudiant() {
         );
 
         return allTransactions;
+
     } catch (error) {
+
         console.error(
             '❌ Erreur chargement transactions:',
             error
         );
+
         return [];
     }
 }
 
 
-/**
- * Récupère l'ensemble des IDs de fiches payées
- * à partir des transactions de l'étudiant.
- */
+/* ================================================================
+   13. GET FICHES PAYÉES
+================================================================ */
+
 function getFichesPayeesIds() {
+
     const fichesPayeesIds = new Set();
 
     allTransactions.forEach(trans => {
@@ -1970,81 +1936,41 @@ function getFichesPayeesIds() {
 }
 
 
-/**
- * 🔥 FONCTION PRINCIPALE : Vérifie et génère automatiquement
- * les cartes d'accès si l'étudiant est en ordre.
- */
-async function verifierEtGenererCartes() {
+/* ================================================================
+   14. VÉRIFIER LE STATUT DE PAIEMENT
+   (SANS CRÉATION DE CARTE)
+   
+   Cette fonction vérifie UNIQUEMENT si l'étudiant a payé toutes
+   les fiches configurées par l'admin. Elle NE CRÉE PAS de carte.
+   Elle affiche juste la bannière d'attente si nécessaire.
+================================================================ */
+
+async function verifierStatutPaiement() {
 
     if (!currentStudent || !currentStudent.id) {
         return;
     }
 
-    if (autoGenerationEnCours) {
-        console.log(
-            '⏳ Vérification auto déjà en cours...'
-        );
-        return;
-    }
-
-    autoGenerationEnCours = true;
-
     console.log(
-        '🔎 Vérification automatique des cartes...'
+        '🔎 Vérification du statut de paiement (lecture seule)...'
     );
-
-    // Afficher la bannière de vérification
-    const banner = document.getElementById(
-        'autoVerificationBanner'
-    );
-    const bannerText = document.getElementById(
-        'autoVerificationText'
-    );
-
-    if (banner) {
-        banner.classList.add('show');
-    }
-
-    if (bannerText) {
-        bannerText.textContent =
-            'Vérification de votre situation en cours...';
-    }
 
     try {
 
-        // 1. Charger les données nécessaires
         await chargerConfigurations();
         await chargerFiches();
         await chargerTransactionsEtudiant();
 
-        // 2. Récupérer la config pour CETTE promotion
         const config =
             promoConfigs[currentStudent.promotion] || {
                 premier: [],
                 deuxieme: []
             };
 
-        // 3. Récupérer les fiches déjà payées
         const fichesPayeesIds = getFichesPayeesIds();
 
-        // 4. Récupérer les cartes existantes
-        const cartesSnap = await db
-            .collection('cartesAcces')
-            .where('etudiantId', '==', currentStudent.id)
-            .get();
-
-        const cartesExistantes = new Set();
-        cartesSnap.forEach(doc => {
-            const data = doc.data();
-            if (data.semestre) {
-                cartesExistantes.add(data.semestre);
-            }
-        });
-
-        // 5. Vérifier chaque semestre
+        // Vérifier chaque semestre
         const semestres = ['premier', 'deuxieme'];
-        let carteGeneree = false;
-        let auMoinsUnManquant = false;
         const fichesManquantesGlobal = [];
 
         for (const semestre of semestres) {
@@ -2052,19 +1978,27 @@ async function verifierEtGenererCartes() {
             const fichesRequisesIds =
                 config[semestre] || [];
 
-            // Rien configuré → on saute
             if (fichesRequisesIds.length === 0) {
-                console.log(
-                    `⏭️  Aucune fiche configurée pour ${semestre}`
-                );
                 continue;
             }
 
-            // Carte déjà existante → on saute
+            // Récupérer les cartes existantes
+            const cartesSnap = await db
+                .collection('cartesAcces')
+                .where('etudiantId', '==', currentStudent.id)
+                .get();
+
+            const cartesExistantes = new Set();
+            cartesSnap.forEach(doc => {
+                const data = doc.data();
+                if (data.semestre) {
+                    cartesExistantes.add(data.semestre);
+                }
+            });
+
+            // Si la carte existe déjà, pas besoin de vérifier
             if (cartesExistantes.has(semestre)) {
-                console.log(
-                    `✅ Carte ${semestre} déjà existante`
-                );
+                console.log(`✅ Carte ${semestre} existe déjà`);
                 continue;
             }
 
@@ -2077,9 +2011,7 @@ async function verifierEtGenererCartes() {
                 console.log(
                     `⏳ ${semestre}: ${manquantes.length} fiche(s) manquante(s)`
                 );
-                auMoinsUnManquant = true;
 
-                // Récupérer les noms des fiches manquantes
                 manquantes.forEach(id => {
                     const fiche = allFiches.find(f => f.id === id);
                     if (fiche) {
@@ -2089,110 +2021,10 @@ async function verifierEtGenererCartes() {
                         });
                     }
                 });
-
-                continue;
             }
-
-            // 🎉 GÉNÉRATION AUTOMATIQUE
-            console.log(
-                `🎉 Génération auto carte ${semestre} pour ${currentStudent.nom}`
-            );
-
-            if (bannerText) {
-                bannerText.textContent =
-                    `Génération de votre carte ${semestre === 'premier' ? 'du 1er' : 'du 2ème'} semestre...`;
-            }
-
-            // Récupérer les noms complets des fiches validées
-            const fichesValidees = [];
-            for (const ficheId of fichesRequisesIds) {
-                const fiche = allFiches.find(
-                    f => f.id === ficheId
-                );
-                if (fiche) {
-                    fichesValidees.push({
-                        id: ficheId,
-                        nom: fiche.nom,
-                        montant: fiche.montant || 0
-                    });
-                }
-            }
-
-            // Récupérer le nom de la promotion
-            const promoNom =
-                getPromotionNom(
-                    currentStudent.promotion
-                );
-
-            // Écrire dans paiementsSuccess (traçabilité)
-            await db.collection('paiementsSuccess').add({
-                etudiantId: currentStudent.id,
-                etudiantNom: currentStudent.nom,
-                matricule:
-                    currentStudent.matricule ||
-                    currentStudent.id,
-                promotionId: currentStudent.promotion,
-                promotionNom: promoNom,
-                semestre: semestre,
-                fichesValidees: fichesValidees,
-                dateEnregistrement:
-                    firebase.firestore.FieldValue.serverTimestamp(),
-                enregistrePar: 'AUTO (Étudiant)'
-            });
-
-            // Créer la carte d'accès
-            const carteId =
-                `${currentStudent.id}_${semestre}`;
-
-            const dateExpiration = new Date();
-            dateExpiration.setMonth(
-                dateExpiration.getMonth() + 6
-            );
-
-            const codeAcces = genererCodeAcces(
-                currentStudent.nom
-            );
-
-            await db
-                .collection('cartesAcces')
-                .doc(carteId)
-                .set({
-                    id: carteId,
-                    etudiantId: currentStudent.id,
-                    etudiantNom: currentStudent.nom,
-                    matricule:
-                        currentStudent.matricule ||
-                        currentStudent.id,
-                    promotionId: currentStudent.promotion,
-                    promotionNom: promoNom,
-                    semestre: semestre,
-                    semestreNom:
-                        semestre === 'premier'
-                            ? 'Premier Semestre'
-                            : 'Deuxième Semestre',
-                    fichesValidees: fichesValidees,
-                    dateGeneration:
-                        firebase.firestore.FieldValue.serverTimestamp(),
-                    dateExpiration: dateExpiration,
-                    dateExpirationStr:
-                        dateExpiration.toLocaleDateString('fr-FR'),
-                    actif: true,
-                    codeAcces: codeAcces
-                });
-
-            console.log(
-                `✅ Carte ${semestre} générée - Code: ${codeAcces}`
-            );
-
-            carteGeneree = true;
-
-            showToast(
-                `🎉 Votre carte ${semestre === 'premier' ? 'du 1er' : 'du 2ème'} semestre a été générée !`,
-                'success'
-            );
         }
 
-        // 6. Mettre à jour l'interface selon le résultat
+        // Afficher la bannière d'attente si nécessaire
         const pendingBanner = document.getElementById(
             'pendingPaymentBanner'
         );
@@ -2200,35 +2032,13 @@ async function verifierEtGenererCartes() {
             'missingFichesList'
         );
 
-        if (carteGeneree) {
-
-            if (bannerText) {
-                bannerText.textContent =
-                    '✅ Votre carte a été générée automatiquement !';
-            }
-
-            if (pendingBanner) {
-                pendingBanner.classList.remove('show');
-            }
-
-            // Masquer la bannière après 3 secondes
-            setTimeout(() => {
-                if (banner) {
-                    banner.classList.remove('show');
-                }
-            }, 3000);
-
-        } else if (auMoinsUnManquant) {
-
-            if (banner) {
-                banner.classList.remove('show');
-            }
+        if (fichesManquantesGlobal.length > 0) {
 
             if (pendingBanner) {
                 pendingBanner.classList.add('show');
             }
 
-            if (missingList && fichesManquantesGlobal.length > 0) {
+            if (missingList) {
                 missingList.innerHTML =
                     fichesManquantesGlobal
                         .map(f => {
@@ -2245,32 +2055,23 @@ async function verifierEtGenererCartes() {
 
         } else {
 
-            // Pas de config → on masque tout
-            if (banner) {
-                banner.classList.remove('show');
+            if (pendingBanner) {
+                pendingBanner.classList.remove('show');
             }
         }
 
     } catch (error) {
 
         console.error(
-            '❌ Erreur auto-génération:',
+            '❌ Erreur vérification statut:',
             error
         );
-
-        if (banner) {
-            banner.classList.remove('show');
-        }
-
-    } finally {
-
-        autoGenerationEnCours = false;
     }
 }
 
 
 /* ================================================================
-   11. AFFICHAGE DES CARTES
+   15. AFFICHAGE DES CARTES
 ================================================================ */
 
 async function afficherCartes(
@@ -2301,7 +2102,7 @@ async function afficherCartes(
                 <h6>Aucune carte</h6>
 
                 <p class="text-muted small">
-                    Vos cartes apparaîtront ici dès que vous serez en ordre de paiement.
+                    Vos cartes apparaîtront ici dès que la comptabilité les aura générées.
                 </p>
 
                 ${
@@ -2398,9 +2199,6 @@ async function afficherCartes(
         const checksum =
             carte.checksum ||
             'FSA2025';
-
-        const safeQrUrl =
-            encodeURIComponent(qrUrl);
 
         html += `
 
@@ -2835,7 +2633,7 @@ async function afficherCartes(
 
 
 /* ================================================================
-   12. QR MODAL
+   16. QR MODAL
 ================================================================ */
 
 function openQRModal(
@@ -2916,7 +2714,7 @@ document.addEventListener(
 
 
 /* ================================================================
-   13. NOUVELLES CARTES
+   17. NOUVELLES CARTES
 ================================================================ */
 
 function showNewCardBadge(count) {
@@ -2981,7 +2779,7 @@ function updateNotificationDot(
 
 
 /* ================================================================
-   14. RÉCUPÉRATION DES CARTES
+   18. RÉCUPÉRATION DES CARTES
 ================================================================ */
 
 async function recupererCartes(
@@ -3000,10 +2798,6 @@ async function recupererCartes(
         'fsa_cache_' +
         cacheKey;
 
-
-    /* ------------------------------------------------------------
-       CACHE
-    ------------------------------------------------------------ */
 
     if (!forceRefresh) {
 
@@ -3042,10 +2836,6 @@ async function recupererCartes(
         }
     }
 
-
-    /* ------------------------------------------------------------
-       FIRESTORE
-    ------------------------------------------------------------ */
 
     try {
 
@@ -3192,10 +2982,6 @@ async function recupererCartes(
         }
 
 
-        /* --------------------------------------------------------
-           SAUVEGARDE CACHE
-        -------------------------------------------------------- */
-
         try {
 
             localStorage.setItem(
@@ -3235,11 +3021,6 @@ async function recupererCartes(
             '❌ Erreur récupération cartes:',
             error
         );
-
-
-        /* --------------------------------------------------------
-           FALLBACK CACHE MÊME EN CAS D'ERREUR
-        -------------------------------------------------------- */
 
         const cached =
             localStorage.getItem(
@@ -3281,7 +3062,7 @@ async function recupererCartes(
 
 
 /* ================================================================
-   15. RAFRAÎCHISSEMENT
+   19. RAFRAÎCHISSEMENT
 ================================================================ */
 
 async function rafraichirCartes() {
@@ -3305,8 +3086,8 @@ async function rafraichirCartes() {
 
     await chargerPromotions(true);
 
-    // 🔥 Vérifie et génère les cartes si l'étudiant est en ordre
-    await verifierEtGenererCartes();
+    // ✅ Vérifier le statut (SANS créer de carte)
+    await verifierStatutPaiement();
 
     const fresh =
         await recupererCartes(true);
@@ -3337,7 +3118,7 @@ window.rafraichirCartes =
 
 
 /* ================================================================
-   16. ÉCOUTE TEMPS RÉEL
+   20. ÉCOUTE TEMPS RÉEL DES CARTES
 ================================================================ */
 
 function setupRealtimeListener() {
@@ -3363,10 +3144,6 @@ function setupRealtimeListener() {
     firstRealtimeSnapshot =
         true;
 
-
-    /* ------------------------------------------------------------
-       AFFICHER LE CACHE IMMÉDIATEMENT
-    ------------------------------------------------------------ */
 
     const cacheKey =
         'cartes_' +
@@ -3423,10 +3200,6 @@ function setupRealtimeListener() {
     }
 
 
-    /* ------------------------------------------------------------
-       FIRESTORE LISTENER
-    ------------------------------------------------------------ */
-
     unsubscribeCartes =
         db
             .collection('cartesAcces')
@@ -3444,18 +3217,6 @@ function setupRealtimeListener() {
                         snapshot.size
                     );
 
-
-                    /*
-                     * IMPORTANT :
-                     * Le premier snapshot contient toutes
-                     * les cartes comme "added".
-                     *
-                     * On ne doit donc PAS considérer ces cartes
-                     * comme de nouvelles cartes.
-                     */
-
-                    const changements =
-                        snapshot.docChanges();
 
                     if (
                         firstRealtimeSnapshot
@@ -3520,10 +3281,6 @@ function setupRealtimeListener() {
                         ' cartes)'
                     );
 
-
-                    /* ------------------------------------------------
-                       NOUVELLES CARTES
-                    ------------------------------------------------ */
 
                     if (
                         vraimentNouvelles.length >
@@ -3674,10 +3431,11 @@ function setupRealtimeListener() {
 
 
 /* ================================================================
-   17. ÉCOUTE TEMPS RÉEL DES TRANSACTIONS
+   21. ÉCOUTE TEMPS RÉEL DES TRANSACTIONS
    
-   🔥 Quand l'étudiant paie une fiche, on revérifie
-   automatiquement s'il est en ordre.
+   Quand une transaction est ajoutée, on revérifie le statut
+   (SANS créer de carte). Si la carte a été créée par la
+   comptabilité, le listener cartesAcces la détectera.
 ================================================================ */
 
 function setupTransactionsListener() {
@@ -3713,9 +3471,9 @@ function setupTransactionsListener() {
                         '💰 Nouvelle transaction détectée !'
                     );
 
-                    // Revérifier si l'étudiant est en ordre
+                    // ✅ Revérifier le statut (SANS créer)
                     setTimeout(async () => {
-                        await verifierEtGenererCartes();
+                        await verifierStatutPaiement();
                     }, 1000);
 
                 },
@@ -3730,7 +3488,7 @@ function setupTransactionsListener() {
 
 
 /* ================================================================
-   18. PROFIL
+   22. PROFIL
 ================================================================ */
 
 async function loadProfileData() {
@@ -3801,7 +3559,7 @@ document.getElementById(
 
 
 /* ================================================================
-   19. DÉCONNEXION
+   23. DÉCONNEXION
 ================================================================ */
 
 document.getElementById(
@@ -3840,7 +3598,7 @@ document.getElementById(
 
 
 /* ================================================================
-   20. CHANGEMENT MOT DE PASSE
+   24. CHANGEMENT MOT DE PASSE
 ================================================================ */
 
 document.getElementById(
@@ -3935,7 +3693,7 @@ document.getElementById(
 
 
 /* ================================================================
-   21. BOUTON SYNC
+   25. BOUTON SYNC
 ================================================================ */
 
 document.getElementById(
@@ -3947,7 +3705,7 @@ document.getElementById(
 
 
 /* ================================================================
-   22. SERVICE WORKER CENTRAL
+   26. SERVICE WORKER CENTRAL
 ================================================================ */
 
 async function registerServiceWorker() {
@@ -3966,12 +3724,6 @@ async function registerServiceWorker() {
 
     try {
 
-        /*
-         * NOUVELLE ARCHITECTURE :
-         * notification-utils.js possède la fonction
-         * registerAppServiceWorker().
-         */
-
         if (
             typeof window.registerAppServiceWorker ===
             'function'
@@ -3987,12 +3739,6 @@ async function registerServiceWorker() {
             return registration;
         }
 
-
-        /*
-         * FALLBACK :
-         * utile si notification-utils.js n'a pas pu
-         * être chargé.
-         */
 
         let registration =
             await navigator.serviceWorker
@@ -4033,7 +3779,7 @@ async function registerServiceWorker() {
 
 
 /* ================================================================
-   23. MODE HORS LIGNE
+   27. MODE HORS LIGNE
 ================================================================ */
 
 function setupOfflineDetection() {
@@ -4085,7 +3831,7 @@ function setupOfflineDetection() {
 
 
 /* ================================================================
-   24. STATUT NOTIFICATIONS
+   28. STATUT NOTIFICATIONS
 ================================================================ */
 
 function checkNotificationStatus() {
@@ -4130,7 +3876,7 @@ function checkNotificationStatus() {
 
 
 /* ================================================================
-   25. ACTIVATION DES NOTIFICATIONS
+   29. ACTIVATION DES NOTIFICATIONS
 ================================================================ */
 
 document.getElementById(
@@ -4164,14 +3910,6 @@ document.getElementById(
 
 
         try {
-
-            /*
-             * IMPORTANT :
-             * On utilise notification-utils.js.
-             *
-             * Aucun firebase-messaging-sw.js.
-             * Aucun nouveau Service Worker.
-             */
 
             if (
                 window.notificationManager &&
@@ -4235,7 +3973,50 @@ document.getElementById(
 
 
 /* ================================================================
-   26. INITIALISATION
+   30. ÉCOUTE DES MESSAGES DU SERVICE WORKER
+   
+   Quand une notification est reçue en arrière-plan (via FCM),
+   le Service Worker peut envoyer un message à la page pour
+   rafraîchir automatiquement les cartes.
+================================================================ */
+
+if ('serviceWorker' in navigator) {
+
+    navigator.serviceWorker.addEventListener(
+        'message',
+        function (event) {
+
+            const data =
+                event.data || {};
+
+            console.log(
+                '📩 Message du Service Worker:',
+                data
+            );
+
+            // Si c'est une notification de nouvelle carte
+            if (
+                data.type === 'carte' ||
+                data.data?.type === 'carte'
+            ) {
+
+                console.log(
+                    '🪪 Notification carte détectée, rafraîchissement...'
+                );
+
+                setTimeout(() => {
+
+                    rafraichirCartes();
+
+                }, 500);
+            }
+        }
+    );
+}
+
+
+/* ================================================================
+   31. INITIALISATION
 ================================================================ */
 
 async function init() {
@@ -4278,45 +4059,19 @@ async function init() {
     }
 
 
-    /*
-     * Firebase est déjà chargé.
-     * On charge maintenant notification-utils.js.
-     */
-
     const notificationsReady =
         await loadNotificationUtils();
 
 
-    /*
-     * Promotions
-     */
-
     await chargerPromotions();
 
 
-    /*
-     * 🔥 AUTO-GÉNÉRATION : vérifier si l'étudiant est en ordre
-     * et créer sa carte si nécessaire
-     */
+    // ✅ Vérifier le statut (SANS créer)
+    await verifierStatutPaiement();
 
-    await verifierEtGenererCartes();
-
-
-    /*
-     * Service Worker central
-     */
 
     await registerServiceWorker();
 
-
-    /*
-     * Initialisation du gestionnaire
-     * de notifications.
-     *
-     * IMPORTANT :
-     * init() ne demande PAS automatiquement
-     * la permission au navigateur.
-     */
 
     if (
         notificationsReady &&
@@ -4349,41 +4104,17 @@ async function init() {
     }
 
 
-    /*
-     * Mode hors ligne
-     */
-
     setupOfflineDetection();
 
-
-    /*
-     * Écoute temps réel des cartes
-     */
 
     setupRealtimeListener();
 
 
-    /*
-     * 🔥 Écoute temps réel des transactions
-     * (pour re-vérifier quand l'étudiant paie)
-     */
-
     setupTransactionsListener();
 
 
-    /*
-     * Interface permission
-     */
-
     checkNotificationStatus();
 
-
-    /*
-     * Si la permission a déjà été accordée,
-     * notification-utils.js gère le token.
-     *
-     * Nous ne recréons PAS un token ici.
-     */
 
     if (
         'Notification' in window &&
@@ -4404,7 +4135,7 @@ async function init() {
 
 
 /* ================================================================
-   27. VISIBILITÉ DE LA PAGE
+   32. VISIBILITÉ DE LA PAGE
 ================================================================ */
 
 document.addEventListener(
@@ -4440,15 +4171,18 @@ document.addEventListener(
                 setupRealtimeListener();
             }
 
-            // 🔥 Revérifier la situation quand on revient sur la page
-            verifierEtGenererCartes();
+            // ✅ Vérifier le statut (SANS créer)
+            verifierStatutPaiement();
+
+            // ✅ Rafraîchir les cartes
+            rafraichirCartes();
         }
     }
 );
 
 
 /* ================================================================
-   28. DÉMARRAGE
+   33. DÉMARRAGE
 ================================================================ */
 
 document.addEventListener(
