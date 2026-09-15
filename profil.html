@@ -87,7 +87,7 @@
         }
         
         /* ============================================================
-           PHOTO DE PROFIL - AFFICHAGE (format 5:7)
+           PHOTO DE PROFIL - AFFICHAGE (format 2:3 - RDC 40×60mm)
         ============================================================ */
         
         .profile-avatar-container {
@@ -98,7 +98,7 @@
         
         .profile-avatar-img {
             width: 120px;
-            height: 168px;
+            height: 180px;
             object-fit: cover;
             border-radius: 10px;
             border: 4px solid var(--primary-blue);
@@ -109,7 +109,7 @@
         
         .profile-avatar {
             width: 120px;
-            height: 168px;
+            height: 180px;
             background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
             border-radius: 10px;
             display: flex;
@@ -199,13 +199,13 @@
         }
         
         /* ============================================================
-           MODAL DE RECADRAGE PHOTO INTERACTIF
+           MODAL DE RECADRAGE MANUEL (avec poignées)
         ============================================================ */
         
         .crop-modal {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             display: none;
             align-items: center;
             justify-content: center;
@@ -246,10 +246,7 @@
             line-height: 1.5;
         }
         
-        /* ============================================================
-           ÉTAPE 1 : SÉLECTION DU FICHIER
-        ============================================================ */
-        
+        /* ÉTAPE 1 : SÉLECTION */
         .crop-step-upload {
             display: block;
         }
@@ -261,7 +258,7 @@
         .upload-zone {
             position: relative;
             width: 100%;
-            max-width: 300px;
+            max-width: 260px;
             margin: 0 auto 15px;
             background: #f0f2f5;
             border-radius: 10px;
@@ -270,7 +267,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            aspect-ratio: 5 / 7;
+            aspect-ratio: 2 / 3;
             transition: all 0.3s;
             overflow: hidden;
         }
@@ -278,12 +275,6 @@
         .upload-zone:hover {
             background: #e8eef5;
             border-color: var(--accent-yellow);
-        }
-        
-        .upload-zone.dragover {
-            background: #d4e4f5;
-            border-color: var(--accent-yellow);
-            transform: scale(1.02);
         }
         
         .upload-placeholder {
@@ -314,10 +305,7 @@
             color: #999;
         }
         
-        /* ============================================================
-           ÉTAPE 2 : RECADRAGE INTERACTIF
-        ============================================================ */
-        
+        /* ÉTAPE 2 : RECADRAGE MANUEL */
         .crop-step-adjust {
             display: none;
         }
@@ -326,96 +314,101 @@
             display: block;
         }
         
-        /* Zone de crop principale */
-        .crop-viewport-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .crop-viewport {
+        .crop-workspace {
             position: relative;
-            width: 280px;
-            height: 392px; /* ratio 5:7 */
+            width: 100%;
+            max-width: 340px;
+            margin: 0 auto 15px;
             background: #1a1a1a;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            cursor: grab;
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
         }
         
-        .crop-viewport:active {
-            cursor: grabbing;
+        #cropWorkspaceCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            cursor: move;
         }
         
-        #cropCanvas {
+        /* Overlay sombre en dehors de la sélection */
+        .crop-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: block;
+            inset: 0;
             pointer-events: none;
+            z-index: 3;
+        }
+        
+        /* Zone de sélection avec les poignées (ratio 2:3) */
+        .crop-selection {
+            position: absolute;
+            border: 2px solid white;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+            z-index: 4;
+            cursor: move;
+            box-sizing: border-box;
         }
         
         /* Grille de composition */
-        .crop-grid {
+        .crop-selection::before {
+            content: '';
             position: absolute;
             inset: 0;
+            background-image: 
+                linear-gradient(to right, rgba(255,255,255,0.3) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.3) 1px, transparent 1px);
+            background-size: 33.33% 33.33%;
+            background-position: -1px -1px;
             pointer-events: none;
-            z-index: 5;
         }
         
-        .crop-grid-line {
+        /* Poignées de redimensionnement */
+        .crop-handle {
             position: absolute;
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        .crop-grid-line.v1 { left: 33.33%; top: 0; bottom: 0; width: 1px; }
-        .crop-grid-line.v2 { left: 66.66%; top: 0; bottom: 0; width: 1px; }
-        .crop-grid-line.h1 { top: 33.33%; left: 0; right: 0; height: 1px; }
-        .crop-grid-line.h2 { top: 66.66%; left: 0; right: 0; height: 1px; }
-        
-        /* Bordure du cadre */
-        .crop-frame {
-            position: absolute;
-            inset: 0;
-            border: 3px solid white;
-            border-radius: 12px;
-            pointer-events: none;
-            z-index: 6;
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3);
-        }
-        
-        /* Coins */
-        .crop-corner {
-            position: absolute;
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
+            background: white;
             border: 3px solid var(--accent-yellow);
-            z-index: 7;
-            pointer-events: none;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            touch-action: none;
         }
         
-        .crop-corner.tl { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: 12px; }
-        .crop-corner.tr { top: -1px; right: -1px; border-left: none; border-bottom: none; border-top-right-radius: 12px; }
-        .crop-corner.bl { bottom: -1px; left: -1px; border-right: none; border-top: none; border-bottom-left-radius: 12px; }
-        .crop-corner.br { bottom: -1px; right: -1px; border-left: none; border-top: none; border-bottom-right-radius: 12px; }
+        .crop-handle.tl { top: -12px; left: -12px; cursor: nwse-resize; }
+        .crop-handle.tr { top: -12px; right: -12px; cursor: nesw-resize; }
+        .crop-handle.bl { bottom: -12px; left: -12px; cursor: nesw-resize; }
+        .crop-handle.br { bottom: -12px; right: -12px; cursor: nwse-resize; }
         
-        /* Contrôles du crop */
+        /* Étiquette de ratio sur la sélection */
+        .crop-ratio-label {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        /* Contrôles */
         .crop-controls {
             background: #f8f9fa;
             border-radius: 12px;
             padding: 12px 15px;
-            margin-top: 12px;
+            margin-bottom: 12px;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            width: 280px;
         }
         
         .crop-control-row {
@@ -428,7 +421,7 @@
             font-size: 12px;
             font-weight: 600;
             color: var(--primary-blue);
-            min-width: 45px;
+            min-width: 50px;
         }
         
         .crop-control-row i {
@@ -436,7 +429,6 @@
             color: var(--primary-blue);
         }
         
-        /* Slider de zoom */
         .zoom-slider {
             -webkit-appearance: none;
             appearance: none;
@@ -477,28 +469,35 @@
             text-align: center;
         }
         
-        .btn-reset-crop {
-            background: white;
-            border: 1px solid var(--primary-blue);
-            color: var(--primary-blue);
-            padding: 6px 12px;
-            border-radius: 8px;
+        .crop-help-text {
             font-size: 11px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        
+        .btn-change-photo {
+            background: #fff3cd;
+            color: #856404;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid #ffeaa7;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
+            margin-bottom: 10px;
+            display: inline-flex;
             align-items: center;
             gap: 5px;
-            align-self: center;
         }
         
-        .btn-reset-crop:hover {
-            background: var(--primary-blue);
-            color: white;
+        .btn-change-photo:hover {
+            background: #ffeaa7;
         }
         
-        /* Actions du bas */
+        /* Actions */
         .crop-actions {
             display: flex;
             gap: 10px;
@@ -524,9 +523,7 @@
             color: #333;
         }
         
-        .btn-crop-cancel:hover {
-            background: #ccc;
-        }
+        .btn-crop-cancel:hover { background: #ccc; }
         
         .btn-crop-save {
             background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
@@ -544,21 +541,63 @@
             transform: none;
         }
         
-        .btn-change-photo {
-            background: #fff3cd;
-            color: #856404;
-            padding: 8px 15px;
-            border-radius: 8px;
-            border: 1px solid #ffeaa7;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 10px;
+        /* ============================================================
+           MODAL PROFIL (avec photo affichée - format 2:3)
+        ============================================================ */
+        
+        .profile-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
         }
         
-        .btn-change-photo:hover {
-            background: #ffeaa7;
+        .profile-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalFadeIn 0.3s ease;
+        }
+        
+        .profile-modal-avatar {
+            width: 100px;
+            height: 150px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 4px solid var(--primary-blue);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+            background: white;
+            display: block;
+            margin: 0 auto 15px;
+        }
+        
+        .profile-modal-avatar-default {
+            width: 100px;
+            height: 150px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+            border: 4px solid var(--primary-blue);
+        }
+        
+        .profile-modal-avatar-default i {
+            font-size: 50px;
+            color: var(--accent-yellow);
         }
         
         /* ============================================================
@@ -590,26 +629,11 @@
             border-bottom: 1px solid #e0e0e0;
         }
         
-        .info-row:last-child {
-            border-bottom: none;
-        }
+        .info-row:last-child { border-bottom: none; }
         
-        .info-label {
-            font-weight: 600;
-            color: #555;
-            width: 40%;
-        }
-        
-        .info-value {
-            color: #333;
-            width: 60%;
-            word-break: break-word;
-        }
-        
-        .info-value i {
-            margin-right: 5px;
-            color: var(--primary-blue);
-        }
+        .info-label { font-weight: 600; color: #555; width: 40%; }
+        .info-value { color: #333; width: 60%; word-break: break-word; }
+        .info-value i { margin-right: 5px; color: var(--primary-blue); }
         
         .password-form {
             background: #f8f9fa;
@@ -618,13 +642,9 @@
             margin-top: 20px;
         }
         
-        .form-group {
-            margin-bottom: 15px;
-        }
+        .form-group { margin-bottom: 15px; }
         
-        .input-group-custom {
-            position: relative;
-        }
+        .input-group-custom { position: relative; }
         
         .input-group-custom i {
             position: absolute;
@@ -721,10 +741,7 @@
             color: var(--primary-blue);
         }
         
-        .stat-label {
-            font-size: 12px;
-            color: #666;
-        }
+        .stat-label { font-size: 12px; color: #666; }
         
         .footer-info {
             text-align: center;
@@ -750,25 +767,11 @@
         
         .toast { animation: slideInRight 0.3s ease-out; }
         
-        @media (max-width: 500px) {
-            .crop-viewport {
-                width: 250px;
-                height: 350px;
-            }
-            .crop-controls {
-                width: 250px;
-            }
-        }
-        
         @media (max-width: 768px) {
             .content-card { padding: 20px; }
             .info-row { flex-direction: column; align-items: flex-start; gap: 5px; }
             .info-label { width: 100%; }
             .info-value { width: 100%; }
-        }
-        
-        .pdf-export-content {
-            display: none;
         }
     </style>
 </head>
@@ -960,31 +963,9 @@
             <img src="t.png" width="40px" alt="HYBRILINK" onerror="this.style.display='none'">
         </div>
     </div>
-    
-    <!-- Contenu caché pour l'export PDF -->
-    <div id="pdfExportContent" style="display: none;">
-        <div style="padding: 20px; font-family: Arial, sans-serif;">
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #003366;">UNIVERSITÉ DE LUBUMBASHI</h1>
-                <h2 style="color: #003366;">FACULTÉ DES SCIENCES AGRONOMIQUES</h2>
-                <h3>Fiche Récapitulative de l'Étudiant</h3>
-                <hr style="border: 1px solid #003366;">
-            </div>
-            
-            <div id="pdfInformations" style="margin-bottom: 30px;"></div>
-            <div id="pdfStats" style="margin-bottom: 30px;"></div>
-            <div id="pdfPaiements" style="margin-bottom: 30px;"></div>
-            
-            <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #888;">
-                <hr>
-                <p>Document généré le <span id="pdfDate"></span></p>
-                <p>HYBRILINK-TECH - Votre partenaire digital</p>
-            </div>
-        </div>
-    </div>
 
     <!-- ================================================================
-         MODAL DE RECADRAGE PHOTO INTERACTIF (format 5:7)
+         MODAL DE RECADRAGE MANUEL (format 2:3 - RDC 40×60mm)
     ================================================================= -->
     <div id="cropModal" class="crop-modal">
         <div class="crop-modal-content">
@@ -993,7 +974,7 @@
                 Photo de profil
             </h5>
             <p class="crop-hint">
-                Format 5:7 (photo identité).<br>
+                Format 2:3 — Photo passeport RDC (40×60 mm).<br>
                 <strong id="cropPhotoCounter">Il vous reste 2 changement(s).</strong>
             </p>
             
@@ -1004,9 +985,7 @@
                 style="display: none;"
             >
             
-            <!-- =====================================================
-                 ÉTAPE 1 : SÉLECTION DU FICHIER
-            ====================================================== -->
+            <!-- ÉTAPE 1 : SÉLECTION DU FICHIER -->
             <div class="crop-step-upload" id="cropStepUpload">
                 <div class="upload-zone" id="uploadZone">
                     <div class="upload-placeholder">
@@ -1017,58 +996,49 @@
                 </div>
             </div>
             
-            <!-- =====================================================
-                 ÉTAPE 2 : RECADRAGE INTERACTIF
-            ====================================================== -->
+            <!-- ÉTAPE 2 : RECADRAGE MANUEL -->
             <div class="crop-step-adjust" id="cropStepAdjust">
                 <button type="button" class="btn-change-photo" id="btnChangePhoto">
                     <i class="bi bi-arrow-left"></i> Changer de photo
                 </button>
                 
-                <div class="crop-viewport-wrapper">
-                    <div class="crop-viewport" id="cropViewport">
-                        <canvas id="cropCanvas"></canvas>
-                        <div class="crop-grid">
-                            <div class="crop-grid-line v1"></div>
-                            <div class="crop-grid-line v2"></div>
-                            <div class="crop-grid-line h1"></div>
-                            <div class="crop-grid-line h2"></div>
-                        </div>
-                        <div class="crop-frame"></div>
-                        <div class="crop-corner tl"></div>
-                        <div class="crop-corner tr"></div>
-                        <div class="crop-corner bl"></div>
-                        <div class="crop-corner br"></div>
-                    </div>
+                <div class="crop-workspace" id="cropWorkspace">
+                    <canvas id="cropWorkspaceCanvas"></canvas>
+                    <div class="crop-overlay"></div>
                     
-                    <div class="crop-controls">
-                        <div class="crop-control-row">
-                            <i class="bi bi-zoom-out"></i>
-                            <input 
-                                type="range" 
-                                class="zoom-slider" 
-                                id="zoomSlider" 
-                                min="100" 
-                                max="300" 
-                                value="100"
-                            >
-                            <span class="zoom-value" id="zoomValue">100%</span>
-                        </div>
-                        <button type="button" class="btn-reset-crop" id="btnResetCrop">
-                            <i class="bi bi-arrow-clockwise"></i> Réinitialiser
-                        </button>
+                    <!-- Zone de sélection ajustable -->
+                    <div class="crop-selection" id="cropSelection">
+                        <div class="crop-ratio-label">40×60 mm</div>
+                        <div class="crop-handle tl" data-handle="tl"></div>
+                        <div class="crop-handle tr" data-handle="tr"></div>
+                        <div class="crop-handle bl" data-handle="bl"></div>
+                        <div class="crop-handle br" data-handle="br"></div>
                     </div>
                 </div>
                 
-                <p style="font-size: 11px; color: #666; text-align: center; margin-bottom: 10px;">
-                    <i class="bi bi-hand-index-thumb"></i>
-                    Déplacez la photo avec votre doigt / souris
+                <div class="crop-controls">
+                    <div class="crop-control-row">
+                        <i class="bi bi-zoom-out"></i>
+                        <input 
+                            type="range" 
+                            class="zoom-slider" 
+                            id="zoomSlider" 
+                            min="100" 
+                            max="300" 
+                            value="100"
+                        >
+                        <span class="zoom-value" id="zoomValue">100%</span>
+                    </div>
+                </div>
+                
+                <p class="crop-help-text">
+                    <i class="bi bi-info-circle"></i>
+                    Déplacez la <strong>photo</strong> avec un doigt,<br>
+                    ou tirez les <strong>coins blancs</strong> pour ajuster le cadre 2:3
                 </p>
             </div>
             
-            <!-- =====================================================
-                 ACTIONS
-            ====================================================== -->
+            <!-- ACTIONS -->
             <div class="crop-actions">
                 <button 
                     type="button" 
@@ -1089,15 +1059,32 @@
         </div>
     </div>
 
+    <!-- ================================================================
+         MODAL PROFIL (avec photo affichée)
+    ================================================================= -->
     <div id="profileModal" style="display:none;">
-        <div class="profile-modal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2000;">
-            <div class="profile-modal-content" style="background:white;border-radius:20px;padding:30px;max-width:400px;width:90%;">
+        <div class="profile-modal-overlay" id="profileModalOverlay">
+            <div class="profile-modal-content">
                 <div class="text-center">
-                    <i class="bi bi-person-circle" style="font-size:70px;color:var(--primary-blue);"></i>
+                    
+                    <!-- Photo ou avatar par défaut -->
+                    <img 
+                        id="modalProfilePhoto" 
+                        class="profile-modal-avatar" 
+                        src="" 
+                        alt="Photo"
+                        style="display: none;"
+                    >
+                    <div id="modalProfileAvatarDefault" class="profile-modal-avatar-default">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    
                     <h4 id="profilNom"></h4>
                     <p id="profilMatricule"></p>
                     <p id="profilPromotion"></p>
+                    
                     <hr>
+                    
                     <h6>Changer mot de passe</h6>
                     <input type="password" class="form-control mb-2" id="newPasswordModal" placeholder="Nouveau mot de passe">
                     <input type="password" class="form-control mb-2" id="confirmNewPasswordModal" placeholder="Confirmer">
@@ -1124,9 +1111,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         
-        // ================================================================
-        // CLOUDINARY CONFIG
-        // ================================================================
         const CLOUDINARY_CONFIG = {
             cloudName: 'diwn8sxtn',
             uploadPreset: 'cs_lacolombe'
@@ -1144,24 +1128,31 @@
         let studentFirestoreData = null;
         let currentPhotoChanges = 0;
         
-        // Variables de recadrage
-        let sourceImage = null;         // Image source originale
-        let imageScale = 1;             // Échelle actuelle (1 = fit)
-        let imageOffsetX = 0;           // Décalage X en pixels
-        let imageOffsetY = 0;           // Décalage Y en pixels
-        let isDragging = false;
-        let dragStartX = 0;
-        let dragStartY = 0;
-        let dragStartOffsetX = 0;
-        let dragStartOffsetY = 0;
+        // === Variables du crop manuel ===
+        let sourceImage = null;
+        let workspaceCanvas = null;
+        let workspaceCtx = null;
+        let workspaceW = 0;
+        let workspaceH = 0;
+        let imgBaseScale = 1;
+        let imgScale = 1;
+        let imgOffsetX = 0;
+        let imgOffsetY = 0;
         
-        // Dimensions du viewport (canvas)
-        const VIEWPORT_W = 280;
-        const VIEWPORT_H = 392;
+        // Zone de sélection (coordonnées CSS)
+        let selX = 0;
+        let selY = 0;
+        let selW = 100;
+        let selH = 150;
         
-        // Résolution de sortie
-        const OUTPUT_W = 500;
-        const OUTPUT_H = 700;
+        // Interaction
+        let interactionMode = null;
+        let interactionStartX = 0;
+        let interactionStartY = 0;
+        let interactionStartData = null;
+        
+        // ⭐ RATIO 2:3 (photo passeport RDC 40×60 mm)
+        const RATIO = 2 / 3;
         
         // ================================================================
         // VÉRIFICATION SESSION
@@ -1395,7 +1386,7 @@
         }
         
         // ================================================================
-        // OUVERTURE / FERMETURE MODAL
+        // OUVERTURE / FERMETURE MODAL CROP
         // ================================================================
         
         function ouvrirCropModal() {
@@ -1416,37 +1407,38 @@
         
         function resetCropModal() {
             sourceImage = null;
-            imageScale = 1;
-            imageOffsetX = 0;
-            imageOffsetY = 0;
-            isDragging = false;
+            interactionMode = null;
             
-            // Étape 1 visible, étape 2 cachée
             document.getElementById('cropStepUpload').classList.remove('hidden');
             document.getElementById('cropStepAdjust').classList.remove('active');
             
-            // Reset input file
             const fileInput = document.getElementById('photoFileInput');
             if (fileInput) fileInput.value = '';
             
-            // Reset slider
             const slider = document.getElementById('zoomSlider');
             if (slider) slider.value = 100;
             const zoomValue = document.getElementById('zoomValue');
             if (zoomValue) zoomValue.textContent = '100%';
             
-            // Reset save
             const saveBtn = document.getElementById('cropSaveBtn');
             if (saveBtn) saveBtn.disabled = true;
-            
-            // Reset upload zone
-            const uploadZone = document.getElementById('uploadZone');
-            if (uploadZone) uploadZone.classList.remove('dragover');
         }
         
         // ================================================================
-        // CHARGEMENT DE L'IMAGE DANS LE CANVAS
+        // TRAITEMENT DU FICHIER
         // ================================================================
+        
+        function traiterFichierSelectionne(file) {
+            if (!file.type.startsWith('image/')) {
+                showToast('Veuillez choisir une image', 'warning');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Image trop grande (max 5 MB)', 'warning');
+                return;
+            }
+            chargerImageDansCanvas(file);
+        }
         
         function chargerImageDansCanvas(file) {
             const reader = new FileReader();
@@ -1457,95 +1449,118 @@
                 img.onload = () => {
                     sourceImage = img;
                     
-                    // Passage à l'étape 2
                     document.getElementById('cropStepUpload').classList.add('hidden');
                     document.getElementById('cropStepAdjust').classList.add('active');
                     
-                    // Reset paramètres
-                    imageScale = 1;
-                    imageOffsetX = 0;
-                    imageOffsetY = 0;
+                    initWorkspace();
                     
-                    // Adapter le canvas
-                    const canvas = document.getElementById('cropCanvas');
-                    const dpr = window.devicePixelRatio || 1;
-                    canvas.width = VIEWPORT_W * dpr;
-                    canvas.height = VIEWPORT_H * dpr;
-                    canvas.style.width = VIEWPORT_W + 'px';
-                    canvas.style.height = VIEWPORT_H + 'px';
-                    
-                    const ctx = canvas.getContext('2d');
-                    ctx.scale(dpr, dpr);
-                    
-                    // Calculer le scale minimum pour couvrir tout le canvas
-                    const scaleX = VIEWPORT_W / img.width;
-                    const scaleY = VIEWPORT_H / img.height;
-                    const minScale = Math.max(scaleX, scaleY);
-                    
-                    // Le scale 1 = couvre tout le canvas
-                    imageScale = minScale;
-                    
-                    // Centrer l'image
-                    imageOffsetX = (VIEWPORT_W - img.width * imageScale) / 2;
-                    imageOffsetY = (VIEWPORT_H - img.height * imageScale) / 2;
-                    
-                    dessinerCanvas();
-                    
-                    // Activer le bouton d'enregistrement
                     document.getElementById('cropSaveBtn').disabled = false;
-                    
-                    // Mettre à jour le slider (100% = couverture minimale)
-                    mettreAJourSlider();
                 };
                 
-                img.onerror = () => {
-                    showToast('❌ Impossible de charger cette image', 'danger');
-                };
-                
+                img.onerror = () => showToast('❌ Impossible de charger cette image', 'danger');
                 img.src = e.target.result;
             };
             
-            reader.onerror = () => {
-                showToast('❌ Erreur de lecture du fichier', 'danger');
-            };
-            
+            reader.onerror = () => showToast('❌ Erreur de lecture du fichier', 'danger');
             reader.readAsDataURL(file);
         }
         
         // ================================================================
-        // DESSIN DU CANVAS
+        // INITIALISATION DU WORKSPACE
         // ================================================================
         
-        function dessinerCanvas() {
-            const canvas = document.getElementById('cropCanvas');
-            if (!canvas || !sourceImage) return;
+        function initWorkspace() {
+            const workspace = document.getElementById('cropWorkspace');
+            workspaceCanvas = document.getElementById('cropWorkspaceCanvas');
+            workspaceCtx = workspaceCanvas.getContext('2d');
+            
+            const rect = workspace.getBoundingClientRect();
+            workspaceW = rect.width;
+            
+            const maxH = Math.min(window.innerHeight * 0.55, 500);
+            workspaceH = maxH;
+            
+            workspace.style.height = workspaceH + 'px';
             
             const dpr = window.devicePixelRatio || 1;
-            const ctx = canvas.getContext('2d');
+            workspaceCanvas.width = workspaceW * dpr;
+            workspaceCanvas.height = workspaceH * dpr;
+            workspaceCanvas.style.width = workspaceW + 'px';
+            workspaceCanvas.style.height = workspaceH + 'px';
             
-            // Reset transform et clear
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            workspaceCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
             
-            // Fond noir (au cas où l'image ne couvre pas tout)
-            ctx.fillStyle = '#1a1a1a';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const scaleX = workspaceW / sourceImage.width;
+            const scaleY = workspaceH / sourceImage.height;
+            imgBaseScale = Math.max(scaleX, scaleY);
+            imgScale = imgBaseScale;
             
-            // Appliquer le DPR
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            imgOffsetX = (workspaceW - sourceImage.width * imgScale) / 2;
+            imgOffsetY = (workspaceH - sourceImage.height * imgScale) / 2;
             
-            // Dessiner l'image
-            ctx.drawImage(
+            initSelection();
+            
+            dessinerWorkspace();
+            mettreAJourSelectionUI();
+            mettreAJourSlider();
+        }
+        
+        /**
+         * Initialise la sélection (ratio 2:3 centré)
+         */
+        function initSelection() {
+            const maxSelW = workspaceW * 0.75;
+            const maxSelH = workspaceH * 0.85;
+            
+            let w = maxSelW;
+            let h = w / RATIO;
+            
+            if (h > maxSelH) {
+                h = maxSelH;
+                w = h * RATIO;
+            }
+            
+            selW = w;
+            selH = h;
+            selX = (workspaceW - w) / 2;
+            selY = (workspaceH - h) / 2;
+        }
+        
+        // ================================================================
+        // DESSIN DU WORKSPACE
+        // ================================================================
+        
+        function dessinerWorkspace() {
+            if (!workspaceCtx || !sourceImage) return;
+            
+            workspaceCtx.fillStyle = '#1a1a1a';
+            workspaceCtx.fillRect(0, 0, workspaceW, workspaceH);
+            
+            workspaceCtx.drawImage(
                 sourceImage,
-                imageOffsetX,
-                imageOffsetY,
-                sourceImage.width * imageScale,
-                sourceImage.height * imageScale
+                imgOffsetX,
+                imgOffsetY,
+                sourceImage.width * imgScale,
+                sourceImage.height * imgScale
             );
         }
         
         // ================================================================
-        // GESTION DU DRAG (souris + tactile)
+        // MISE À JOUR DE LA SÉLECTION UI
+        // ================================================================
+        
+        function mettreAJourSelectionUI() {
+            const sel = document.getElementById('cropSelection');
+            if (!sel) return;
+            
+            sel.style.left = selX + 'px';
+            sel.style.top = selY + 'px';
+            sel.style.width = selW + 'px';
+            sel.style.height = selH + 'px';
+        }
+        
+        // ================================================================
+        // INTERACTIONS
         // ================================================================
         
         function getPointerPos(e) {
@@ -1555,81 +1570,245 @@
             return { x: e.clientX, y: e.clientY };
         }
         
-        function onPointerDown(e) {
-            if (!sourceImage) return;
+        function attacherInteractions() {
+            const workspace = document.getElementById('cropWorkspace');
+            const selection = document.getElementById('cropSelection');
+            
+            selection.addEventListener('mousedown', onSelectionMouseDown);
+            selection.addEventListener('touchstart', onSelectionMouseDown, { passive: false });
+            
+            document.querySelectorAll('.crop-handle').forEach(handle => {
+                handle.addEventListener('mousedown', onHandleMouseDown);
+                handle.addEventListener('touchstart', onHandleMouseDown, { passive: false });
+            });
+            
+            workspace.addEventListener('mousedown', onWorkspaceMouseDown);
+            workspace.addEventListener('touchstart', onWorkspaceMouseDown, { passive: false });
+            
+            document.addEventListener('mousemove', onGlobalMouseMove);
+            document.addEventListener('touchmove', onGlobalMouseMove, { passive: false });
+            
+            document.addEventListener('mouseup', onGlobalMouseUp);
+            document.addEventListener('touchend', onGlobalMouseUp);
+            document.addEventListener('touchcancel', onGlobalMouseUp);
+        }
+        
+        function onSelectionMouseDown(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            interactionMode = 'move-selection';
+            const pos = getPointerPos(e);
+            interactionStartX = pos.x;
+            interactionStartY = pos.y;
+            interactionStartData = { x: selX, y: selY };
+        }
+        
+        function onHandleMouseDown(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const handle = e.currentTarget.dataset.handle;
+            interactionMode = 'resize-' + handle;
+            
+            const pos = getPointerPos(e);
+            interactionStartX = pos.x;
+            interactionStartY = pos.y;
+            interactionStartData = {
+                x: selX,
+                y: selY,
+                w: selW,
+                h: selH
+            };
+        }
+        
+        function onWorkspaceMouseDown(e) {
             e.preventDefault();
             
-            isDragging = true;
+            interactionMode = 'drag-image';
             const pos = getPointerPos(e);
-            dragStartX = pos.x;
-            dragStartY = pos.y;
-            dragStartOffsetX = imageOffsetX;
-            dragStartOffsetY = imageOffsetY;
+            interactionStartX = pos.x;
+            interactionStartY = pos.y;
+            interactionStartData = {
+                x: imgOffsetX,
+                y: imgOffsetY
+            };
         }
         
-        function onPointerMove(e) {
-            if (!isDragging || !sourceImage) return;
+        function onGlobalMouseMove(e) {
+            if (!interactionMode) return;
             e.preventDefault();
             
             const pos = getPointerPos(e);
-            const dx = pos.x - dragStartX;
-            const dy = pos.y - dragStartY;
+            const dx = pos.x - interactionStartX;
+            const dy = pos.y - interactionStartY;
             
-            imageOffsetX = dragStartOffsetX + dx;
-            imageOffsetY = dragStartOffsetY + dy;
-            
-            contraindreImage();
-            dessinerCanvas();
+            if (interactionMode === 'drag-image') {
+                imgOffsetX = interactionStartData.x + dx;
+                imgOffsetY = interactionStartData.y + dy;
+                contraindreImage();
+                dessinerWorkspace();
+                
+            } else if (interactionMode === 'move-selection') {
+                selX = interactionStartData.x + dx;
+                selY = interactionStartData.y + dy;
+                contraindreSelection();
+                mettreAJourSelectionUI();
+                
+            } else if (interactionMode.startsWith('resize-')) {
+                redimensionnerSelection(dx, dy);
+            }
         }
         
-        function onPointerUp(e) {
-            isDragging = false;
-        }
-        
-        /**
-         * Contraint l'image pour qu'elle ne sorte pas du canvas
-         */
-        function contraindreImage() {
-            if (!sourceImage) return;
-            
-            const scaledW = sourceImage.width * imageScale;
-            const scaledH = sourceImage.height * imageScale;
-            
-            // Limite horizontale
-            if (scaledW <= VIEWPORT_W) {
-                imageOffsetX = (VIEWPORT_W - scaledW) / 2;
-            } else {
-                const minX = VIEWPORT_W - scaledW;
-                const maxX = 0;
-                if (imageOffsetX < minX) imageOffsetX = minX;
-                if (imageOffsetX > maxX) imageOffsetX = maxX;
-            }
-            
-            // Limite verticale
-            if (scaledH <= VIEWPORT_H) {
-                imageOffsetY = (VIEWPORT_H - scaledH) / 2;
-            } else {
-                const minY = VIEWPORT_H - scaledH;
-                const maxY = 0;
-                if (imageOffsetY < minY) imageOffsetY = minY;
-                if (imageOffsetY > maxY) imageOffsetY = maxY;
-            }
+        function onGlobalMouseUp() {
+            interactionMode = null;
+            interactionStartData = null;
         }
         
         // ================================================================
-        // GESTION DU ZOOM
+        // REDIMENSIONNEMENT (respect ratio 2:3)
+        // ================================================================
+        
+        function redimensionnerSelection(dx, dy) {
+            const start = interactionStartData;
+            let newX = start.x, newY = start.y, newW = start.w, newH = start.h;
+            
+            const MIN_SIZE = 60;
+            
+            if (interactionMode === 'resize-br') {
+                newW = start.w + dx;
+                newH = newW / RATIO;
+                if (newY + newH > workspaceH) {
+                    newH = workspaceH - newY;
+                    newW = newH * RATIO;
+                }
+                if (newX + newW > workspaceW) {
+                    newW = workspaceW - newX;
+                    newH = newW / RATIO;
+                }
+                if (newW < MIN_SIZE) {
+                    newW = MIN_SIZE;
+                    newH = newW / RATIO;
+                }
+                
+            } else if (interactionMode === 'resize-tl') {
+                newW = start.w - dx;
+                newH = newW / RATIO;
+                newX = start.x + (start.w - newW);
+                newY = start.y + (start.h - newH);
+                
+                if (newX < 0) {
+                    newX = 0;
+                    newW = start.x + start.w;
+                    newH = newW / RATIO;
+                    newY = start.y + (start.h - newH);
+                }
+                if (newY < 0) {
+                    newY = 0;
+                    newH = start.y + start.h;
+                    newW = newH * RATIO;
+                    newX = start.x + (start.w - newW);
+                }
+                if (newW < MIN_SIZE) {
+                    newW = MIN_SIZE;
+                    newH = newW / RATIO;
+                    newX = start.x + (start.w - newW);
+                    newY = start.y + (start.h - newH);
+                }
+                
+            } else if (interactionMode === 'resize-tr') {
+                newW = start.w + dx;
+                newH = newW / RATIO;
+                newY = start.y + (start.h - newH);
+                
+                if (newX + newW > workspaceW) {
+                    newW = workspaceW - newX;
+                    newH = newW / RATIO;
+                    newY = start.y + (start.h - newH);
+                }
+                if (newY < 0) {
+                    newY = 0;
+                    newH = start.y + start.h;
+                    newW = newH * RATIO;
+                }
+                if (newW < MIN_SIZE) {
+                    newW = MIN_SIZE;
+                    newH = newW / RATIO;
+                    newY = start.y + (start.h - newH);
+                }
+                
+            } else if (interactionMode === 'resize-bl') {
+                newW = start.w - dx;
+                newH = newW / RATIO;
+                newX = start.x + (start.w - newW);
+                
+                if (newX < 0) {
+                    newX = 0;
+                    newW = start.x + start.w;
+                    newH = newW / RATIO;
+                }
+                if (newY + newH > workspaceH) {
+                    newH = workspaceH - newY;
+                    newW = newH * RATIO;
+                    newX = start.x + (start.w - newW);
+                }
+                if (newW < MIN_SIZE) {
+                    newW = MIN_SIZE;
+                    newH = newW / RATIO;
+                    newX = start.x + (start.w - newW);
+                }
+            }
+            
+            selX = newX;
+            selY = newY;
+            selW = newW;
+            selH = newH;
+            
+            mettreAJourSelectionUI();
+        }
+        
+        // ================================================================
+        // CONTRAINTES
+        // ================================================================
+        
+        function contraindreImage() {
+            if (!sourceImage) return;
+            
+            const scaledW = sourceImage.width * imgScale;
+            const scaledH = sourceImage.height * imgScale;
+            
+            if (scaledW <= workspaceW) {
+                imgOffsetX = (workspaceW - scaledW) / 2;
+            } else {
+                const minX = workspaceW - scaledW;
+                if (imgOffsetX < minX) imgOffsetX = minX;
+                if (imgOffsetX > 0) imgOffsetX = 0;
+            }
+            
+            if (scaledH <= workspaceH) {
+                imgOffsetY = (workspaceH - scaledH) / 2;
+            } else {
+                const minY = workspaceH - scaledH;
+                if (imgOffsetY < minY) imgOffsetY = minY;
+                if (imgOffsetY > 0) imgOffsetY = 0;
+            }
+        }
+        
+        function contraindreSelection() {
+            if (selX < 0) selX = 0;
+            if (selY < 0) selY = 0;
+            if (selX + selW > workspaceW) selX = workspaceW - selW;
+            if (selY + selH > workspaceH) selY = workspaceH - selH;
+        }
+        
+        // ================================================================
+        // ZOOM
         // ================================================================
         
         function mettreAJourSlider() {
             if (!sourceImage) return;
             
-            // Calculer le scale minimum (fit pour couvrir)
-            const scaleX = VIEWPORT_W / sourceImage.width;
-            const scaleY = VIEWPORT_H / sourceImage.height;
-            const minScale = Math.max(scaleX, scaleY);
-            
-            // Ratio actuel : 100% = minScale, 300% = 3 * minScale
-            const ratio = imageScale / minScale;
+            const ratio = imgScale / imgBaseScale;
             const percent = Math.round(ratio * 100);
             
             const slider = document.getElementById('zoomSlider');
@@ -1638,42 +1817,32 @@
                 slider.max = 300;
                 slider.value = Math.min(300, Math.max(100, percent));
             }
-            
             const zoomValue = document.getElementById('zoomValue');
             if (zoomValue) {
                 zoomValue.textContent = Math.min(300, Math.max(100, percent)) + '%';
             }
         }
         
-        function appliquerZoom(nouveauPercent) {
+        function appliquerZoom(percent) {
             if (!sourceImage) return;
             
-            const scaleX = VIEWPORT_W / sourceImage.width;
-            const scaleY = VIEWPORT_H / sourceImage.height;
-            const minScale = Math.max(scaleX, scaleY);
+            const centerX = workspaceW / 2;
+            const centerY = workspaceH / 2;
             
-            // Calculer le centre du viewport
-            const centerX = VIEWPORT_W / 2;
-            const centerY = VIEWPORT_H / 2;
+            const imgRefX = (centerX - imgOffsetX) / imgScale;
+            const imgRefY = (centerY - imgOffsetY) / imgScale;
             
-            // Position du centre dans l'image (en coordonnées image)
-            const imgCenterX = (centerX - imageOffsetX) / imageScale;
-            const imgCenterY = (centerY - imageOffsetY) / imageScale;
+            imgScale = imgBaseScale * (percent / 100);
             
-            // Nouveau scale
-            const oldScale = imageScale;
-            imageScale = minScale * (nouveauPercent / 100);
-            
-            // Ajuster l'offset pour garder le centre
-            imageOffsetX = centerX - imgCenterX * imageScale;
-            imageOffsetY = centerY - imgCenterY * imageScale;
+            imgOffsetX = centerX - imgRefX * imgScale;
+            imgOffsetY = centerY - imgRefY * imgScale;
             
             contraindreImage();
-            dessinerCanvas();
+            dessinerWorkspace();
         }
         
         // ================================================================
-        // GÉNÉRATION DU BLOC FINAL (recadrage 5:7 fond blanc)
+        // GÉNÉRATION DU BLOC FINAL (600×900 = 40×60 mm à 380 DPI)
         // ================================================================
         
         function genererBlobFinal() {
@@ -1683,46 +1852,35 @@
                     return;
                 }
                 
-                // Créer un canvas de sortie haute résolution
+                // ⭐ Résolution finale : 600×900 px (ratio 2:3 = 40×60 mm)
+                const OUTPUT_W = 600;
+                const OUTPUT_H = 900;
+                
                 const outputCanvas = document.createElement('canvas');
                 outputCanvas.width = OUTPUT_W;
                 outputCanvas.height = OUTPUT_H;
                 const ctx = outputCanvas.getContext('2d');
                 
-                // Fond blanc (au cas où)
+                // Fond blanc (fond neutre pour photo passeport)
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
                 
-                // Ratio entre viewport et output
-                const ratioX = OUTPUT_W / VIEWPORT_W;
-                const ratioY = OUTPUT_H / VIEWPORT_H;
+                // Coordonnées dans l'image source
+                const srcX = (selX - imgOffsetX) / imgScale;
+                const srcY = (selY - imgOffsetY) / imgScale;
+                const srcW = selW / imgScale;
+                const srcH = selH / imgScale;
                 
-                // Coordonnées de l'image dans le viewport
-                const srcX = imageOffsetX;
-                const srcY = imageOffsetY;
-                const srcW = sourceImage.width * imageScale;
-                const srcH = sourceImage.height * imageScale;
-                
-                // Convertir en coordonnées output
-                const dstX = srcX * ratioX;
-                const dstY = srcY * ratioY;
-                const dstW = srcW * ratioX;
-                const dstH = srcH * ratioY;
-                
-                // Dessiner l'image
                 ctx.drawImage(
                     sourceImage,
-                    dstX, dstY, dstW, dstH
+                    srcX, srcY, srcW, srcH,
+                    0, 0, OUTPUT_W, OUTPUT_H
                 );
                 
-                // Convertir en Blob
                 outputCanvas.toBlob(
                     (blob) => {
-                        if (blob) {
-                            resolve(blob);
-                        } else {
-                            reject(new Error('Impossible de générer l\'image'));
-                        }
+                        if (blob) resolve(blob);
+                        else reject(new Error('Impossible de générer l\'image'));
                     },
                     'image/jpeg',
                     0.92
@@ -1742,10 +1900,7 @@
             formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
             formData.append('folder', `etudiants/${currentStudent.matricule}`);
             
-            const response = await fetch(url, {
-                method: 'POST',
-                body: formData
-            });
+            const response = await fetch(url, { method: 'POST', body: formData });
             
             if (!response.ok) {
                 const errText = await response.text();
@@ -1777,14 +1932,10 @@
             saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Envoi...';
             
             try {
-                // 1. Générer le blob final
                 const blob = await genererBlobFinal();
-                
-                // 2. Upload Cloudinary
                 const photoUrl = await uploaderVersCloudinary(blob);
                 console.log('[PHOTO] ✅ Uploadée:', photoUrl);
                 
-                // 3. Sauvegarder dans Firestore
                 const newCount = currentPhotoChanges + 1;
                 
                 await db.collection('etudiants').doc(currentStudent.id).update({
@@ -1796,7 +1947,6 @@
                 
                 currentPhotoChanges = newCount;
                 
-                // 4. Mettre à jour l'interface
                 afficherPhoto(photoUrl);
                 mettreAJourPhotoNavbar(photoUrl);
                 mettreAJourCompteur();
@@ -1812,6 +1962,50 @@
                 saveBtn.innerHTML = originalHtml;
             }
         }
+        
+        // ================================================================
+        // MODAL PROFIL
+        // ================================================================
+        
+        async function ouvrirProfileModal() {
+            document.getElementById('profileModal').style.display = 'block';
+            
+            document.getElementById('profilNom').textContent = currentStudent.nom;
+            document.getElementById('profilMatricule').textContent = `Matricule: ${currentStudent.matricule}`;
+            document.getElementById('profilPromotion').textContent = `Promotion: ${getPromotionNom(currentStudent.promotion)}`;
+            
+            try {
+                const doc = await db.collection('etudiants').doc(currentStudent.id).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    const photoUrl = data.photoURL || data.photoProfil || null;
+                    afficherPhotoModal(photoUrl);
+                }
+            } catch (error) {
+                console.warn('[PROFIL] Erreur chargement photo:', error);
+            }
+        }
+        
+        function afficherPhotoModal(url) {
+            const img = document.getElementById('modalProfilePhoto');
+            const defaultAvatar = document.getElementById('modalProfileAvatarDefault');
+            
+            if (!img || !defaultAvatar) return;
+            
+            if (url && url.trim() !== '') {
+                img.src = url;
+                img.style.display = 'block';
+                defaultAvatar.style.display = 'none';
+            } else {
+                img.style.display = 'none';
+                img.src = '';
+                defaultAvatar.style.display = 'flex';
+            }
+        }
+        
+        window.closeProfileModal = () => {
+            document.getElementById('profileModal').style.display = 'none';
+        };
         
         // ================================================================
         // EXPORTATION PDF
@@ -1924,7 +2118,6 @@
                         headStyles: { fillColor: [0, 51, 102], textColor: [255, 255, 255] },
                         margin: { left: 15, right: 15 }
                     });
-                    y = doc.lastAutoTable.finalY + 10;
                 }
                 
                 const pageCount = doc.internal.getNumberOfPages();
@@ -1985,7 +2178,7 @@
         }
         
         // ================================================================
-        // ÉVÉNEMENTS PRINCIPAUX
+        // ÉVÉNEMENTS
         // ================================================================
         document.getElementById('changePasswordBtn').onclick = changerMotDePasse;
         document.getElementById('exportPdfBtn').onclick = exporterPDF;
@@ -1999,14 +2192,13 @@
             window.location.href = 'login-etudiant.html';
         };
         
-        document.getElementById('profileBtn').onclick = () => {
-            document.getElementById('profileModal').style.display = 'flex';
-            document.getElementById('profilNom').textContent = currentStudent.nom;
-            document.getElementById('profilMatricule').textContent = `Matricule: ${currentStudent.matricule}`;
-            document.getElementById('profilPromotion').textContent = `Promotion: ${getPromotionNom(currentStudent.promotion)}`;
-        };
+        document.getElementById('profileBtn').onclick = ouvrirProfileModal;
         
-        window.closeProfileModal = () => document.getElementById('profileModal').style.display = 'none';
+        document.getElementById('profileModalOverlay')?.addEventListener('click', (e) => {
+            if (e.target.id === 'profileModalOverlay') {
+                closeProfileModal();
+            }
+        });
         
         document.getElementById('changePasswordModalBtn').onclick = async () => {
             const newPwd = document.getElementById('newPasswordModal').value;
@@ -2027,7 +2219,7 @@
         };
         
         // ================================================================
-        // INITIALISATION DES ÉVÉNEMENTS DU MODAL DE CROP
+        // INITIALISATION DES ÉVÉNEMENTS
         // ================================================================
         document.addEventListener('DOMContentLoaded', () => {
             
@@ -2037,14 +2229,10 @@
             const cancelBtn = document.getElementById('cropCancelBtn');
             const saveBtn = document.getElementById('cropSaveBtn');
             const btnChangePhoto = document.getElementById('btnChangePhoto');
-            const btnResetCrop = document.getElementById('btnResetCrop');
             const zoomSlider = document.getElementById('zoomSlider');
-            const cropViewport = document.getElementById('cropViewport');
             
-            // Ouvrir le modal
             uploadBtn?.addEventListener('click', ouvrirCropModal);
             
-            // Cliquer sur la zone d'upload
             uploadZone?.addEventListener('click', () => {
                 if (currentPhotoChanges >= MAX_PHOTO_CHANGES) {
                     showToast('⚠️ Limite atteinte', 'warning');
@@ -2053,35 +2241,25 @@
                 fileInput.click();
             });
             
-            // Drag & drop sur la zone d'upload
             uploadZone?.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                uploadZone.classList.add('dragover');
+                uploadZone.style.background = '#d4e4f5';
             });
-            
             uploadZone?.addEventListener('dragleave', () => {
-                uploadZone.classList.remove('dragover');
+                uploadZone.style.background = '#f0f2f5';
             });
-            
             uploadZone?.addEventListener('drop', (e) => {
                 e.preventDefault();
-                uploadZone.classList.remove('dragover');
-                
+                uploadZone.style.background = '#f0f2f5';
                 const file = e.dataTransfer.files[0];
-                if (file) {
-                    traiterFichierSelectionne(file);
-                }
+                if (file) traiterFichierSelectionne(file);
             });
             
-            // Sélection de fichier
             fileInput?.addEventListener('change', (e) => {
                 const file = e.target.files[0];
-                if (file) {
-                    traiterFichierSelectionne(file);
-                }
+                if (file) traiterFichierSelectionne(file);
             });
             
-            // Bouton "Changer de photo"
             btnChangePhoto?.addEventListener('click', () => {
                 document.getElementById('cropStepAdjust').classList.remove('active');
                 document.getElementById('cropStepUpload').classList.remove('hidden');
@@ -2089,74 +2267,23 @@
                 document.getElementById('cropSaveBtn').disabled = true;
             });
             
-            // Bouton "Réinitialiser"
-            btnResetCrop?.addEventListener('click', () => {
-                if (!sourceImage) return;
-                
-                const scaleX = VIEWPORT_W / sourceImage.width;
-                const scaleY = VIEWPORT_H / sourceImage.height;
-                const minScale = Math.max(scaleX, scaleY);
-                
-                imageScale = minScale;
-                imageOffsetX = (VIEWPORT_W - sourceImage.width * imageScale) / 2;
-                imageOffsetY = (VIEWPORT_H - sourceImage.height * imageScale) / 2;
-                
-                zoomSlider.value = 100;
-                document.getElementById('zoomValue').textContent = '100%';
-                
-                dessinerCanvas();
-            });
-            
-            // Slider de zoom
             zoomSlider?.addEventListener('input', (e) => {
                 const percent = parseInt(e.target.value);
                 document.getElementById('zoomValue').textContent = percent + '%';
                 appliquerZoom(percent);
             });
             
-            // Drag sur le canvas
-            cropViewport?.addEventListener('mousedown', onPointerDown);
-            cropViewport?.addEventListener('touchstart', onPointerDown, { passive: false });
-            
-            document.addEventListener('mousemove', onPointerMove);
-            document.addEventListener('touchmove', onPointerMove, { passive: false });
-            
-            document.addEventListener('mouseup', onPointerUp);
-            document.addEventListener('touchend', onPointerUp);
-            document.addEventListener('touchcancel', onPointerUp);
-            
-            // Annuler
             cancelBtn?.addEventListener('click', fermerCropModal);
-            
-            // Enregistrer
             saveBtn?.addEventListener('click', sauvegarderPhoto);
             
-            // Fermer en cliquant à l'extérieur
             document.getElementById('cropModal')?.addEventListener('click', (e) => {
                 if (e.target.id === 'cropModal') {
                     fermerCropModal();
                 }
             });
+            
+            attacherInteractions();
         });
-        
-        // ================================================================
-        // TRAITEMENT DU FICHIER SÉLECTIONNÉ
-        // ================================================================
-        function traiterFichierSelectionne(file) {
-            // Vérifier le type
-            if (!file.type.startsWith('image/')) {
-                showToast('Veuillez choisir une image', 'warning');
-                return;
-            }
-            
-            // Vérifier la taille (5 MB max)
-            if (file.size > 5 * 1024 * 1024) {
-                showToast('Image trop grande (max 5 MB)', 'warning');
-                return;
-            }
-            
-            chargerImageDansCanvas(file);
-        }
         
         // ================================================================
         // INITIALISATION
@@ -2166,24 +2293,19 @@
         db.collection('etudiants').doc(currentStudent.id).onSnapshot(() => actualiserProfil());
         db.collection('transactions').limit(2000).onSnapshot(() => actualiserProfil());
         
-        console.log('✅ Page profil chargée - Recadrage interactif actif (max 2 changements)');
+        console.log('✅ Page profil - Format 2:3 (RDC 40×60mm) actif');
     </script>
 
     <script>
-    // ================================================================
-    // SCRIPT D'INSTALLATION PWA
-    // ================================================================
+    // Script PWA simplifié
     (function() {
       'use strict';
-      
       let deferredPrompt;
       const installBanner = document.createElement('div');
       installBanner.className = 'pwa-install-banner';
       installBanner.innerHTML = `
         <div class="install-banner-content">
-          <div class="install-banner-icon">
-            <i class="bi bi-download"></i>
-          </div>
+          <div class="install-banner-icon"><i class="bi bi-download"></i></div>
           <div class="install-banner-text">
             <strong>Installer l'application</strong>
             <small>Ajoutez Faculté Agronomique à votre écran d'accueil</small>
@@ -2192,18 +2314,13 @@
           <button class="close-banner" id="closeInstallBanner">&times;</button>
         </div>
       `;
-      
       const style = document.createElement('style');
       style.textContent = `
         .pwa-install-banner {
-          position: fixed;
-          bottom: 0; left: 0; right: 0;
+          position: fixed; bottom: 0; left: 0; right: 0;
           background: linear-gradient(135deg, #003366, #002244);
-          color: white;
-          padding: 15px 20px;
-          z-index: 10000;
-          transform: translateY(100%);
-          transition: transform 0.3s ease;
+          color: white; padding: 15px 20px; z-index: 10000;
+          transform: translateY(100%); transition: transform 0.3s ease;
           box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
         }
         .pwa-install-banner.show { transform: translateY(0); }
@@ -2251,12 +2368,6 @@
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        if (!isAppInstalled && !isInstalled) {
-          if (!document.body.contains(installBanner)) {
-            document.body.appendChild(installBanner);
-          }
-          setTimeout(() => installBanner.classList.add('show'), 100);
-        }
       });
       
       window.addEventListener('appinstalled', () => {
@@ -2269,13 +2380,11 @@
         if (deferredPrompt) {
           deferredPrompt.prompt();
           const { outcome } = await deferredPrompt.userChoice;
-          if (outcome === 'accepted') {
-            localStorage.setItem('pwa-installed', 'true');
-          }
+          if (outcome === 'accepted') localStorage.setItem('pwa-installed', 'true');
           deferredPrompt = null;
           installBanner.classList.remove('show');
         } else {
-          alert('Pour installer l\'application:\n\n• Sur Android: Menu > "Ajouter à l\'écran d\'accueil"\n• Sur iOS: Partager > "Sur l\'écran d\'accueil"');
+          alert('Pour installer l\'application:\n\n• Android: Menu > "Ajouter à l\'écran d\'accueil"\n• iOS: Partager > "Sur l\'écran d\'accueil"');
           localStorage.setItem('pwa-installed', 'true');
           installBanner.classList.remove('show');
         }
@@ -2289,7 +2398,7 @@
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js')
           .then(reg => console.log('✅ Service Worker enregistré'))
-          .catch(err => console.log('❌ Erreur Service Worker:', err));
+          .catch(err => console.log('❌ Erreur SW:', err));
       }
     })();
     </script>
