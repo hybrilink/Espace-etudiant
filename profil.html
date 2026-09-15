@@ -199,13 +199,13 @@
         }
         
         /* ============================================================
-           MODAL DE RECADRAGE PHOTO
+           MODAL DE RECADRAGE PHOTO INTERACTIF
         ============================================================ */
         
         .crop-modal {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.9);
             display: none;
             align-items: center;
             justify-content: center;
@@ -221,7 +221,7 @@
             background: white;
             border-radius: 20px;
             padding: 20px;
-            max-width: 500px;
+            max-width: 480px;
             width: 100%;
             max-height: 95vh;
             overflow-y: auto;
@@ -243,51 +243,262 @@
             font-size: 12px;
             color: #666;
             margin-bottom: 15px;
+            line-height: 1.5;
         }
         
-        .crop-area {
+        /* ============================================================
+           ÉTAPE 1 : SÉLECTION DU FICHIER
+        ============================================================ */
+        
+        .crop-step-upload {
+            display: block;
+        }
+        
+        .crop-step-upload.hidden {
+            display: none;
+        }
+        
+        .upload-zone {
             position: relative;
             width: 100%;
             max-width: 300px;
             margin: 0 auto 15px;
             background: #f0f2f5;
             border-radius: 10px;
-            overflow: hidden;
-            border: 2px dashed var(--primary-blue);
+            border: 3px dashed var(--primary-blue);
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 280px;
             cursor: pointer;
             aspect-ratio: 5 / 7;
+            transition: all 0.3s;
+            overflow: hidden;
         }
         
-        .crop-area img {
+        .upload-zone:hover {
+            background: #e8eef5;
+            border-color: var(--accent-yellow);
+        }
+        
+        .upload-zone.dragover {
+            background: #d4e4f5;
+            border-color: var(--accent-yellow);
+            transform: scale(1.02);
+        }
+        
+        .upload-placeholder {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+        
+        .upload-placeholder i {
+            font-size: 60px;
+            color: var(--primary-blue);
+            opacity: 0.5;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .upload-placeholder p {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+        
+        .upload-placeholder small {
+            display: block;
+            margin-top: 6px;
+            font-size: 11px;
+            color: #999;
+        }
+        
+        /* ============================================================
+           ÉTAPE 2 : RECADRAGE INTERACTIF
+        ============================================================ */
+        
+        .crop-step-adjust {
+            display: none;
+        }
+        
+        .crop-step-adjust.active {
+            display: block;
+        }
+        
+        /* Zone de crop principale */
+        .crop-viewport-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .crop-viewport {
+            position: relative;
+            width: 280px;
+            height: 392px; /* ratio 5:7 */
+            background: #1a1a1a;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        .crop-viewport:active {
+            cursor: grabbing;
+        }
+        
+        #cropCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
             display: block;
+            pointer-events: none;
         }
         
-        .crop-placeholder {
-            text-align: center;
-            color: #999;
-            padding: 40px 20px;
+        /* Grille de composition */
+        .crop-grid {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
         }
         
-        .crop-placeholder i {
-            font-size: 50px;
+        .crop-grid-line {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .crop-grid-line.v1 { left: 33.33%; top: 0; bottom: 0; width: 1px; }
+        .crop-grid-line.v2 { left: 66.66%; top: 0; bottom: 0; width: 1px; }
+        .crop-grid-line.h1 { top: 33.33%; left: 0; right: 0; height: 1px; }
+        .crop-grid-line.h2 { top: 66.66%; left: 0; right: 0; height: 1px; }
+        
+        /* Bordure du cadre */
+        .crop-frame {
+            position: absolute;
+            inset: 0;
+            border: 3px solid white;
+            border-radius: 12px;
+            pointer-events: none;
+            z-index: 6;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3);
+        }
+        
+        /* Coins */
+        .crop-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--accent-yellow);
+            z-index: 7;
+            pointer-events: none;
+        }
+        
+        .crop-corner.tl { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: 12px; }
+        .crop-corner.tr { top: -1px; right: -1px; border-left: none; border-bottom: none; border-top-right-radius: 12px; }
+        .crop-corner.bl { bottom: -1px; left: -1px; border-right: none; border-top: none; border-bottom-left-radius: 12px; }
+        .crop-corner.br { bottom: -1px; right: -1px; border-left: none; border-top: none; border-bottom-right-radius: 12px; }
+        
+        /* Contrôles du crop */
+        .crop-controls {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 280px;
+        }
+        
+        .crop-control-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .crop-control-row label {
+            font-size: 12px;
+            font-weight: 600;
             color: var(--primary-blue);
-            opacity: 0.3;
-            margin-bottom: 10px;
-            display: block;
+            min-width: 45px;
         }
         
-        .crop-placeholder p {
-            margin: 0;
-            font-size: 13px;
+        .crop-control-row i {
+            font-size: 16px;
+            color: var(--primary-blue);
         }
         
+        /* Slider de zoom */
+        .zoom-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #d0d7de;
+            outline: none;
+        }
+        
+        .zoom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        
+        .zoom-slider::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        
+        .zoom-value {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--primary-blue);
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .btn-reset-crop {
+            background: white;
+            border: 1px solid var(--primary-blue);
+            color: var(--primary-blue);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            align-self: center;
+        }
+        
+        .btn-reset-crop:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+        
+        /* Actions du bas */
         .crop-actions {
             display: flex;
             gap: 10px;
@@ -302,6 +513,10 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
         
         .btn-crop-cancel {
@@ -327,6 +542,23 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+        
+        .btn-change-photo {
+            background: #fff3cd;
+            color: #856404;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid #ffeaa7;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 10px;
+        }
+        
+        .btn-change-photo:hover {
+            background: #ffeaa7;
         }
         
         /* ============================================================
@@ -517,6 +749,16 @@
         }
         
         .toast { animation: slideInRight 0.3s ease-out; }
+        
+        @media (max-width: 500px) {
+            .crop-viewport {
+                width: 250px;
+                height: 350px;
+            }
+            .crop-controls {
+                width: 250px;
+            }
+        }
         
         @media (max-width: 768px) {
             .content-card { padding: 20px; }
@@ -742,7 +984,7 @@
     </div>
 
     <!-- ================================================================
-         MODAL DE RECADRAGE PHOTO (format 5:7 - fond blanc)
+         MODAL DE RECADRAGE PHOTO INTERACTIF (format 5:7)
     ================================================================= -->
     <div id="cropModal" class="crop-modal">
         <div class="crop-modal-content">
@@ -751,7 +993,7 @@
                 Photo de profil
             </h5>
             <p class="crop-hint">
-                Format 5:7 (photo identité) - fond blanc recommandé.<br>
+                Format 5:7 (photo identité).<br>
                 <strong id="cropPhotoCounter">Il vous reste 2 changement(s).</strong>
             </p>
             
@@ -762,24 +1004,78 @@
                 style="display: none;"
             >
             
-            <div class="crop-area" id="cropArea">
-                <div class="crop-placeholder" id="cropPlaceholder">
-                    <i class="bi bi-cloud-arrow-up-fill"></i>
-                    <p><strong>Cliquez ici</strong> pour choisir une photo</p>
-                    <p style="font-size: 11px; margin-top: 5px;">
-                        JPG, PNG - Max 5 MB
-                    </p>
+            <!-- =====================================================
+                 ÉTAPE 1 : SÉLECTION DU FICHIER
+            ====================================================== -->
+            <div class="crop-step-upload" id="cropStepUpload">
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-placeholder">
+                        <i class="bi bi-cloud-arrow-up-fill"></i>
+                        <p>Cliquez pour choisir une photo</p>
+                        <small>JPG, PNG - Max 5 MB</small>
+                    </div>
                 </div>
-                <img id="cropPreviewImg" style="display: none;" alt="Aperçu">
             </div>
             
+            <!-- =====================================================
+                 ÉTAPE 2 : RECADRAGE INTERACTIF
+            ====================================================== -->
+            <div class="crop-step-adjust" id="cropStepAdjust">
+                <button type="button" class="btn-change-photo" id="btnChangePhoto">
+                    <i class="bi bi-arrow-left"></i> Changer de photo
+                </button>
+                
+                <div class="crop-viewport-wrapper">
+                    <div class="crop-viewport" id="cropViewport">
+                        <canvas id="cropCanvas"></canvas>
+                        <div class="crop-grid">
+                            <div class="crop-grid-line v1"></div>
+                            <div class="crop-grid-line v2"></div>
+                            <div class="crop-grid-line h1"></div>
+                            <div class="crop-grid-line h2"></div>
+                        </div>
+                        <div class="crop-frame"></div>
+                        <div class="crop-corner tl"></div>
+                        <div class="crop-corner tr"></div>
+                        <div class="crop-corner bl"></div>
+                        <div class="crop-corner br"></div>
+                    </div>
+                    
+                    <div class="crop-controls">
+                        <div class="crop-control-row">
+                            <i class="bi bi-zoom-out"></i>
+                            <input 
+                                type="range" 
+                                class="zoom-slider" 
+                                id="zoomSlider" 
+                                min="100" 
+                                max="300" 
+                                value="100"
+                            >
+                            <span class="zoom-value" id="zoomValue">100%</span>
+                        </div>
+                        <button type="button" class="btn-reset-crop" id="btnResetCrop">
+                            <i class="bi bi-arrow-clockwise"></i> Réinitialiser
+                        </button>
+                    </div>
+                </div>
+                
+                <p style="font-size: 11px; color: #666; text-align: center; margin-bottom: 10px;">
+                    <i class="bi bi-hand-index-thumb"></i>
+                    Déplacez la photo avec votre doigt / souris
+                </p>
+            </div>
+            
+            <!-- =====================================================
+                 ACTIONS
+            ====================================================== -->
             <div class="crop-actions">
                 <button 
                     type="button" 
                     class="btn-crop-cancel" 
                     id="cropCancelBtn"
                 >
-                    Annuler
+                    <i class="bi bi-x-lg"></i> Annuler
                 </button>
                 <button 
                     type="button" 
@@ -846,8 +1142,26 @@
         let allAnnees = [];
         let allTransactions = [];
         let studentFirestoreData = null;
-        let selectedPhotoFile = null;
         let currentPhotoChanges = 0;
+        
+        // Variables de recadrage
+        let sourceImage = null;         // Image source originale
+        let imageScale = 1;             // Échelle actuelle (1 = fit)
+        let imageOffsetX = 0;           // Décalage X en pixels
+        let imageOffsetY = 0;           // Décalage Y en pixels
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let dragStartOffsetX = 0;
+        let dragStartOffsetY = 0;
+        
+        // Dimensions du viewport (canvas)
+        const VIEWPORT_W = 280;
+        const VIEWPORT_H = 392;
+        
+        // Résolution de sortie
+        const OUTPUT_W = 500;
+        const OUTPUT_H = 700;
         
         // ================================================================
         // VÉRIFICATION SESSION
@@ -907,9 +1221,7 @@
         }
         
         async function chargerTransactions() {
-            const snapshot = await db.collection('transactions')
-                .limit(2000)
-                .get();
+            const snapshot = await db.collection('transactions').limit(2000).get();
             allTransactions = [];
             snapshot.forEach(doc => {
                 const data = doc.data();
@@ -939,12 +1251,6 @@
             if (!promotionId) return 'Non définie';
             const promo = allPromotions.find(p => p.id === promotionId);
             return promo ? promo.nom : promotionId;
-        }
-        
-        function getAnneeNom(anneeId) {
-            if (!anneeId) return '-';
-            const annee = allAnnees.find(a => a.id === anneeId);
-            return annee ? (annee.annee || annee.nom) : anneeId;
         }
         
         // ================================================================
@@ -994,9 +1300,6 @@
             document.getElementById('statTotalPaye').textContent = totalPaye.toLocaleString() + ' FC';
             document.getElementById('statDernierPaiement').textContent = dernierPaiementDate ? dernierPaiementDate.toLocaleDateString('fr-FR') : '-';
             
-            // ============================================================
-            // CHARGER LA PHOTO DE PROFIL
-            // ============================================================
             await chargerCompteurPhoto();
         }
         
@@ -1004,9 +1307,6 @@
         // GESTION PHOTO DE PROFIL
         // ================================================================
         
-        /**
-         * Charger le compteur de changements et la photo actuelle
-         */
         async function chargerCompteurPhoto() {
             try {
                 const doc = await db.collection('etudiants').doc(currentStudent.id).get();
@@ -1025,9 +1325,6 @@
             }
         }
         
-        /**
-         * Afficher la photo dans le profil
-         */
         function afficherPhoto(url) {
             const img = document.getElementById('profileAvatarImg');
             const defaultAvatar = document.getElementById('profileAvatarDefault');
@@ -1045,9 +1342,6 @@
             }
         }
         
-        /**
-         * Mettre à jour la photo dans la navbar
-         */
         function mettreAJourPhotoNavbar(url) {
             const navbarPhoto = document.getElementById('navbarPhoto');
             if (!navbarPhoto) return;
@@ -1060,9 +1354,6 @@
             }
         }
         
-        /**
-         * Mettre à jour le compteur
-         */
         function mettreAJourCompteur() {
             const restant = MAX_PHOTO_CHANGES - currentPhotoChanges;
             const counterText = document.getElementById('photoCounterText');
@@ -1103,123 +1394,346 @@
             }
         }
         
-        /**
-         * Ouvrir le modal de recadrage
-         */
+        // ================================================================
+        // OUVERTURE / FERMETURE MODAL
+        // ================================================================
+        
         function ouvrirCropModal() {
             if (currentPhotoChanges >= MAX_PHOTO_CHANGES) {
                 showToast('⚠️ Vous avez atteint la limite de changements de photo.', 'warning');
                 return;
             }
             
-            selectedPhotoFile = null;
-            const img = document.getElementById('cropPreviewImg');
-            const placeholder = document.getElementById('cropPlaceholder');
-            const saveBtn = document.getElementById('cropSaveBtn');
-            const fileInput = document.getElementById('photoFileInput');
-            
-            img.style.display = 'none';
-            img.src = '';
-            placeholder.style.display = 'block';
-            saveBtn.disabled = true;
-            fileInput.value = '';
-            
+            resetCropModal();
             mettreAJourCompteur();
             document.getElementById('cropModal').classList.add('show');
         }
         
-        /**
-         * Fermer le modal
-         */
         function fermerCropModal() {
             document.getElementById('cropModal').classList.remove('show');
-            selectedPhotoFile = null;
-            const img = document.getElementById('cropPreviewImg');
-            if (img) { img.src = ''; img.style.display = 'none'; }
-            const placeholder = document.getElementById('cropPlaceholder');
-            if (placeholder) placeholder.style.display = 'block';
+            resetCropModal();
+        }
+        
+        function resetCropModal() {
+            sourceImage = null;
+            imageScale = 1;
+            imageOffsetX = 0;
+            imageOffsetY = 0;
+            isDragging = false;
+            
+            // Étape 1 visible, étape 2 cachée
+            document.getElementById('cropStepUpload').classList.remove('hidden');
+            document.getElementById('cropStepAdjust').classList.remove('active');
+            
+            // Reset input file
+            const fileInput = document.getElementById('photoFileInput');
+            if (fileInput) fileInput.value = '';
+            
+            // Reset slider
+            const slider = document.getElementById('zoomSlider');
+            if (slider) slider.value = 100;
+            const zoomValue = document.getElementById('zoomValue');
+            if (zoomValue) zoomValue.textContent = '100%';
+            
+            // Reset save
             const saveBtn = document.getElementById('cropSaveBtn');
             if (saveBtn) saveBtn.disabled = true;
+            
+            // Reset upload zone
+            const uploadZone = document.getElementById('uploadZone');
+            if (uploadZone) uploadZone.classList.remove('dragover');
+        }
+        
+        // ================================================================
+        // CHARGEMENT DE L'IMAGE DANS LE CANVAS
+        // ================================================================
+        
+        function chargerImageDansCanvas(file) {
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                const img = new Image();
+                
+                img.onload = () => {
+                    sourceImage = img;
+                    
+                    // Passage à l'étape 2
+                    document.getElementById('cropStepUpload').classList.add('hidden');
+                    document.getElementById('cropStepAdjust').classList.add('active');
+                    
+                    // Reset paramètres
+                    imageScale = 1;
+                    imageOffsetX = 0;
+                    imageOffsetY = 0;
+                    
+                    // Adapter le canvas
+                    const canvas = document.getElementById('cropCanvas');
+                    const dpr = window.devicePixelRatio || 1;
+                    canvas.width = VIEWPORT_W * dpr;
+                    canvas.height = VIEWPORT_H * dpr;
+                    canvas.style.width = VIEWPORT_W + 'px';
+                    canvas.style.height = VIEWPORT_H + 'px';
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.scale(dpr, dpr);
+                    
+                    // Calculer le scale minimum pour couvrir tout le canvas
+                    const scaleX = VIEWPORT_W / img.width;
+                    const scaleY = VIEWPORT_H / img.height;
+                    const minScale = Math.max(scaleX, scaleY);
+                    
+                    // Le scale 1 = couvre tout le canvas
+                    imageScale = minScale;
+                    
+                    // Centrer l'image
+                    imageOffsetX = (VIEWPORT_W - img.width * imageScale) / 2;
+                    imageOffsetY = (VIEWPORT_H - img.height * imageScale) / 2;
+                    
+                    dessinerCanvas();
+                    
+                    // Activer le bouton d'enregistrement
+                    document.getElementById('cropSaveBtn').disabled = false;
+                    
+                    // Mettre à jour le slider (100% = couverture minimale)
+                    mettreAJourSlider();
+                };
+                
+                img.onerror = () => {
+                    showToast('❌ Impossible de charger cette image', 'danger');
+                };
+                
+                img.src = e.target.result;
+            };
+            
+            reader.onerror = () => {
+                showToast('❌ Erreur de lecture du fichier', 'danger');
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        // ================================================================
+        // DESSIN DU CANVAS
+        // ================================================================
+        
+        function dessinerCanvas() {
+            const canvas = document.getElementById('cropCanvas');
+            if (!canvas || !sourceImage) return;
+            
+            const dpr = window.devicePixelRatio || 1;
+            const ctx = canvas.getContext('2d');
+            
+            // Reset transform et clear
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Fond noir (au cas où l'image ne couvre pas tout)
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Appliquer le DPR
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            
+            // Dessiner l'image
+            ctx.drawImage(
+                sourceImage,
+                imageOffsetX,
+                imageOffsetY,
+                sourceImage.width * imageScale,
+                sourceImage.height * imageScale
+            );
+        }
+        
+        // ================================================================
+        // GESTION DU DRAG (souris + tactile)
+        // ================================================================
+        
+        function getPointerPos(e) {
+            if (e.touches && e.touches.length > 0) {
+                return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+            return { x: e.clientX, y: e.clientY };
+        }
+        
+        function onPointerDown(e) {
+            if (!sourceImage) return;
+            e.preventDefault();
+            
+            isDragging = true;
+            const pos = getPointerPos(e);
+            dragStartX = pos.x;
+            dragStartY = pos.y;
+            dragStartOffsetX = imageOffsetX;
+            dragStartOffsetY = imageOffsetY;
+        }
+        
+        function onPointerMove(e) {
+            if (!isDragging || !sourceImage) return;
+            e.preventDefault();
+            
+            const pos = getPointerPos(e);
+            const dx = pos.x - dragStartX;
+            const dy = pos.y - dragStartY;
+            
+            imageOffsetX = dragStartOffsetX + dx;
+            imageOffsetY = dragStartOffsetY + dy;
+            
+            contraindreImage();
+            dessinerCanvas();
+        }
+        
+        function onPointerUp(e) {
+            isDragging = false;
         }
         
         /**
-         * Traiter l'image : recadrage automatique en 5:7 avec fond blanc
+         * Contraint l'image pour qu'elle ne sorte pas du canvas
          */
-        function traiterImage(file) {
+        function contraindreImage() {
+            if (!sourceImage) return;
+            
+            const scaledW = sourceImage.width * imageScale;
+            const scaledH = sourceImage.height * imageScale;
+            
+            // Limite horizontale
+            if (scaledW <= VIEWPORT_W) {
+                imageOffsetX = (VIEWPORT_W - scaledW) / 2;
+            } else {
+                const minX = VIEWPORT_W - scaledW;
+                const maxX = 0;
+                if (imageOffsetX < minX) imageOffsetX = minX;
+                if (imageOffsetX > maxX) imageOffsetX = maxX;
+            }
+            
+            // Limite verticale
+            if (scaledH <= VIEWPORT_H) {
+                imageOffsetY = (VIEWPORT_H - scaledH) / 2;
+            } else {
+                const minY = VIEWPORT_H - scaledH;
+                const maxY = 0;
+                if (imageOffsetY < minY) imageOffsetY = minY;
+                if (imageOffsetY > maxY) imageOffsetY = maxY;
+            }
+        }
+        
+        // ================================================================
+        // GESTION DU ZOOM
+        // ================================================================
+        
+        function mettreAJourSlider() {
+            if (!sourceImage) return;
+            
+            // Calculer le scale minimum (fit pour couvrir)
+            const scaleX = VIEWPORT_W / sourceImage.width;
+            const scaleY = VIEWPORT_H / sourceImage.height;
+            const minScale = Math.max(scaleX, scaleY);
+            
+            // Ratio actuel : 100% = minScale, 300% = 3 * minScale
+            const ratio = imageScale / minScale;
+            const percent = Math.round(ratio * 100);
+            
+            const slider = document.getElementById('zoomSlider');
+            if (slider) {
+                slider.min = 100;
+                slider.max = 300;
+                slider.value = Math.min(300, Math.max(100, percent));
+            }
+            
+            const zoomValue = document.getElementById('zoomValue');
+            if (zoomValue) {
+                zoomValue.textContent = Math.min(300, Math.max(100, percent)) + '%';
+            }
+        }
+        
+        function appliquerZoom(nouveauPercent) {
+            if (!sourceImage) return;
+            
+            const scaleX = VIEWPORT_W / sourceImage.width;
+            const scaleY = VIEWPORT_H / sourceImage.height;
+            const minScale = Math.max(scaleX, scaleY);
+            
+            // Calculer le centre du viewport
+            const centerX = VIEWPORT_W / 2;
+            const centerY = VIEWPORT_H / 2;
+            
+            // Position du centre dans l'image (en coordonnées image)
+            const imgCenterX = (centerX - imageOffsetX) / imageScale;
+            const imgCenterY = (centerY - imageOffsetY) / imageScale;
+            
+            // Nouveau scale
+            const oldScale = imageScale;
+            imageScale = minScale * (nouveauPercent / 100);
+            
+            // Ajuster l'offset pour garder le centre
+            imageOffsetX = centerX - imgCenterX * imageScale;
+            imageOffsetY = centerY - imgCenterY * imageScale;
+            
+            contraindreImage();
+            dessinerCanvas();
+        }
+        
+        // ================================================================
+        // GÉNÉRATION DU BLOC FINAL (recadrage 5:7 fond blanc)
+        // ================================================================
+        
+        function genererBlobFinal() {
             return new Promise((resolve, reject) => {
-                const reader = new FileReader();
+                if (!sourceImage) {
+                    reject(new Error('Aucune image chargée'));
+                    return;
+                }
                 
-                reader.onload = (e) => {
-                    const img = new Image();
-                    
-                    img.onload = () => {
-                        // Dimensions cibles : 500x700 (ratio 5:7)
-                        const targetW = 500;
-                        const targetH = 700;
-                        
-                        // Créer le canvas
-                        const canvas = document.createElement('canvas');
-                        canvas.width = targetW;
-                        canvas.height = targetH;
-                        const ctx = canvas.getContext('2d');
-                        
-                        // Fond blanc
-                        ctx.fillStyle = '#FFFFFF';
-                        ctx.fillRect(0, 0, targetW, targetH);
-                        
-                        // Calculer le ratio de l'image source
-                        const imgRatio = img.width / img.height;
-                        const targetRatio = targetW / targetH; // = 5/7
-                        
-                        let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
-                        
-                        if (imgRatio > targetRatio) {
-                            // Image trop large : crop horizontal
-                            srcH = img.height;
-                            srcW = img.height * targetRatio;
-                            srcX = (img.width - srcW) / 2;
-                            srcY = 0;
+                // Créer un canvas de sortie haute résolution
+                const outputCanvas = document.createElement('canvas');
+                outputCanvas.width = OUTPUT_W;
+                outputCanvas.height = OUTPUT_H;
+                const ctx = outputCanvas.getContext('2d');
+                
+                // Fond blanc (au cas où)
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
+                
+                // Ratio entre viewport et output
+                const ratioX = OUTPUT_W / VIEWPORT_W;
+                const ratioY = OUTPUT_H / VIEWPORT_H;
+                
+                // Coordonnées de l'image dans le viewport
+                const srcX = imageOffsetX;
+                const srcY = imageOffsetY;
+                const srcW = sourceImage.width * imageScale;
+                const srcH = sourceImage.height * imageScale;
+                
+                // Convertir en coordonnées output
+                const dstX = srcX * ratioX;
+                const dstY = srcY * ratioY;
+                const dstW = srcW * ratioX;
+                const dstH = srcH * ratioY;
+                
+                // Dessiner l'image
+                ctx.drawImage(
+                    sourceImage,
+                    dstX, dstY, dstW, dstH
+                );
+                
+                // Convertir en Blob
+                outputCanvas.toBlob(
+                    (blob) => {
+                        if (blob) {
+                            resolve(blob);
                         } else {
-                            // Image trop haute : crop vertical
-                            srcW = img.width;
-                            srcH = img.width / targetRatio;
-                            srcX = 0;
-                            srcY = (img.height - srcH) / 2;
+                            reject(new Error('Impossible de générer l\'image'));
                         }
-                        
-                        // Dessiner l'image recadrée
-                        ctx.drawImage(
-                            img,
-                            srcX, srcY, srcW, srcH,
-                            0, 0, targetW, targetH
-                        );
-                        
-                        // Convertir en Blob JPEG
-                        canvas.toBlob(
-                            (blob) => {
-                                if (blob) {
-                                    resolve(blob);
-                                } else {
-                                    reject(new Error('Impossible de créer l\'image'));
-                                }
-                            },
-                            'image/jpeg',
-                            0.92
-                        );
-                    };
-                    
-                    img.onerror = () => reject(new Error('Image invalide'));
-                    img.src = e.target.result;
-                };
-                
-                reader.onerror = () => reject(new Error('Erreur de lecture'));
-                reader.readAsDataURL(file);
+                    },
+                    'image/jpeg',
+                    0.92
+                );
             });
         }
         
-        /**
-         * Upload vers Cloudinary
-         */
+        // ================================================================
+        // UPLOAD CLOUDINARY
+        // ================================================================
+        
         async function uploaderVersCloudinary(blob) {
             const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`;
             
@@ -1242,11 +1756,12 @@
             return data.secure_url || data.url;
         }
         
-        /**
-         * Sauvegarder la photo
-         */
+        // ================================================================
+        // SAUVEGARDER LA PHOTO
+        // ================================================================
+        
         async function sauvegarderPhoto() {
-            if (!selectedPhotoFile) {
+            if (!sourceImage) {
                 showToast('Aucune photo sélectionnée', 'warning');
                 return;
             }
@@ -1262,10 +1777,10 @@
             saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Envoi...';
             
             try {
-                // 1. Traiter l'image (recadrage 5:7 fond blanc)
-                const blob = await traiterImage(selectedPhotoFile);
+                // 1. Générer le blob final
+                const blob = await genererBlobFinal();
                 
-                // 2. Upload vers Cloudinary
+                // 2. Upload Cloudinary
                 const photoUrl = await uploaderVersCloudinary(blob);
                 console.log('[PHOTO] ✅ Uploadée:', photoUrl);
                 
@@ -1299,7 +1814,7 @@
         }
         
         // ================================================================
-        // EXPORTATION EN PDF
+        // EXPORTATION PDF
         // ================================================================
         async function exporterPDF() {
             const btn = document.getElementById('exportPdfBtn');
@@ -1324,7 +1839,6 @@
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                 
-                // En-tête
                 doc.setFillColor(0, 51, 102);
                 doc.rect(0, 0, 210, 40, 'F');
                 doc.setTextColor(255, 255, 255);
@@ -1340,7 +1854,6 @@
                 
                 let y = 55;
                 
-                // Informations étudiant
                 doc.setFillColor(240, 242, 245);
                 doc.rect(15, y - 5, 180, 8, 'F');
                 doc.setFontSize(11);
@@ -1368,7 +1881,6 @@
                 
                 y += 5;
                 
-                // Statistiques
                 doc.setFillColor(240, 242, 245);
                 doc.rect(15, y - 5, 180, 8, 'F');
                 doc.setTextColor(0, 51, 102);
@@ -1389,7 +1901,6 @@
                 
                 y += 5;
                 
-                // Historique des paiements
                 if (allTransactions.length > 0) {
                     doc.setFillColor(240, 242, 245);
                     doc.rect(15, y - 5, 180, 8, 'F');
@@ -1416,7 +1927,6 @@
                     y = doc.lastAutoTable.finalY + 10;
                 }
                 
-                // Pied de page
                 const pageCount = doc.internal.getNumberOfPages();
                 for (let i = 1; i <= pageCount; i++) {
                     doc.setPage(i);
@@ -1445,34 +1955,16 @@
             const newPwd = document.getElementById('newPassword').value;
             const confirmPwd = document.getElementById('confirmNewPassword').value;
             
-            if (!currentPwd) {
-                showToast('Veuillez entrer votre mot de passe actuel', 'warning');
-                return;
-            }
-            if (!newPwd) {
-                showToast('Veuillez entrer un nouveau mot de passe', 'warning');
-                return;
-            }
-            if (newPwd.length < 4) {
-                showToast('Le mot de passe doit contenir au moins 4 caractères', 'warning');
-                return;
-            }
-            if (newPwd !== confirmPwd) {
-                showToast('Les nouveaux mots de passe ne correspondent pas', 'warning');
-                return;
-            }
+            if (!currentPwd) { showToast('Veuillez entrer votre mot de passe actuel', 'warning'); return; }
+            if (!newPwd) { showToast('Veuillez entrer un nouveau mot de passe', 'warning'); return; }
+            if (newPwd.length < 4) { showToast('Le mot de passe doit contenir au moins 4 caractères', 'warning'); return; }
+            if (newPwd !== confirmPwd) { showToast('Les nouveaux mots de passe ne correspondent pas', 'warning'); return; }
             
             const doc = await db.collection('etudiants').doc(currentStudent.id).get();
-            if (!doc.exists) {
-                showToast('Erreur: compte non trouvé', 'error');
-                return;
-            }
+            if (!doc.exists) { showToast('Erreur: compte non trouvé', 'error'); return; }
             
             const userData = doc.data();
-            if (userData.motDePasse !== currentPwd) {
-                showToast('Mot de passe actuel incorrect', 'error');
-                return;
-            }
+            if (userData.motDePasse !== currentPwd) { showToast('Mot de passe actuel incorrect', 'error'); return; }
             
             const btn = document.getElementById('changePasswordBtn');
             btn.disabled = true;
@@ -1493,7 +1985,7 @@
         }
         
         // ================================================================
-        // ÉVÉNEMENTS
+        // ÉVÉNEMENTS PRINCIPAUX
         // ================================================================
         document.getElementById('changePasswordBtn').onclick = changerMotDePasse;
         document.getElementById('exportPdfBtn').onclick = exporterPDF;
@@ -1520,14 +2012,8 @@
             const newPwd = document.getElementById('newPasswordModal').value;
             const confirmPwd = document.getElementById('confirmNewPasswordModal').value;
             
-            if (!newPwd || newPwd !== confirmPwd) {
-                showToast('Les mots de passe ne correspondent pas', 'warning');
-                return;
-            }
-            if (newPwd.length < 4) {
-                showToast('Minimum 4 caractères', 'warning');
-                return;
-            }
+            if (!newPwd || newPwd !== confirmPwd) { showToast('Les mots de passe ne correspondent pas', 'warning'); return; }
+            if (newPwd.length < 4) { showToast('Minimum 4 caractères', 'warning'); return; }
             
             try {
                 await db.collection('etudiants').doc(currentStudent.id).update({ motDePasse: newPwd });
@@ -1541,21 +2027,25 @@
         };
         
         // ================================================================
-        // ÉVÉNEMENTS PHOTO
+        // INITIALISATION DES ÉVÉNEMENTS DU MODAL DE CROP
         // ================================================================
         document.addEventListener('DOMContentLoaded', () => {
             
             const uploadBtn = document.getElementById('uploadPhotoBtn');
-            const cropArea = document.getElementById('cropArea');
+            const uploadZone = document.getElementById('uploadZone');
             const fileInput = document.getElementById('photoFileInput');
             const cancelBtn = document.getElementById('cropCancelBtn');
             const saveBtn = document.getElementById('cropSaveBtn');
+            const btnChangePhoto = document.getElementById('btnChangePhoto');
+            const btnResetCrop = document.getElementById('btnResetCrop');
+            const zoomSlider = document.getElementById('zoomSlider');
+            const cropViewport = document.getElementById('cropViewport');
             
             // Ouvrir le modal
             uploadBtn?.addEventListener('click', ouvrirCropModal);
             
-            // Cliquer sur la zone de crop
-            cropArea?.addEventListener('click', () => {
+            // Cliquer sur la zone d'upload
+            uploadZone?.addEventListener('click', () => {
                 if (currentPhotoChanges >= MAX_PHOTO_CHANGES) {
                     showToast('⚠️ Limite atteinte', 'warning');
                     return;
@@ -1563,37 +2053,77 @@
                 fileInput.click();
             });
             
+            // Drag & drop sur la zone d'upload
+            uploadZone?.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+            });
+            
+            uploadZone?.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('dragover');
+            });
+            
+            uploadZone?.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                
+                const file = e.dataTransfer.files[0];
+                if (file) {
+                    traiterFichierSelectionne(file);
+                }
+            });
+            
             // Sélection de fichier
             fileInput?.addEventListener('change', (e) => {
                 const file = e.target.files[0];
-                if (!file) return;
-                
-                // Vérifier le type
-                if (!file.type.startsWith('image/')) {
-                    showToast('Veuillez choisir une image', 'warning');
-                    return;
+                if (file) {
+                    traiterFichierSelectionne(file);
                 }
-                
-                // Vérifier la taille (5 MB max)
-                if (file.size > 5 * 1024 * 1024) {
-                    showToast('Image trop grande (max 5 MB)', 'warning');
-                    return;
-                }
-                
-                selectedPhotoFile = file;
-                
-                // Aperçu
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    const img = document.getElementById('cropPreviewImg');
-                    const placeholder = document.getElementById('cropPlaceholder');
-                    img.src = ev.target.result;
-                    img.style.display = 'block';
-                    placeholder.style.display = 'none';
-                    saveBtn.disabled = false;
-                };
-                reader.readAsDataURL(file);
             });
+            
+            // Bouton "Changer de photo"
+            btnChangePhoto?.addEventListener('click', () => {
+                document.getElementById('cropStepAdjust').classList.remove('active');
+                document.getElementById('cropStepUpload').classList.remove('hidden');
+                sourceImage = null;
+                document.getElementById('cropSaveBtn').disabled = true;
+            });
+            
+            // Bouton "Réinitialiser"
+            btnResetCrop?.addEventListener('click', () => {
+                if (!sourceImage) return;
+                
+                const scaleX = VIEWPORT_W / sourceImage.width;
+                const scaleY = VIEWPORT_H / sourceImage.height;
+                const minScale = Math.max(scaleX, scaleY);
+                
+                imageScale = minScale;
+                imageOffsetX = (VIEWPORT_W - sourceImage.width * imageScale) / 2;
+                imageOffsetY = (VIEWPORT_H - sourceImage.height * imageScale) / 2;
+                
+                zoomSlider.value = 100;
+                document.getElementById('zoomValue').textContent = '100%';
+                
+                dessinerCanvas();
+            });
+            
+            // Slider de zoom
+            zoomSlider?.addEventListener('input', (e) => {
+                const percent = parseInt(e.target.value);
+                document.getElementById('zoomValue').textContent = percent + '%';
+                appliquerZoom(percent);
+            });
+            
+            // Drag sur le canvas
+            cropViewport?.addEventListener('mousedown', onPointerDown);
+            cropViewport?.addEventListener('touchstart', onPointerDown, { passive: false });
+            
+            document.addEventListener('mousemove', onPointerMove);
+            document.addEventListener('touchmove', onPointerMove, { passive: false });
+            
+            document.addEventListener('mouseup', onPointerUp);
+            document.addEventListener('touchend', onPointerUp);
+            document.addEventListener('touchcancel', onPointerUp);
             
             // Annuler
             cancelBtn?.addEventListener('click', fermerCropModal);
@@ -1610,6 +2140,25 @@
         });
         
         // ================================================================
+        // TRAITEMENT DU FICHIER SÉLECTIONNÉ
+        // ================================================================
+        function traiterFichierSelectionne(file) {
+            // Vérifier le type
+            if (!file.type.startsWith('image/')) {
+                showToast('Veuillez choisir une image', 'warning');
+                return;
+            }
+            
+            // Vérifier la taille (5 MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Image trop grande (max 5 MB)', 'warning');
+                return;
+            }
+            
+            chargerImageDansCanvas(file);
+        }
+        
+        // ================================================================
         // INITIALISATION
         // ================================================================
         actualiserProfil();
@@ -1617,7 +2166,7 @@
         db.collection('etudiants').doc(currentStudent.id).onSnapshot(() => actualiserProfil());
         db.collection('transactions').limit(2000).onSnapshot(() => actualiserProfil());
         
-        console.log('✅ Page profil chargée - Gestion photo active (max 2 changements)');
+        console.log('✅ Page profil chargée - Recadrage interactif actif (max 2 changements)');
     </script>
 
     <script>
@@ -1648,9 +2197,7 @@
       style.textContent = `
         .pwa-install-banner {
           position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
+          bottom: 0; left: 0; right: 0;
           background: linear-gradient(135deg, #003366, #002244);
           color: white;
           padding: 15px 20px;
@@ -1659,73 +2206,34 @@
           transition: transform 0.3s ease;
           box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
         }
-        .pwa-install-banner.show {
-          transform: translateY(0);
-        }
+        .pwa-install-banner.show { transform: translateY(0); }
         .install-banner-content {
-          display: flex;
-          align-items: center;
-          gap: 15px;
-          flex-wrap: wrap;
-          max-width: 600px;
-          margin: 0 auto;
+          display: flex; align-items: center; gap: 15px;
+          flex-wrap: wrap; max-width: 600px; margin: 0 auto;
         }
         .install-banner-icon {
-          background: #ffb347;
-          border-radius: 50%;
-          width: 50px;
-          height: 50px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 24px;
-          color: #003366;
+          background: #ffb347; border-radius: 50%;
+          width: 50px; height: 50px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 24px; color: #003366;
         }
-        .install-banner-text {
-          flex: 1;
-        }
-        .install-banner-text strong {
-          display: block;
-          font-size: 16px;
-        }
-        .install-banner-text small {
-          font-size: 12px;
-          opacity: 0.8;
-        }
+        .install-banner-text { flex: 1; }
+        .install-banner-text strong { display: block; font-size: 16px; }
+        .install-banner-text small { font-size: 12px; opacity: 0.8; }
         .install-btn {
-          background: #ffb347;
-          color: #003366;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 25px;
-          font-weight: bold;
-          cursor: pointer;
-          transition: all 0.3s;
+          background: #ffb347; color: #003366; border: none;
+          padding: 10px 20px; border-radius: 25px;
+          font-weight: bold; cursor: pointer; transition: all 0.3s;
         }
-        .install-btn:hover {
-          transform: scale(1.05);
-          background: #ff9800;
-        }
+        .install-btn:hover { transform: scale(1.05); background: #ff9800; }
         .close-banner {
-          background: none;
-          border: none;
-          color: white;
-          font-size: 24px;
-          cursor: pointer;
-          padding: 0 5px;
-          opacity: 0.7;
+          background: none; border: none; color: white;
+          font-size: 24px; cursor: pointer; padding: 0 5px; opacity: 0.7;
         }
-        .close-banner:hover {
-          opacity: 1;
-        }
+        .close-banner:hover { opacity: 1; }
         @media (max-width: 768px) {
-          .install-banner-content {
-            flex-direction: column;
-            text-align: center;
-          }
-          .install-banner-icon {
-            margin: 0 auto;
-          }
+          .install-banner-content { flex-direction: column; text-align: center; }
+          .install-banner-icon { margin: 0 auto; }
         }
       `;
       document.head.appendChild(style);
@@ -1755,7 +2263,6 @@
         deferredPrompt = null;
         localStorage.setItem('pwa-installed', 'true');
         if (installBanner) installBanner.classList.remove('show');
-        console.log('✅ Application installée avec succès');
       });
       
       document.getElementById('installAppBtn')?.addEventListener('click', async () => {
@@ -1781,18 +2288,7 @@
       
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js')
-          .then(reg => {
-            console.log('✅ Service Worker enregistré:', reg);
-            reg.addEventListener('updatefound', () => {
-              const newWorker = reg.installing;
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  console.log('🔄 Nouvelle version disponible');
-                  showToast('Une nouvelle version est disponible. Rafraîchissez la page.', 'info');
-                }
-              });
-            });
-          })
+          .then(reg => console.log('✅ Service Worker enregistré'))
           .catch(err => console.log('❌ Erreur Service Worker:', err));
       }
     })();
