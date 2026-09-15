@@ -184,7 +184,7 @@
         }
 
         /* ============================================================
-           CARTE ÉTUDIANT
+           CARTE ÉTUDIANT (avec logo FSA filigrane)
         ============================================================ */
 
         .etudiant-info-card {
@@ -203,8 +203,10 @@
 
             position: relative;
             overflow: hidden;
+            min-height: 160px;
         }
 
+        /* Halo décoratif */
         .etudiant-info-card::before {
             content: '';
             position: absolute;
@@ -214,6 +216,26 @@
             height: 200px;
             background: rgba(255,255,255,0.05);
             border-radius: 50%;
+        }
+
+        /* ✅ LOGO FSA EN FILIGRANE - CÔTÉ GAUCHE */
+        .etudiant-info-card .card-logo {
+            position: absolute;
+            left: 15px;
+            bottom: 10px;
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            opacity: 0.10;
+            pointer-events: none;
+            z-index: 1;
+            filter: brightness(0) invert(1);
+        }
+
+        /* Contenu texte au-dessus du logo */
+        .etudiant-info-card > div:not(.info-icon) {
+            position: relative;
+            z-index: 2;
         }
 
         .etudiant-info-card h2 {
@@ -244,6 +266,7 @@
             z-index: 2;
         }
 
+        /* Icône diplôme à droite */
         .etudiant-info-card .info-icon {
             position: absolute;
             right: 20px;
@@ -399,6 +422,37 @@
                 opacity: 1;
                 transform: scale(1);
             }
+        }
+
+        /* ✅ AVATAR DU MODAL PROFIL (format 2:3 RDC) */
+        .profile-modal-avatar {
+            width: 100px;
+            height: 150px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 4px solid var(--primary-blue);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+            background: white;
+            display: block;
+            margin: 0 auto 15px;
+        }
+
+        .profile-modal-avatar-default {
+            width: 100px;
+            height: 150px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+            border: 4px solid var(--primary-blue);
+        }
+
+        .profile-modal-avatar-default i {
+            font-size: 50px;
+            color: var(--accent-yellow);
         }
 
         .btn-action {
@@ -756,6 +810,14 @@
                 padding: 18px;
             }
 
+            /* Logo plus petit sur mobile */
+            .etudiant-info-card .card-logo {
+                width: 70px;
+                height: 70px;
+                left: 10px;
+                bottom: 8px;
+            }
+
             .conduite-canvas-container {
                 padding: 8px;
             }
@@ -898,9 +960,19 @@
 
     <div id="homePage">
 
-        <!-- CARTE ÉTUDIANT -->
+        <!-- ========================================================
+             CARTE ÉTUDIANT (avec logo FSA en filigrane à gauche)
+        ========================================================= -->
 
         <div class="etudiant-info-card">
+
+            <!-- ✅ LOGO FSA EN FILIGRANE - CÔTÉ GAUCHE -->
+            <img
+                src="fsa.png"
+                alt="Logo FSA"
+                class="card-logo"
+                onerror="this.style.display='none';"
+            >
 
             <div>
 
@@ -1126,7 +1198,7 @@
 
             </div>
 
-            <!-- SUJET (carte conditionnelle selon config promotion) -->
+            <!-- SUJET -->
 
             <div
                 class="menu-card"
@@ -1205,9 +1277,7 @@
                 </div>
             </div>
 
-            <!-- ====================================================
-                 CARTE : SUJET PUBLIER (vers projet.html)
-            ===================================================== -->
+            <!-- SUJET PUBLIER -->
 
             <div
                 class="menu-card"
@@ -1271,7 +1341,7 @@
 </div>
 
 <!-- ================================================================
-     MODAL PROFIL
+     MODAL PROFIL (avec photo)
 ================================================================ -->
 
 <div
@@ -1283,10 +1353,20 @@
 
         <div class="text-center">
 
-            <i
-                class="bi bi-person-circle"
-                style="font-size:70px;color:var(--primary-blue);"
-            ></i>
+            <!-- ✅ Photo de profil (ou avatar par défaut) -->
+            <img
+                id="modalProfilePhoto"
+                class="profile-modal-avatar"
+                src=""
+                alt="Photo"
+                style="display: none;"
+            >
+            <div
+                id="modalProfileAvatarDefault"
+                class="profile-modal-avatar-default"
+            >
+                <i class="bi bi-person-circle"></i>
+            </div>
 
             <h4 id="profilNom"></h4>
 
@@ -1339,7 +1419,6 @@
 
 <!-- ================================================================
      LECTEUR DU RÈGLEMENT DE CONDUITE
-     PDF -> PDF.JS -> CANVAS
 ================================================================ -->
 
 <div
@@ -1495,10 +1574,6 @@ if (!firebase.apps.length) {
 
 const db = firebase.firestore();
 
-/*
- * Messaging est conservé ici pour compatibilité avec ton application.
- * La gestion réelle du FCM est centralisée dans notification-utils.js.
- */
 let messaging = null;
 
 try {
@@ -2794,10 +2869,6 @@ async function chargerPhotoProfil() {
 
     try {
 
-        /*
-         * Forcer un refresh pour obtenir la photo la plus récente
-         * (sinon le cache pourrait contenir l'ancienne photo).
-         */
         const etudiantData =
             await chargerEtudiant(true);
 
@@ -2837,10 +2908,6 @@ async function chargerPhotoProfil() {
 
         } else {
 
-            /*
-             * Pas de photo -> on garde fsa.png
-             * (ou toute autre image par défaut).
-             */
             img.src = 'fsa.png';
             img.style.display = 'block';
 
@@ -2855,6 +2922,41 @@ async function chargerPhotoProfil() {
             '[PHOTO] ⚠️ Impossible de charger la photo:',
             error
         );
+    }
+}
+
+
+/* ================================================================
+   AFFICHER LA PHOTO DANS LE MODAL PROFIL
+================================================================ */
+
+function afficherPhotoModal(url) {
+
+    const img =
+        document.getElementById('modalProfilePhoto');
+
+    const defaultAvatar =
+        document.getElementById('modalProfileAvatarDefault');
+
+    if (!img || !defaultAvatar) {
+        return;
+    }
+
+    if (url && String(url).trim() !== '') {
+
+        img.src = url;
+        img.style.display = 'block';
+        defaultAvatar.style.display = 'none';
+
+        console.log('[PHOTO MODAL] ✅ Photo affichée');
+
+    } else {
+
+        img.style.display = 'none';
+        img.src = '';
+        defaultAvatar.style.display = 'flex';
+
+        console.log('[PHOTO MODAL] ℹ️ Avatar par défaut affiché');
     }
 }
 
@@ -3145,8 +3247,9 @@ async function loadProfileData() {
 
     await chargerPromotions();
 
+    /* ✅ forceRefresh = true pour récupérer la photo la plus récente */
     const etudiantData =
-        await chargerEtudiant();
+        await chargerEtudiant(true);
 
     const nom =
         (
@@ -3210,6 +3313,14 @@ async function loadProfileData() {
         profilPromotion.textContent =
             `Promotion: ${promo}`;
     }
+
+    /* ✅ Afficher la photo dans le modal */
+    const photoUrl =
+        etudiantData?.photoURL ||
+        etudiantData?.photoProfil ||
+        null;
+
+    afficherPhotoModal(photoUrl);
 }
 
 
@@ -3606,10 +3717,6 @@ document
     let pdfLoadingPromise = null;
 
 
-    /* ============================================================
-       AFFICHAGE CHARGEMENT
-    ============================================================ */
-
     function setLoading(
         state
     ) {
@@ -3629,10 +3736,6 @@ document
         }
     }
 
-
-    /* ============================================================
-       ERREUR PDF
-    ============================================================ */
 
     function showPdfError(
         message
@@ -3714,10 +3817,6 @@ document
     }
 
 
-    /* ============================================================
-       CALCUL SCALE
-    ============================================================ */
-
     function calculateScale(
         page
     ) {
@@ -3743,10 +3842,6 @@ document
         );
     }
 
-
-    /* ============================================================
-       RENDRE PAGE
-    ============================================================ */
 
     async function renderPage(
         pageNumber
@@ -3883,10 +3978,6 @@ document
     }
 
 
-    /* ============================================================
-       CHARGER PDF
-    ============================================================ */
-
     async function loadPdf() {
 
         if (pdfDocument) {
@@ -3990,10 +4081,6 @@ document
     }
 
 
-    /* ============================================================
-       OUVRIR
-    ============================================================ */
-
     async function ouvrirConduite() {
 
         console.log(
@@ -4045,10 +4132,6 @@ document
     }
 
 
-    /* ============================================================
-       FERMER
-    ============================================================ */
-
     function fermerConduite() {
 
         console.log(
@@ -4069,10 +4152,6 @@ document
     }
 
 
-    /* ============================================================
-       PAGE PRÉCÉDENTE
-    ============================================================ */
-
     prevBtn?.addEventListener(
         'click',
         async function () {
@@ -4090,10 +4169,6 @@ document
     );
 
 
-    /* ============================================================
-       PAGE SUIVANTE
-    ============================================================ */
-
     nextBtn?.addEventListener(
         'click',
         async function () {
@@ -4110,10 +4185,6 @@ document
         }
     );
 
-
-    /* ============================================================
-       ZOOM -
-    ============================================================ */
 
     zoomOutBtn?.addEventListener(
         'click',
@@ -4136,10 +4207,6 @@ document
     );
 
 
-    /* ============================================================
-       ZOOM +
-    ============================================================ */
-
     zoomInBtn?.addEventListener(
         'click',
         async function () {
@@ -4161,19 +4228,11 @@ document
     );
 
 
-    /* ============================================================
-       FERMETURE
-    ============================================================ */
-
     closeBtn?.addEventListener(
         'click',
         fermerConduite
     );
 
-
-    /* ============================================================
-       TOUCHE ESCAPE
-    ============================================================ */
 
     document.addEventListener(
         'keydown',
@@ -4189,10 +4248,6 @@ document
         }
     );
 
-
-    /* ============================================================
-       REDIMENSIONNEMENT
-    ============================================================ */
 
     let resizeTimer = null;
 
@@ -4228,10 +4283,6 @@ document
         }
     );
 
-
-    /* ============================================================
-       EXPORTS
-    ============================================================ */
 
     window.ouvrirConduite =
         ouvrirConduite;
@@ -4526,9 +4577,6 @@ async function init() {
         '🚀 Dashboard Étudiant - Démarrage'
     );
 
-    /*
-     * 1. Vérification session.
-     */
     if (!checkSession()) {
         return;
     }
@@ -4540,56 +4588,27 @@ async function init() {
         currentStudent.id
     );
 
-    /*
-     * 2. Nettoyage cache.
-     */
     CacheManager.cleanExpired();
 
-    /*
-     * 3. Promotions.
-     */
     await chargerPromotions();
 
-    /*
-     * 4. VÉRIFIER SI LA PROMOTION EST CONCERNÉE PAR LE PROJET
-     */
     await verifierPromotionProjet();
 
     updateProjectCardsVisibility();
 
-    /*
-     * 5. ÉCOUTER LA CONFIGURATION EN TEMPS RÉEL
-     */
     setupRealtimeProjectConfig();
 
-    /*
-     * 6. Service Worker principal.
-     */
     await registerServiceWorker();
 
-    /*
-     * 7. Détection hors ligne.
-     */
     setupOfflineDetection();
 
-    /*
-     * 8. Communiqués temps réel.
-     */
     setupRealtimeCommuniques();
 
-    /*
-     * 9. Message de bienvenue.
-     */
     await updateWelcomeMessage();
 
-    /*
-     * 10. ✅ CHARGER LA PHOTO DE PROFIL DANS LA NAVBAR
-     */
+    /* ✅ Charger la photo dans la navbar */
     await chargerPhotoProfil();
 
-    /*
-     * 11. Initialisation FCM.
-     */
     console.log(
         '[FCM] 🔔 Initialisation des notifications...'
     );
@@ -4604,16 +4623,9 @@ async function init() {
         false
     );
 
-    /*
-     * 12. Affichage carte permission.
-     */
     checkNotificationStatus();
 
-    /*
-     * 13. ✅ ÉCOUTER LES CHANGEMENTS DE PHOTO EN TEMPS RÉEL
-     *     Si l'étudiant modifie sa photo depuis profil.html,
-     *     la navbar se met à jour automatiquement.
-     */
+    /* ✅ Écoute temps réel de la photo */
     db.collection('etudiants')
         .doc(currentStudent.id)
         .onSnapshot((doc) => {
@@ -4668,9 +4680,6 @@ async function init() {
             }
         });
 
-    /*
-     * 14. État final.
-     */
     console.log(
         '✅ Dashboard prêt'
     );
@@ -4731,10 +4740,7 @@ window.addEventListener(
     'beforeunload',
     function () {
 
-        /*
-         * Ne pas supprimer la session ici.
-         */
-
+        /* Rien à nettoyer */
     }
 );
 
@@ -4781,6 +4787,9 @@ window.updateProjectCardsVisibility =
 
 window.chargerPhotoProfil =
     chargerPhotoProfil;
+
+window.afficherPhotoModal =
+    afficherPhotoModal;
 
 </script>
 
