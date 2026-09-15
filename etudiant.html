@@ -42,34 +42,13 @@
 
     <!-- ================================================================
          GESTIONNAIRE CENTRALISÉ DES NOTIFICATIONS
-         IMPORTANT : doit être chargé avant le script principal.
     ================================================================ -->
     <script src="notification-utils.js"></script>
 
     <!-- ================================================================
          PDF.JS
-         Utilisé uniquement pour afficher conduite.pdf dans Canvas.
     ================================================================ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
-    <!-- ================================================================
-         ERUDA - CONSOLE SUR LE TÉLÉPHONE
-    ================================================================ -->
-   
-
-    <script>
-        if (window.eruda) {
-            eruda.init();
-            console.log('✅ Eruda console activée');
-        } else {
-            document.addEventListener('DOMContentLoaded', function () {
-                if (window.eruda) {
-                    eruda.init();
-                    console.log('✅ Eruda console activée');
-                }
-            });
-        }
-    </script>
 
     <style>
         /* ============================================================
@@ -142,7 +121,7 @@
         }
 
         /* ============================================================
-           PROFIL
+           PROFIL / PHOTO DE PROFIL
         ============================================================ */
 
         .profile-photo {
@@ -164,6 +143,8 @@
             height: 45px !important;
             object-fit: cover;
             border-radius: 50%;
+            border: 2px solid var(--accent-yellow);
+            background: white;
         }
 
         .profile-photo:hover {
@@ -836,6 +817,7 @@
                     width="45"
                     height="45"
                     alt="Profil"
+                    id="navbarProfileImg"
                     onerror="this.style.display='none';"
                 >
 
@@ -1225,8 +1207,6 @@
 
             <!-- ====================================================
                  CARTE : SUJET PUBLIER (vers projet.html)
-                 Conditionnelle : visible seulement si la promotion
-                 de l'étudiant est concernée par le projet.
             ===================================================== -->
 
             <div
@@ -1727,10 +1707,6 @@ let communiquesRealtimeInitialized = false;
 
 /* ================================================================
    CONFIGURATION PROJET - PROMOTIONS CONCERNÉES
-   Ces deux variables permettent de savoir si la promotion de
-   l'étudiant est concernée par le projet de fin d'études.
-   Si oui : on affiche les cartes "SUJET" et "Sujet Publier".
-   Si non : on les cache complètement.
 ================================================================ */
 
 let promotionConcerneeParProjet = false;
@@ -2807,10 +2783,84 @@ async function chargerEtudiant(
 
 
 /* ================================================================
+   CHARGER LA PHOTO DE PROFIL DANS LA NAVBAR
+================================================================ */
+
+async function chargerPhotoProfil() {
+
+    if (!currentStudent) {
+        return;
+    }
+
+    try {
+
+        /*
+         * Forcer un refresh pour obtenir la photo la plus récente
+         * (sinon le cache pourrait contenir l'ancienne photo).
+         */
+        const etudiantData =
+            await chargerEtudiant(true);
+
+        const photoUrl =
+            etudiantData?.photoURL ||
+            etudiantData?.photoProfil ||
+            null;
+
+        const img =
+            document.getElementById(
+                'navbarProfileImg'
+            );
+
+        if (!img) {
+            return;
+        }
+
+        if (
+            photoUrl &&
+            String(photoUrl).trim() !== ''
+        ) {
+
+            img.src = photoUrl;
+
+            img.style.display = 'block';
+            img.style.borderRadius = '50%';
+            img.style.width = '45px';
+            img.style.height = '45px';
+            img.style.objectFit = 'cover';
+            img.style.border =
+                '2px solid var(--accent-yellow)';
+            img.style.background = 'white';
+
+            console.log(
+                '[PHOTO] ✅ Photo de profil chargée dans la navbar'
+            );
+
+        } else {
+
+            /*
+             * Pas de photo -> on garde fsa.png
+             * (ou toute autre image par défaut).
+             */
+            img.src = 'fsa.png';
+            img.style.display = 'block';
+
+            console.log(
+                '[PHOTO] ℹ️ Aucune photo personnalisée, image par défaut utilisée'
+            );
+        }
+
+    } catch (error) {
+
+        console.warn(
+            '[PHOTO] ⚠️ Impossible de charger la photo:',
+            error
+        );
+    }
+}
+
+
+/* ================================================================
    VÉRIFIER SI LA PROMOTION EST CONCERNÉE PAR LE PROJET
-   Lit le document `configurations/promotionsProjet` et vérifie
-   si l'ID de la promotion de l'étudiant est présent dans le
-   tableau `promotions`.
 ================================================================ */
 
 async function verifierPromotionProjet() {
@@ -2873,8 +2923,6 @@ async function verifierPromotionProjet() {
 
 /* ================================================================
    ÉCOUTER LA CONFIGURATION EN TEMPS RÉEL
-   Si le Vice-Doyen ajoute ou retire la promotion de l'étudiant
-   dans la configuration, l'interface se met à jour automatiquement.
 ================================================================ */
 
 function setupRealtimeProjectConfig() {
@@ -2920,8 +2968,6 @@ function setupRealtimeProjectConfig() {
                     promotionConcerneeParProjet = false;
                 }
 
-                /* Mettre à jour l'interface si la valeur a changé */
-
                 if (oldValue !== promotionConcerneeParProjet) {
 
                     console.log(
@@ -2946,8 +2992,6 @@ function setupRealtimeProjectConfig() {
 
 /* ================================================================
    METTRE À JOUR LA VISIBILITÉ DES CARTES PROJET
-   - Carte "SUJET" (tp.html)
-   - Carte "Sujet Publier" (projet.html)
 ================================================================ */
 
 function updateProjectCardsVisibility() {
@@ -3968,10 +4012,6 @@ document
         document.body.style.overflow =
             'hidden';
 
-        /*
-         * Recrée le canvas si le précédent
-         * a été remplacé par un message d'erreur.
-         */
         if (
             !document.getElementById(
                 'conduiteCanvas'
@@ -4204,8 +4244,6 @@ document
 
 /* ================================================================
    NAVIGATION
-   IMPORTANT :
-   UNE SEULE écoute pour éviter les doubles redirections.
 ================================================================ */
 
 document
@@ -4223,12 +4261,6 @@ document
                     return;
                 }
 
-                /*
-                 * CONDUITE
-                 *
-                 * Ne redirige plus vers conduite.html.
-                 * Le PDF est ouvert directement dans Canvas.
-                 */
                 if (
                     page === 'conduite'
                 ) {
@@ -4251,9 +4283,6 @@ document
                     return;
                 }
 
-                /*
-                 * Paiement en ligne
-                 */
                 if (
                     page === 'paiement-ligne'
                 ) {
@@ -4264,9 +4293,6 @@ document
                     return;
                 }
 
-                /*
-                 * IA FSA
-                 */
                 if (
                     page === 'ia'
                 ) {
@@ -4277,11 +4303,6 @@ document
                     return;
                 }
 
-                /*
-                 * SUJET PUBLIER -> redirige vers projet.html
-                 * (seulement si la promotion est concernée,
-                 *  mais le bouton ne s'affiche que dans ce cas)
-                 */
                 if (
                     page === 'projet'
                 ) {
@@ -4292,9 +4313,6 @@ document
                     return;
                 }
 
-                /*
-                 * Toutes les autres pages
-                 */
                 window.location.href =
                     `${page}.html`;
             }
@@ -4533,18 +4551,14 @@ async function init() {
     await chargerPromotions();
 
     /*
-     * 4. ✅ VÉRIFIER SI LA PROMOTION EST CONCERNÉE PAR LE PROJET
-     *    Détermine si les cartes SUJET et Sujet Publier
-     *    doivent être affichées ou non.
+     * 4. VÉRIFIER SI LA PROMOTION EST CONCERNÉE PAR LE PROJET
      */
     await verifierPromotionProjet();
 
     updateProjectCardsVisibility();
 
     /*
-     * 5. ✅ ÉCOUTER LA CONFIGURATION EN TEMPS RÉEL
-     *    Si le Vice-Doyen modifie la configuration,
-     *    l'interface s'adapte automatiquement.
+     * 5. ÉCOUTER LA CONFIGURATION EN TEMPS RÉEL
      */
     setupRealtimeProjectConfig();
 
@@ -4569,7 +4583,12 @@ async function init() {
     await updateWelcomeMessage();
 
     /*
-     * 10. Initialisation FCM.
+     * 10. ✅ CHARGER LA PHOTO DE PROFIL DANS LA NAVBAR
+     */
+    await chargerPhotoProfil();
+
+    /*
+     * 11. Initialisation FCM.
      */
     console.log(
         '[FCM] 🔔 Initialisation des notifications...'
@@ -4586,12 +4605,71 @@ async function init() {
     );
 
     /*
-     * 11. Affichage carte permission.
+     * 12. Affichage carte permission.
      */
     checkNotificationStatus();
 
     /*
-     * 12. État final.
+     * 13. ✅ ÉCOUTER LES CHANGEMENTS DE PHOTO EN TEMPS RÉEL
+     *     Si l'étudiant modifie sa photo depuis profil.html,
+     *     la navbar se met à jour automatiquement.
+     */
+    db.collection('etudiants')
+        .doc(currentStudent.id)
+        .onSnapshot((doc) => {
+
+            if (!doc.exists) return;
+
+            const data = doc.data() || {};
+
+            const photoUrl =
+                data.photoURL ||
+                data.photoProfil ||
+                null;
+
+            const img =
+                document.getElementById(
+                    'navbarProfileImg'
+                );
+
+            if (!img) return;
+
+            if (
+                photoUrl &&
+                String(photoUrl).trim() !== ''
+            ) {
+
+                if (img.src !== photoUrl) {
+
+                    img.src = photoUrl;
+
+                    console.log(
+                        '[PHOTO] 🔄 Photo navbar mise à jour (temps réel)'
+                    );
+                }
+
+                img.style.display = 'block';
+                img.style.borderRadius = '50%';
+                img.style.width = '45px';
+                img.style.height = '45px';
+                img.style.objectFit = 'cover';
+                img.style.border =
+                    '2px solid var(--accent-yellow)';
+                img.style.background = 'white';
+
+            } else {
+
+                if (!img.src.includes('fsa.png')) {
+
+                    img.src = 'fsa.png';
+                }
+
+                img.style.display = 'block';
+            }
+        });
+
+    /*
+     * 14. État final.
      */
     console.log(
         '✅ Dashboard prêt'
@@ -4655,10 +4733,8 @@ window.addEventListener(
 
         /*
          * Ne pas supprimer la session ici.
-         *
-         * Le Service Worker et Firebase doivent
-         * continuer à fonctionner normalement.
          */
+
     }
 );
 
@@ -4702,6 +4778,9 @@ window.setupRealtimeProjectConfig =
 
 window.updateProjectCardsVisibility =
     updateProjectCardsVisibility;
+
+window.chargerPhotoProfil =
+    chargerPhotoProfil;
 
 </script>
 
