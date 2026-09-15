@@ -36,8 +36,16 @@
             background: var(--accent-yellow); 
             display: flex; align-items: center; justify-content: center; 
             cursor: pointer; 
+            overflow: hidden;
+            position: relative;
         }
         .profile-photo i { font-size: 28px; color: var(--primary-blue); }
+        .profile-photo img {
+            width: 45px !important;
+            height: 45px !important;
+            object-fit: cover;
+            border-radius: 50%;
+        }
         
         .navbar-right { display: flex; align-items: center; gap: 15px; }
         
@@ -78,16 +86,38 @@
             border-bottom: 2px solid #e0e0e0;
         }
         
+        /* ============================================================
+           PHOTO DE PROFIL - AFFICHAGE (format 5:7)
+        ============================================================ */
+        
+        .profile-avatar-container {
+            position: relative;
+            display: inline-block;
+            margin: 0 auto 15px;
+        }
+        
+        .profile-avatar-img {
+            width: 120px;
+            height: 168px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 4px solid var(--primary-blue);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+            background: white;
+            display: block;
+        }
+        
         .profile-avatar {
             width: 120px;
-            height: 120px;
+            height: 168px;
             background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
-            border-radius: 50%;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 15px;
+            margin: 0 auto;
             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+            border: 4px solid var(--primary-blue);
         }
         
         .profile-avatar i {
@@ -95,11 +125,61 @@
             color: var(--accent-yellow);
         }
         
+        .btn-upload-photo {
+            position: absolute;
+            bottom: 5px;
+            right: -5px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-yellow);
+            color: var(--primary-blue);
+            border: 3px solid white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            z-index: 5;
+        }
+        
+        .btn-upload-photo:hover {
+            transform: scale(1.1);
+            background: #ff9800;
+        }
+        
+        .btn-upload-photo:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .photo-counter-badge {
+            display: inline-block;
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 8px;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .photo-counter-badge.limit-reached {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+        
         .profile-name {
             font-size: 24px;
             font-weight: bold;
             color: var(--primary-blue);
             margin-bottom: 5px;
+            margin-top: 15px;
         }
         
         .profile-matricule {
@@ -117,6 +197,141 @@
             font-size: 12px;
             font-weight: bold;
         }
+        
+        /* ============================================================
+           MODAL DE RECADRAGE PHOTO
+        ============================================================ */
+        
+        .crop-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 15px;
+        }
+        
+        .crop-modal.show {
+            display: flex;
+        }
+        
+        .crop-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 95vh;
+            overflow-y: auto;
+            animation: modalFadeIn 0.3s ease;
+        }
+        
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .crop-modal-content h5 {
+            color: var(--primary-blue);
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .crop-modal-content .crop-hint {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .crop-area {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto 15px;
+            background: #f0f2f5;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px dashed var(--primary-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 280px;
+            cursor: pointer;
+            aspect-ratio: 5 / 7;
+        }
+        
+        .crop-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .crop-placeholder {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+        
+        .crop-placeholder i {
+            font-size: 50px;
+            color: var(--primary-blue);
+            opacity: 0.3;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .crop-placeholder p {
+            margin: 0;
+            font-size: 13px;
+        }
+        
+        .crop-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .crop-actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-crop-cancel {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .btn-crop-cancel:hover {
+            background: #ccc;
+        }
+        
+        .btn-crop-save {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: white;
+        }
+        
+        .btn-crop-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 51, 102, 0.3);
+        }
+        
+        .btn-crop-save:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* ============================================================
+           AUTRES STYLES
+        ============================================================ */
         
         .info-section {
             background: #f8f9fa;
@@ -310,7 +525,6 @@
             .info-value { width: 100%; }
         }
         
-        /* Style pour l'export PDF (caché) */
         .pdf-export-content {
             display: none;
         }
@@ -324,7 +538,12 @@
             </a>
             <div class="navbar-right">
                 <div class="profile-photo" id="profileBtn">
-                    <i class="bi bi-person-circle"></i>
+                    <img 
+                        src="fsa.png" 
+                        alt="Profil" 
+                        id="navbarPhoto"
+                        onerror="this.style.display='none';"
+                    >
                 </div>
                 <button class="btn btn-outline-light btn-sm" id="logoutBtn">
                     <i class="bi bi-box-arrow-right"></i>
@@ -346,11 +565,37 @@
         <div class="content-card">
             <!-- En-tête du profil -->
             <div class="profile-header">
-                <div class="profile-avatar">
-                    <i class="bi bi-person-circle"></i>
+                <div class="profile-avatar-container">
+                    <div id="profilePhotoWrapper">
+                        <div class="profile-avatar" id="profileAvatarDefault">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        <img 
+                            id="profileAvatarImg" 
+                            class="profile-avatar-img" 
+                            src="" 
+                            alt="Photo de profil"
+                            style="display: none;"
+                        >
+                    </div>
+                    <button 
+                        class="btn-upload-photo" 
+                        id="uploadPhotoBtn" 
+                        title="Ajouter/modifier ma photo"
+                        type="button"
+                    >
+                        <i class="bi bi-camera-fill"></i>
+                    </button>
                 </div>
+                
                 <div class="profile-name" id="profileName">Chargement...</div>
                 <div class="profile-matricule" id="profileMatricule"></div>
+                
+                <div class="photo-counter-badge" id="photoCounterBadge">
+                    <i class="bi bi-camera"></i> <span id="photoCounterText">0/2 photos</span>
+                </div>
+                
+                <br>
                 <span class="profile-badge" id="profileBadge">
                     <i class="bi bi-check-circle-fill"></i> Compte Actif
                 </span>
@@ -484,22 +729,66 @@
                 <hr style="border: 1px solid #003366;">
             </div>
             
-            <div id="pdfInformations" style="margin-bottom: 30px;">
-                <!-- Rempli dynamiquement -->
-            </div>
-            
-            <div id="pdfStats" style="margin-bottom: 30px;">
-                <!-- Rempli dynamiquement -->
-            </div>
-            
-            <div id="pdfPaiements" style="margin-bottom: 30px;">
-                <!-- Rempli dynamiquement -->
-            </div>
+            <div id="pdfInformations" style="margin-bottom: 30px;"></div>
+            <div id="pdfStats" style="margin-bottom: 30px;"></div>
+            <div id="pdfPaiements" style="margin-bottom: 30px;"></div>
             
             <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #888;">
                 <hr>
                 <p>Document généré le <span id="pdfDate"></span></p>
                 <p>HYBRILINK-TECH - Votre partenaire digital</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+         MODAL DE RECADRAGE PHOTO (format 5:7 - fond blanc)
+    ================================================================= -->
+    <div id="cropModal" class="crop-modal">
+        <div class="crop-modal-content">
+            <h5>
+                <i class="bi bi-camera-fill"></i>
+                Photo de profil
+            </h5>
+            <p class="crop-hint">
+                Format 5:7 (photo identité) - fond blanc recommandé.<br>
+                <strong id="cropPhotoCounter">Il vous reste 2 changement(s).</strong>
+            </p>
+            
+            <input 
+                type="file" 
+                id="photoFileInput" 
+                accept="image/*" 
+                style="display: none;"
+            >
+            
+            <div class="crop-area" id="cropArea">
+                <div class="crop-placeholder" id="cropPlaceholder">
+                    <i class="bi bi-cloud-arrow-up-fill"></i>
+                    <p><strong>Cliquez ici</strong> pour choisir une photo</p>
+                    <p style="font-size: 11px; margin-top: 5px;">
+                        JPG, PNG - Max 5 MB
+                    </p>
+                </div>
+                <img id="cropPreviewImg" style="display: none;" alt="Aperçu">
+            </div>
+            
+            <div class="crop-actions">
+                <button 
+                    type="button" 
+                    class="btn-crop-cancel" 
+                    id="cropCancelBtn"
+                >
+                    Annuler
+                </button>
+                <button 
+                    type="button" 
+                    class="btn-crop-save" 
+                    id="cropSaveBtn" 
+                    disabled
+                >
+                    <i class="bi bi-check-lg"></i> Enregistrer
+                </button>
             </div>
         </div>
     </div>
@@ -524,7 +813,9 @@
     </div>
 
     <script>
-        // Configuration Firebase
+        // ================================================================
+        // CONFIGURATION FIREBASE
+        // ================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
             authDomain: "fsa-unilu.firebaseapp.com",
@@ -537,12 +828,30 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         
+        // ================================================================
+        // CLOUDINARY CONFIG
+        // ================================================================
+        const CLOUDINARY_CONFIG = {
+            cloudName: 'diwn8sxtn',
+            uploadPreset: 'cs_lacolombe'
+        };
+        
+        const MAX_PHOTO_CHANGES = 2;
+        
+        // ================================================================
+        // VARIABLES GLOBALES
+        // ================================================================
         let currentStudent = null;
         let allPromotions = [];
         let allAnnees = [];
         let allTransactions = [];
+        let studentFirestoreData = null;
+        let selectedPhotoFile = null;
+        let currentPhotoChanges = 0;
         
-        // Vérification session
+        // ================================================================
+        // VÉRIFICATION SESSION
+        // ================================================================
         const session = localStorage.getItem('session_etudiant');
         if (!session) {
             window.location.href = 'login-etudiant.html';
@@ -554,8 +863,9 @@
         }
         currentStudent = sessionData;
         
-        let studentFirestoreData = null;
-        
+        // ================================================================
+        // UTILITAIRES
+        // ================================================================
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             if (!container) return;
@@ -581,6 +891,9 @@
             return date.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         }
         
+        // ================================================================
+        // CHARGEMENTS FIREBASE
+        // ================================================================
         async function chargerPromotions() {
             const snapshot = await db.collection('promotions').get();
             allPromotions = [];
@@ -634,6 +947,9 @@
             return annee ? (annee.annee || annee.nom) : anneeId;
         }
         
+        // ================================================================
+        // ACTUALISER LE PROFIL
+        // ================================================================
         async function actualiserProfil() {
             await chargerPromotions();
             await chargerAnnees();
@@ -677,9 +993,314 @@
             document.getElementById('statPaiements').textContent = totalPaiements;
             document.getElementById('statTotalPaye').textContent = totalPaye.toLocaleString() + ' FC';
             document.getElementById('statDernierPaiement').textContent = dernierPaiementDate ? dernierPaiementDate.toLocaleDateString('fr-FR') : '-';
+            
+            // ============================================================
+            // CHARGER LA PHOTO DE PROFIL
+            // ============================================================
+            await chargerCompteurPhoto();
         }
         
+        // ================================================================
+        // GESTION PHOTO DE PROFIL
+        // ================================================================
+        
+        /**
+         * Charger le compteur de changements et la photo actuelle
+         */
+        async function chargerCompteurPhoto() {
+            try {
+                const doc = await db.collection('etudiants').doc(currentStudent.id).get();
+                if (!doc.exists) return;
+                
+                const data = doc.data();
+                currentPhotoChanges = Number(data.photoChanges) || 0;
+                const photoUrl = data.photoURL || data.photoProfil || null;
+                
+                afficherPhoto(photoUrl);
+                mettreAJourCompteur();
+                mettreAJourPhotoNavbar(photoUrl);
+                
+            } catch (error) {
+                console.error('[PHOTO] Erreur chargement compteur:', error);
+            }
+        }
+        
+        /**
+         * Afficher la photo dans le profil
+         */
+        function afficherPhoto(url) {
+            const img = document.getElementById('profileAvatarImg');
+            const defaultAvatar = document.getElementById('profileAvatarDefault');
+            
+            if (!img || !defaultAvatar) return;
+            
+            if (url && url.trim() !== '') {
+                img.src = url;
+                img.style.display = 'block';
+                defaultAvatar.style.display = 'none';
+            } else {
+                img.style.display = 'none';
+                img.src = '';
+                defaultAvatar.style.display = 'flex';
+            }
+        }
+        
+        /**
+         * Mettre à jour la photo dans la navbar
+         */
+        function mettreAJourPhotoNavbar(url) {
+            const navbarPhoto = document.getElementById('navbarPhoto');
+            if (!navbarPhoto) return;
+            
+            if (url && url.trim() !== '') {
+                navbarPhoto.src = url;
+                navbarPhoto.style.display = 'block';
+            } else {
+                navbarPhoto.src = 'fsa.png';
+            }
+        }
+        
+        /**
+         * Mettre à jour le compteur
+         */
+        function mettreAJourCompteur() {
+            const restant = MAX_PHOTO_CHANGES - currentPhotoChanges;
+            const counterText = document.getElementById('photoCounterText');
+            const counterBadge = document.getElementById('photoCounterBadge');
+            const cropCounter = document.getElementById('cropPhotoCounter');
+            const uploadBtn = document.getElementById('uploadPhotoBtn');
+            
+            if (counterText) {
+                counterText.textContent = `${currentPhotoChanges}/${MAX_PHOTO_CHANGES} photos`;
+            }
+            
+            if (cropCounter) {
+                if (restant <= 0) {
+                    cropCounter.textContent = '⚠️ Limite atteinte : vous ne pouvez plus changer votre photo.';
+                    cropCounter.style.color = '#dc3545';
+                } else {
+                    cropCounter.textContent = `Il vous reste ${restant} changement(s).`;
+                    cropCounter.style.color = '#003366';
+                }
+            }
+            
+            if (counterBadge) {
+                if (restant <= 0) {
+                    counterBadge.classList.add('limit-reached');
+                } else {
+                    counterBadge.classList.remove('limit-reached');
+                }
+            }
+            
+            if (uploadBtn) {
+                if (restant <= 0) {
+                    uploadBtn.disabled = true;
+                    uploadBtn.title = 'Limite de changements atteinte';
+                } else {
+                    uploadBtn.disabled = false;
+                    uploadBtn.title = 'Ajouter/modifier ma photo';
+                }
+            }
+        }
+        
+        /**
+         * Ouvrir le modal de recadrage
+         */
+        function ouvrirCropModal() {
+            if (currentPhotoChanges >= MAX_PHOTO_CHANGES) {
+                showToast('⚠️ Vous avez atteint la limite de changements de photo.', 'warning');
+                return;
+            }
+            
+            selectedPhotoFile = null;
+            const img = document.getElementById('cropPreviewImg');
+            const placeholder = document.getElementById('cropPlaceholder');
+            const saveBtn = document.getElementById('cropSaveBtn');
+            const fileInput = document.getElementById('photoFileInput');
+            
+            img.style.display = 'none';
+            img.src = '';
+            placeholder.style.display = 'block';
+            saveBtn.disabled = true;
+            fileInput.value = '';
+            
+            mettreAJourCompteur();
+            document.getElementById('cropModal').classList.add('show');
+        }
+        
+        /**
+         * Fermer le modal
+         */
+        function fermerCropModal() {
+            document.getElementById('cropModal').classList.remove('show');
+            selectedPhotoFile = null;
+            const img = document.getElementById('cropPreviewImg');
+            if (img) { img.src = ''; img.style.display = 'none'; }
+            const placeholder = document.getElementById('cropPlaceholder');
+            if (placeholder) placeholder.style.display = 'block';
+            const saveBtn = document.getElementById('cropSaveBtn');
+            if (saveBtn) saveBtn.disabled = true;
+        }
+        
+        /**
+         * Traiter l'image : recadrage automatique en 5:7 avec fond blanc
+         */
+        function traiterImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    const img = new Image();
+                    
+                    img.onload = () => {
+                        // Dimensions cibles : 500x700 (ratio 5:7)
+                        const targetW = 500;
+                        const targetH = 700;
+                        
+                        // Créer le canvas
+                        const canvas = document.createElement('canvas');
+                        canvas.width = targetW;
+                        canvas.height = targetH;
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Fond blanc
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, targetW, targetH);
+                        
+                        // Calculer le ratio de l'image source
+                        const imgRatio = img.width / img.height;
+                        const targetRatio = targetW / targetH; // = 5/7
+                        
+                        let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
+                        
+                        if (imgRatio > targetRatio) {
+                            // Image trop large : crop horizontal
+                            srcH = img.height;
+                            srcW = img.height * targetRatio;
+                            srcX = (img.width - srcW) / 2;
+                            srcY = 0;
+                        } else {
+                            // Image trop haute : crop vertical
+                            srcW = img.width;
+                            srcH = img.width / targetRatio;
+                            srcX = 0;
+                            srcY = (img.height - srcH) / 2;
+                        }
+                        
+                        // Dessiner l'image recadrée
+                        ctx.drawImage(
+                            img,
+                            srcX, srcY, srcW, srcH,
+                            0, 0, targetW, targetH
+                        );
+                        
+                        // Convertir en Blob JPEG
+                        canvas.toBlob(
+                            (blob) => {
+                                if (blob) {
+                                    resolve(blob);
+                                } else {
+                                    reject(new Error('Impossible de créer l\'image'));
+                                }
+                            },
+                            'image/jpeg',
+                            0.92
+                        );
+                    };
+                    
+                    img.onerror = () => reject(new Error('Image invalide'));
+                    img.src = e.target.result;
+                };
+                
+                reader.onerror = () => reject(new Error('Erreur de lecture'));
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        /**
+         * Upload vers Cloudinary
+         */
+        async function uploaderVersCloudinary(blob) {
+            const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`;
+            
+            const formData = new FormData();
+            formData.append('file', blob, `profil_${currentStudent.matricule}_${Date.now()}.jpg`);
+            formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+            formData.append('folder', `etudiants/${currentStudent.matricule}`);
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Cloudinary: ${response.status} - ${errText}`);
+            }
+            
+            const data = await response.json();
+            return data.secure_url || data.url;
+        }
+        
+        /**
+         * Sauvegarder la photo
+         */
+        async function sauvegarderPhoto() {
+            if (!selectedPhotoFile) {
+                showToast('Aucune photo sélectionnée', 'warning');
+                return;
+            }
+            
+            if (currentPhotoChanges >= MAX_PHOTO_CHANGES) {
+                showToast('Limite atteinte', 'warning');
+                return;
+            }
+            
+            const saveBtn = document.getElementById('cropSaveBtn');
+            const originalHtml = saveBtn.innerHTML;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Envoi...';
+            
+            try {
+                // 1. Traiter l'image (recadrage 5:7 fond blanc)
+                const blob = await traiterImage(selectedPhotoFile);
+                
+                // 2. Upload vers Cloudinary
+                const photoUrl = await uploaderVersCloudinary(blob);
+                console.log('[PHOTO] ✅ Uploadée:', photoUrl);
+                
+                // 3. Sauvegarder dans Firestore
+                const newCount = currentPhotoChanges + 1;
+                
+                await db.collection('etudiants').doc(currentStudent.id).update({
+                    photoURL: photoUrl,
+                    photoProfil: photoUrl,
+                    photoChanges: newCount,
+                    photoUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                currentPhotoChanges = newCount;
+                
+                // 4. Mettre à jour l'interface
+                afficherPhoto(photoUrl);
+                mettreAJourPhotoNavbar(photoUrl);
+                mettreAJourCompteur();
+                
+                showToast('✅ Photo de profil mise à jour !', 'success');
+                fermerCropModal();
+                
+            } catch (error) {
+                console.error('[PHOTO] ❌ Erreur:', error);
+                showToast('Erreur: ' + (error.message || 'Upload impossible'), 'danger');
+                saveBtn.disabled = false;
+            } finally {
+                saveBtn.innerHTML = originalHtml;
+            }
+        }
+        
+        // ================================================================
         // EXPORTATION EN PDF
+        // ================================================================
         async function exporterPDF() {
             const btn = document.getElementById('exportPdfBtn');
             const originalText = btn.innerHTML;
@@ -816,7 +1437,9 @@
             }
         }
         
-        // Changer le mot de passe
+        // ================================================================
+        // CHANGER LE MOT DE PASSE
+        // ================================================================
         async function changerMotDePasse() {
             const currentPwd = document.getElementById('currentPassword').value;
             const newPwd = document.getElementById('newPassword').value;
@@ -869,7 +1492,9 @@
             }
         }
         
-        // Événements
+        // ================================================================
+        // ÉVÉNEMENTS
+        // ================================================================
         document.getElementById('changePasswordBtn').onclick = changerMotDePasse;
         document.getElementById('exportPdfBtn').onclick = exporterPDF;
         document.getElementById('refreshDataBtn').onclick = () => {
@@ -915,216 +1540,262 @@
             }
         };
         
-        // Initialisation
+        // ================================================================
+        // ÉVÉNEMENTS PHOTO
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const uploadBtn = document.getElementById('uploadPhotoBtn');
+            const cropArea = document.getElementById('cropArea');
+            const fileInput = document.getElementById('photoFileInput');
+            const cancelBtn = document.getElementById('cropCancelBtn');
+            const saveBtn = document.getElementById('cropSaveBtn');
+            
+            // Ouvrir le modal
+            uploadBtn?.addEventListener('click', ouvrirCropModal);
+            
+            // Cliquer sur la zone de crop
+            cropArea?.addEventListener('click', () => {
+                if (currentPhotoChanges >= MAX_PHOTO_CHANGES) {
+                    showToast('⚠️ Limite atteinte', 'warning');
+                    return;
+                }
+                fileInput.click();
+            });
+            
+            // Sélection de fichier
+            fileInput?.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // Vérifier le type
+                if (!file.type.startsWith('image/')) {
+                    showToast('Veuillez choisir une image', 'warning');
+                    return;
+                }
+                
+                // Vérifier la taille (5 MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('Image trop grande (max 5 MB)', 'warning');
+                    return;
+                }
+                
+                selectedPhotoFile = file;
+                
+                // Aperçu
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = document.getElementById('cropPreviewImg');
+                    const placeholder = document.getElementById('cropPlaceholder');
+                    img.src = ev.target.result;
+                    img.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    saveBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            // Annuler
+            cancelBtn?.addEventListener('click', fermerCropModal);
+            
+            // Enregistrer
+            saveBtn?.addEventListener('click', sauvegarderPhoto);
+            
+            // Fermer en cliquant à l'extérieur
+            document.getElementById('cropModal')?.addEventListener('click', (e) => {
+                if (e.target.id === 'cropModal') {
+                    fermerCropModal();
+                }
+            });
+        });
+        
+        // ================================================================
+        // INITIALISATION
+        // ================================================================
         actualiserProfil();
         
         db.collection('etudiants').doc(currentStudent.id).onSnapshot(() => actualiserProfil());
         db.collection('transactions').limit(2000).onSnapshot(() => actualiserProfil());
         
-        console.log('✅ Page profil chargée - Export PDF disponible');
+        console.log('✅ Page profil chargée - Gestion photo active (max 2 changements)');
     </script>
 
-<script>
-// Script d'installation PWA
-(function() {
-  'use strict';
-  
-  let deferredPrompt;
-  const installBanner = document.createElement('div');
-  installBanner.className = 'pwa-install-banner';
-  installBanner.innerHTML = `
-    <div class="install-banner-content">
-      <div class="install-banner-icon">
-        <i class="bi bi-download"></i>
-      </div>
-      <div class="install-banner-text">
-        <strong>Installer l'application</strong>
-        <small>Ajoutez Faculté Agronomique à votre écran d'accueil</small>
-      </div>
-      <button class="install-btn" id="installAppBtn">Installer</button>
-      <button class="close-banner" id="closeInstallBanner">&times;</button>
-    </div>
-  `;
-  
-  // Styles pour la bannière d'installation
-  const style = document.createElement('style');
-  style.textContent = `
-    .pwa-install-banner {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(135deg, #003366, #002244);
-      color: white;
-      padding: 15px 20px;
-      z-index: 10000;
-      transform: translateY(100%);
-      transition: transform 0.3s ease;
-      box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
-    }
-    .pwa-install-banner.show {
-      transform: translateY(0);
-    }
-    .install-banner-content {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      flex-wrap: wrap;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    .install-banner-icon {
-      background: #ffb347;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      color: #003366;
-    }
-    .install-banner-text {
-      flex: 1;
-    }
-    .install-banner-text strong {
-      display: block;
-      font-size: 16px;
-    }
-    .install-banner-text small {
-      font-size: 12px;
-      opacity: 0.8;
-    }
-    .install-btn {
-      background: #ffb347;
-      color: #003366;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 25px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .install-btn:hover {
-      transform: scale(1.05);
-      background: #ff9800;
-    }
-    .close-banner {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-      padding: 0 5px;
-      opacity: 0.7;
-    }
-    .close-banner:hover {
-      opacity: 1;
-    }
-    @media (max-width: 768px) {
-      .install-banner-content {
-        flex-direction: column;
-        text-align: center;
-      }
-      .install-banner-icon {
-        margin: 0 auto;
-      }
-    }
-  `;
-  document.head.appendChild(style);
-  
-  // Vérifier si l'application est déjà installée
-  const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches;
-  const isInstalled = localStorage.getItem('pwa-installed');
-  
-  if (!isAppInstalled && !isInstalled) {
-    setTimeout(() => {
-      document.body.appendChild(installBanner);
-      setTimeout(() => installBanner.classList.add('show'), 100);
-    }, 2000);
-  }
-  
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    if (!isAppInstalled && !isInstalled) {
-      if (!document.body.contains(installBanner)) {
-        document.body.appendChild(installBanner);
-      }
-      setTimeout(() => installBanner.classList.add('show'), 100);
-    }
-  });
-  
-  window.addEventListener('appinstalled', () => {
-    deferredPrompt = null;
-    localStorage.setItem('pwa-installed', 'true');
-    if (installBanner) installBanner.classList.remove('show');
-    console.log('✅ Application installée avec succès');
-  });
-  
-  document.getElementById('installAppBtn')?.addEventListener('click', async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        console.log('✅ Utilisateur a accepté l\'installation');
-        localStorage.setItem('pwa-installed', 'true');
-      }
-      deferredPrompt = null;
-      installBanner.classList.remove('show');
-    } else {
-      // Instructions manuelles
-      alert('Pour installer l\'application:\n\n• Sur Android: Menu > "Ajouter à l\'écran d\'accueil"\n• Sur iOS: Partager > "Sur l\'écran d\'accueil"');
-      localStorage.setItem('pwa-installed', 'true');
-      installBanner.classList.remove('show');
-    }
-  });
-  
-  document.getElementById('closeInstallBanner')?.addEventListener('click', () => {
-    installBanner.classList.remove('show');
-    setTimeout(() => installBanner.remove(), 300);
-  });
-  
-  // Enregistrement du Service Worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => {
-        console.log('✅ Service Worker enregistré:', reg);
-        
-        // Vérifier les mises à jour
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('🔄 Nouvelle version disponible');
-              showToast('Une nouvelle version est disponible. Rafraîchissez la page.', 'info');
-            }
-          });
-        });
-      })
-      .catch(err => console.log('❌ Erreur Service Worker:', err));
-  }
-  
-  // Initialiser les notifications
-  async function initNotifications() {
-    const notifPermission = localStorage.getItem('notif-permission');
-    if (notifPermission !== 'granted' && notifPermission !== 'denied') {
-      setTimeout(async () => {
-        const result = await notificationManager?.requestPermission();
-        if (result) {
-          await notificationManager?.subscribeUser();
-          localStorage.setItem('notif-permission', 'granted');
-        } else {
-          localStorage.setItem('notif-permission', 'denied');
+    <script>
+    // ================================================================
+    // SCRIPT D'INSTALLATION PWA
+    // ================================================================
+    (function() {
+      'use strict';
+      
+      let deferredPrompt;
+      const installBanner = document.createElement('div');
+      installBanner.className = 'pwa-install-banner';
+      installBanner.innerHTML = `
+        <div class="install-banner-content">
+          <div class="install-banner-icon">
+            <i class="bi bi-download"></i>
+          </div>
+          <div class="install-banner-text">
+            <strong>Installer l'application</strong>
+            <small>Ajoutez Faculté Agronomique à votre écran d'accueil</small>
+          </div>
+          <button class="install-btn" id="installAppBtn">Installer</button>
+          <button class="close-banner" id="closeInstallBanner">&times;</button>
+        </div>
+      `;
+      
+      const style = document.createElement('style');
+      style.textContent = `
+        .pwa-install-banner {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: linear-gradient(135deg, #003366, #002244);
+          color: white;
+          padding: 15px 20px;
+          z-index: 10000;
+          transform: translateY(100%);
+          transition: transform 0.3s ease;
+          box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
         }
-      }, 5000);
-    }
-  }
-  
-  // Charger notificationManager si disponible
-  if (typeof notificationManager !== 'undefined') {
-    notificationManager.init().then(() => initNotifications());
-  }
-})();</script>
+        .pwa-install-banner.show {
+          transform: translateY(0);
+        }
+        .install-banner-content {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          flex-wrap: wrap;
+          max-width: 600px;
+          margin: 0 auto;
+        }
+        .install-banner-icon {
+          background: #ffb347;
+          border-radius: 50%;
+          width: 50px;
+          height: 50px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          color: #003366;
+        }
+        .install-banner-text {
+          flex: 1;
+        }
+        .install-banner-text strong {
+          display: block;
+          font-size: 16px;
+        }
+        .install-banner-text small {
+          font-size: 12px;
+          opacity: 0.8;
+        }
+        .install-btn {
+          background: #ffb347;
+          color: #003366;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 25px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+        .install-btn:hover {
+          transform: scale(1.05);
+          background: #ff9800;
+        }
+        .close-banner {
+          background: none;
+          border: none;
+          color: white;
+          font-size: 24px;
+          cursor: pointer;
+          padding: 0 5px;
+          opacity: 0.7;
+        }
+        .close-banner:hover {
+          opacity: 1;
+        }
+        @media (max-width: 768px) {
+          .install-banner-content {
+            flex-direction: column;
+            text-align: center;
+          }
+          .install-banner-icon {
+            margin: 0 auto;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches;
+      const isInstalled = localStorage.getItem('pwa-installed');
+      
+      if (!isAppInstalled && !isInstalled) {
+        setTimeout(() => {
+          document.body.appendChild(installBanner);
+          setTimeout(() => installBanner.classList.add('show'), 100);
+        }, 2000);
+      }
+      
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (!isAppInstalled && !isInstalled) {
+          if (!document.body.contains(installBanner)) {
+            document.body.appendChild(installBanner);
+          }
+          setTimeout(() => installBanner.classList.add('show'), 100);
+        }
+      });
+      
+      window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        localStorage.setItem('pwa-installed', 'true');
+        if (installBanner) installBanner.classList.remove('show');
+        console.log('✅ Application installée avec succès');
+      });
+      
+      document.getElementById('installAppBtn')?.addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === 'accepted') {
+            localStorage.setItem('pwa-installed', 'true');
+          }
+          deferredPrompt = null;
+          installBanner.classList.remove('show');
+        } else {
+          alert('Pour installer l\'application:\n\n• Sur Android: Menu > "Ajouter à l\'écran d\'accueil"\n• Sur iOS: Partager > "Sur l\'écran d\'accueil"');
+          localStorage.setItem('pwa-installed', 'true');
+          installBanner.classList.remove('show');
+        }
+      });
+      
+      document.getElementById('closeInstallBanner')?.addEventListener('click', () => {
+        installBanner.classList.remove('show');
+        setTimeout(() => installBanner.remove(), 300);
+      });
+      
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => {
+            console.log('✅ Service Worker enregistré:', reg);
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('🔄 Nouvelle version disponible');
+                  showToast('Une nouvelle version est disponible. Rafraîchissez la page.', 'info');
+                }
+              });
+            });
+          })
+          .catch(err => console.log('❌ Erreur Service Worker:', err));
+      }
+    })();
+    </script>
 </body>
 </html>
