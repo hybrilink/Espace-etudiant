@@ -184,7 +184,7 @@
         }
 
         /* ============================================================
-           CARTE ÉTUDIANT (avec logo FSA filigrane)
+           CARTE ÉTUDIANT — Taille d'origine + logo FSA couleurs réelles
         ============================================================ */
 
         .etudiant-info-card {
@@ -206,53 +206,80 @@
             min-height: 160px;
         }
 
-        /* Halo décoratif */
+        /* Halo décoratif subtil */
         .etudiant-info-card::before {
             content: '';
             position: absolute;
             top: -50%;
             right: -50%;
             width: 200px;
-            height: 200px;
+            height: 50px;
             background: rgba(255,255,255,0.05);
             border-radius: 50%;
+            z-index: 0;
         }
 
-        /* ✅ LOGO FSA EN FILIGRANE - CÔTÉ GAUCHE */
+        /* ✅ LOGO FSA À DROITE — Couleurs d'origine préservées */
         .etudiant-info-card .card-logo {
             position: absolute;
-            left: 15px;
-            bottom: 10px;
-            width: 90px;
-            height: 90px;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100px;
+            height: 100px;
             object-fit: contain;
-            opacity: 0.10;
+            opacity: 0.9;
             pointer-events: none;
+border-radius:40px;
             z-index: 1;
-            filter: brightness(0) invert(1);
+            /* Pas de filtre : les couleurs d'origine du logo sont conservées */
         }
 
-        /* Contenu texte au-dessus du logo */
+        /* ✅ TEXTE À GAUCHE */
         .etudiant-info-card > div:not(.info-icon) {
             position: relative;
             z-index: 2;
+            margin-left: 0;
+            max-width: 65%;
+            text-align: left;
         }
 
+        /* ✅ ICÔNE CHAPEAU EN HAUT À DROITE */
+        .etudiant-info-card .info-icon {
+            position: absolute;
+            right: 25px;
+            top: 15px;
+            transform: none;
+            font-size: 50px;
+            opacity: 0.25;
+            z-index: 3;
+            color: #ffffff;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        }
+
+        /* ✅ TITRE */
         .etudiant-info-card h2 {
             font-size: 1.3rem;
+            font-weight: 700;
             margin-bottom: 8px;
+            line-height: 1.3;
             position: relative;
             z-index: 2;
+            color: #ffffff;
         }
 
+        /* ✅ SOUS-TITRE */
         .etudiant-info-card p {
             margin: 0;
             opacity: 0.9;
             font-size: 0.85rem;
+            font-weight: 400;
             position: relative;
             z-index: 2;
+            color: #ffffff;
         }
 
+        /* ✅ BADGE "Compte Actif" */
         .etudiant-info-card .badge-compte {
             background: var(--accent-yellow);
             color: var(--primary-blue);
@@ -266,21 +293,7 @@
             z-index: 2;
         }
 
-        /* Icône diplôme à droite */
-        .etudiant-info-card .info-icon {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 60px;
-            opacity: 0.15;
-            z-index: 1;
-        }
-
-        /* ============================================================
-           CACHE STATUS
-        ============================================================ */
-
+        /* ✅ CACHE STATUS */
         .cache-status {
             font-size: 10px;
             color: rgba(255,255,255,0.6);
@@ -806,16 +819,35 @@
                 min-width: auto;
             }
 
+            /* ✅ Carte étudiant - Ajustements mobile */
             .etudiant-info-card {
                 padding: 18px;
             }
 
-            /* Logo plus petit sur mobile */
             .etudiant-info-card .card-logo {
-                width: 70px;
-                height: 70px;
-                left: 10px;
-                bottom: 8px;
+                width: 80px;
+                height: 80px;
+                right: 12px;
+                opacity: 0.9;
+            }
+
+            .etudiant-info-card .info-icon {
+                font-size: 42px;
+                right: 15px;
+                top: 12px;
+                opacity: 0.22;
+            }
+
+            .etudiant-info-card > div:not(.info-icon) {
+                max-width: 60%;
+            }
+
+            .etudiant-info-card h2 {
+                font-size: 1.15rem;
+            }
+
+            .etudiant-info-card p {
+                font-size: 0.8rem;
             }
 
             .conduite-canvas-container {
@@ -848,6 +880,22 @@
 
             .conduite-page-info {
                 min-width: 65px;
+            }
+
+            /* ✅ Carte étudiant - Très petits écrans */
+            .etudiant-info-card .card-logo {
+                width: 70px;
+                height: 70px;
+                right: 10px;
+            }
+
+            .etudiant-info-card .info-icon {
+                font-size: 36px;
+                right: 12px;
+            }
+
+            .etudiant-info-card > div:not(.info-icon) {
+                max-width: 58%;
             }
         }
     </style>
@@ -961,19 +1009,14 @@
     <div id="homePage">
 
         <!-- ========================================================
-             CARTE ÉTUDIANT (avec logo FSA en filigrane à gauche)
+             CARTE ÉTUDIANT
+             Texte à gauche + Logo FSA à droite (couleurs réelles)
+             + Chapeau en haut à droite
         ========================================================= -->
 
         <div class="etudiant-info-card">
 
-            <!-- ✅ LOGO FSA EN FILIGRANE - CÔTÉ GAUCHE -->
-            <img
-                src="fsa.png"
-                alt="Logo FSA"
-                class="card-logo"
-                onerror="this.style.display='none';"
-            >
-
+            <!-- 1️⃣ TEXTE À GAUCHE -->
             <div>
 
                 <h2 id="welcomeName">
@@ -1005,6 +1048,15 @@
 
             </div>
 
+            <!-- 2️⃣ LOGO FSA À DROITE (couleurs d'origine) -->
+            <img
+                src="fsa.png"
+                alt="Logo FSA"
+                class="card-logo"
+                onerror="this.style.display='none';"
+            >
+
+            <!-- 3️⃣ CHAPEAU EN HAUT À DROITE -->
             <div class="info-icon">
                 <i class="bi bi-mortarboard-fill"></i>
             </div>
@@ -1353,7 +1405,7 @@
 
         <div class="text-center">
 
-            <!-- ✅ Photo de profil (ou avatar par défaut) -->
+            <!-- ✅ Photo de profil ou avatar par défaut -->
             <img
                 id="modalProfilePhoto"
                 class="profile-modal-avatar"
@@ -1565,8 +1617,6 @@ const firebaseConfig = {
     messagingSenderId: "36551990738",
     appId: "1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
 };
-
-/* Initialisation Firebase */
 
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
@@ -1976,18 +2026,12 @@ async function enregistrerTokenFCM(
     try {
 
         console.log('[FCM] 🔔 Tentative d\'activation des notifications...');
-        console.log('[FCM] 📋 Étudiant:', etudiantId);
-        console.log('[FCM] 📋 Demander permission:', demanderPermission);
 
         if (!window.notificationManager) {
 
             console.warn('[FCM] ⚠️ NotificationManager introuvable');
 
             try {
-
-                console.log(
-                    '[FCM] 🔄 Tentative de rechargement de notification-utils.js...'
-                );
 
                 const script =
                     document.createElement('script');
@@ -2015,10 +2059,6 @@ async function enregistrerTokenFCM(
                         )
                 );
 
-                console.log(
-                    '[FCM] ✅ Script rechargé'
-                );
-
             } catch (error) {
 
                 console.error(
@@ -2034,7 +2074,7 @@ async function enregistrerTokenFCM(
                 );
 
                 showToast(
-                    '❌ Gestionnaire de notifications indisponible. Veuillez rafraîchir la page.',
+                    '❌ Gestionnaire de notifications indisponible.',
                     'danger'
                 );
 
@@ -2043,21 +2083,13 @@ async function enregistrerTokenFCM(
         }
 
         if (!etudiantId) {
-
-            console.error(
-                '[FCM] ID étudiant manquant'
-            );
-
+            console.error('[FCM] ID étudiant manquant');
             return null;
         }
 
         let token = null;
 
         if (demanderPermission) {
-
-            console.log(
-                '[FCM] 🔔 Demande de permission utilisateur...'
-            );
 
             token =
                 await window.notificationManager
@@ -2068,10 +2100,6 @@ async function enregistrerTokenFCM(
                     );
 
         } else {
-
-            console.log(
-                '[FCM] 🔔 Initialisation silencieuse...'
-            );
 
             token =
                 await window.notificationManager
@@ -2084,9 +2112,7 @@ async function enregistrerTokenFCM(
 
         if (token) {
 
-            console.log(
-                '[FCM] ✅ Token enregistré avec succès'
-            );
+            console.log('[FCM] ✅ Token enregistré avec succès');
 
             const card =
                 document.getElementById(
@@ -2107,28 +2133,16 @@ async function enregistrerTokenFCM(
 
         } else {
 
-            console.log(
-                '[FCM] ⚠️ Token non disponible'
-            );
-
             if (
                 'Notification' in window &&
                 Notification.permission === 'denied'
             ) {
 
                 showToast(
-                    '⚠️ Les notifications sont bloquées dans les paramètres du navigateur.',
+                    '⚠️ Les notifications sont bloquées.',
                     'warning'
                 );
 
-            } else if (
-                'Notification' in window &&
-                Notification.permission === 'default'
-            ) {
-
-                console.log(
-                    '[FCM] Permission par défaut, en attente d\'action utilisateur'
-                );
             }
 
             checkNotificationStatus();
@@ -2143,18 +2157,8 @@ async function enregistrerTokenFCM(
             error
         );
 
-        console.error(
-            '  - Message:',
-            error.message
-        );
-
-        console.error(
-            '  - Stack:',
-            error.stack
-        );
-
         showToast(
-            `❌ Erreur: ${error.message || 'Impossible d\'activer les notifications'}`,
+            `❌ Erreur: ${error.message || 'Activation impossible'}`,
             'danger'
         );
 
@@ -2188,15 +2192,7 @@ function checkNotificationStatus() {
     }
 
     if (
-        Notification.permission === 'granted'
-    ) {
-
-        card.classList.remove('show');
-
-        return;
-    }
-
-    if (
+        Notification.permission === 'granted' ||
         Notification.permission === 'denied'
     ) {
 
@@ -2253,15 +2249,6 @@ document
 
             try {
 
-                console.log(
-                    '[FCM] 🔔 Bouton "Activer" cliqué'
-                );
-
-                console.log(
-                    '[FCM] 📋 Étudiant:',
-                    currentStudent.id
-                );
-
                 const token =
                     await enregistrerTokenFCM(
                         currentStudent.id,
@@ -2281,14 +2268,14 @@ document
                     ) {
 
                         showToast(
-                            '⚠️ Les notifications sont bloquées dans les réglages du navigateur.',
+                            '⚠️ Notifications bloquées.',
                             'warning'
                         );
 
                     } else {
 
                         showToast(
-                            '⚠️ Impossible d\'activer les notifications. Vérifiez la console pour plus de détails.',
+                            '⚠️ Impossible d\'activer les notifications.',
                             'warning'
                         );
                     }
@@ -2302,7 +2289,7 @@ document
                 );
 
                 showToast(
-                    '❌ Erreur lors de l\'activation des notifications.',
+                    '❌ Erreur lors de l\'activation.',
                     'danger'
                 );
 
@@ -2912,7 +2899,7 @@ async function chargerPhotoProfil() {
             img.style.display = 'block';
 
             console.log(
-                '[PHOTO] ℹ️ Aucune photo personnalisée, image par défaut utilisée'
+                '[PHOTO] ℹ️ Aucune photo personnalisée'
             );
         }
 
@@ -3205,16 +3192,10 @@ async function updateWelcomeMessage() {
 
     if (cacheStatusText) {
 
-        if (navigator.onLine) {
-
-            cacheStatusText.textContent =
-                'Données synchronisées';
-
-        } else {
-
-            cacheStatusText.textContent =
-                'Données hors ligne';
-        }
+        cacheStatusText.textContent =
+            navigator.onLine
+                ? 'Données synchronisées'
+                : 'Données hors ligne';
     }
 
     if (cacheStatus) {
@@ -3247,7 +3228,6 @@ async function loadProfileData() {
 
     await chargerPromotions();
 
-    /* ✅ forceRefresh = true pour récupérer la photo la plus récente */
     const etudiantData =
         await chargerEtudiant(true);
 
@@ -3717,29 +3697,19 @@ document
     let pdfLoadingPromise = null;
 
 
-    function setLoading(
-        state
-    ) {
+    function setLoading(state) {
 
-        if (!loading) {
-            return;
-        }
+        if (!loading) return;
 
         if (state) {
-            loading.classList.remove(
-                'hidden'
-            );
+            loading.classList.remove('hidden');
         } else {
-            loading.classList.add(
-                'hidden'
-            );
+            loading.classList.add('hidden');
         }
     }
 
 
-    function showPdfError(
-        message
-    ) {
+    function showPdfError(message) {
 
         setLoading(false);
 
@@ -3748,21 +3718,15 @@ document
                 'conduiteCanvasContainer'
             );
 
-        if (!container) {
-            return;
-        }
+        if (!container) return;
 
         container.innerHTML = `
             <div class="conduite-error">
                 <i class="bi bi-exclamation-triangle-fill"></i>
 
-                <h5>
-                    Impossible d'afficher le règlement
-                </h5>
+                <h5>Impossible d'afficher le règlement</h5>
 
-                <p>
-                    ${escapeHtml(message)}
-                </p>
+                <p>${escapeHtml(message)}</p>
 
                 <button
                     type="button"
@@ -3777,9 +3741,7 @@ document
         `;
 
         document
-            .getElementById(
-                'retryConduiteBtn'
-            )
+            .getElementById('retryConduiteBtn')
             ?.addEventListener(
                 'click',
                 function () {
@@ -3796,20 +3758,13 @@ document
                                 role="status"
                             ></div>
 
-                            <strong>
-                                Chargement du règlement...
-                            </strong>
+                            <strong>Chargement du règlement...</strong>
 
-                            <small>
-                                Préparation du document
-                            </small>
+                            <small>Préparation du document</small>
                         </div>
                     `;
 
-                    showToast(
-                        '🔄 Nouvelle tentative...',
-                        'info'
-                    );
+                    showToast('🔄 Nouvelle tentative...', 'info');
 
                     window.location.reload();
                 }
@@ -3817,44 +3772,25 @@ document
     }
 
 
-    function calculateScale(
-        page
-    ) {
+    function calculateScale(page) {
 
-        const viewport =
-            page.getViewport({
-                scale: 1
-            });
+        const viewport = page.getViewport({ scale: 1 });
 
         const availableWidth =
-            Math.max(
-                250,
-                canvasContainer.clientWidth - 20
-            );
+            Math.max(250, canvasContainer.clientWidth - 20);
 
-        const responsiveScale =
-            availableWidth /
-            viewport.width;
+        const responsiveScale = availableWidth / viewport.width;
 
-        return Math.max(
-            0.5,
-            responsiveScale * zoom
-        );
+        return Math.max(0.5, responsiveScale * zoom);
     }
 
 
-    async function renderPage(
-        pageNumber
-    ) {
+    async function renderPage(pageNumber) {
 
-        if (!pdfDocument) {
-            return;
-        }
+        if (!pdfDocument) return;
 
         if (rendering) {
-
             renderQueued = true;
-
             return;
         }
 
@@ -3862,117 +3798,58 @@ document
 
         try {
 
-            const page =
-                await pdfDocument.getPage(
-                    pageNumber
-                );
+            const page = await pdfDocument.getPage(pageNumber);
 
-            const scale =
-                calculateScale(
-                    page
-                );
+            const scale = calculateScale(page);
 
-            const viewport =
-                page.getViewport({
-                    scale: scale
-                });
+            const viewport = page.getViewport({ scale: scale });
 
             const devicePixelRatio =
-                Math.min(
-                    window.devicePixelRatio || 1,
-                    2
-                );
+                Math.min(window.devicePixelRatio || 1, 2);
 
-            canvas.width =
-                Math.floor(
-                    viewport.width *
-                    devicePixelRatio
-                );
+            canvas.width = Math.floor(viewport.width * devicePixelRatio);
+            canvas.height = Math.floor(viewport.height * devicePixelRatio);
 
-            canvas.height =
-                Math.floor(
-                    viewport.height *
-                    devicePixelRatio
-                );
+            canvas.style.width = `${viewport.width}px`;
+            canvas.style.height = `${viewport.height}px`;
 
-            canvas.style.width =
-                `${viewport.width}px`;
-
-            canvas.style.height =
-                `${viewport.height}px`;
-
-            const context =
-                canvas.getContext(
-                    '2d',
-                    {
-                        alpha: false
-                    }
-                );
+            const context = canvas.getContext('2d', { alpha: false });
 
             context.setTransform(
-                devicePixelRatio,
-                0,
-                0,
-                devicePixelRatio,
-                0,
-                0
+                devicePixelRatio, 0, 0, devicePixelRatio, 0, 0
             );
 
-            context.fillStyle =
-                '#ffffff';
-
-            context.fillRect(
-                0,
-                0,
-                viewport.width,
-                viewport.height
-            );
+            context.fillStyle = '#ffffff';
+            context.fillRect(0, 0, viewport.width, viewport.height);
 
             await page.render({
                 canvasContext: context,
                 viewport: viewport
             }).promise;
 
-            currentPage =
-                pageNumber;
+            currentPage = pageNumber;
+            totalPages = pdfDocument.numPages;
 
-            totalPages =
-                pdfDocument.numPages;
+            pageInfo.textContent = `Page ${currentPage} / ${totalPages}`;
 
-            pageInfo.textContent =
-                `Page ${currentPage} / ${totalPages}`;
-
-            prevBtn.disabled =
-                currentPage <= 1;
-
-            nextBtn.disabled =
-                currentPage >= totalPages;
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
 
             setLoading(false);
 
         } catch (error) {
 
-            console.error(
-                '[PDF] Erreur rendu page:',
-                error
-            );
+            console.error('[PDF] Erreur rendu page:', error);
 
-            showToast(
-                '❌ Impossible d\'afficher cette page.',
-                'danger'
-            );
+            showToast('❌ Impossible d\'afficher cette page.', 'danger');
 
         } finally {
 
             rendering = false;
 
             if (renderQueued) {
-
                 renderQueued = false;
-
-                renderPage(
-                    currentPage
-                );
+                renderPage(currentPage);
             }
         }
     }
@@ -3981,27 +3858,17 @@ document
     async function loadPdf() {
 
         if (pdfDocument) {
-
-            await renderPage(
-                currentPage
-            );
-
+            await renderPage(currentPage);
             return;
         }
 
         if (pdfLoadingPromise) {
-
             await pdfLoadingPromise;
-
             return;
         }
 
         if (!window.pdfjsLib) {
-
-            showPdfError(
-                'Le moteur PDF n\'est pas disponible. Vérifiez votre connexion Internet puis réessayez.'
-            );
-
+            showPdfError('Le moteur PDF n\'est pas disponible.');
             return;
         }
 
@@ -4009,121 +3876,70 @@ document
 
         try {
 
-            console.log(
-                '[PDF] 📄 Chargement de conduite.pdf...'
-            );
+            console.log('[PDF] 📄 Chargement de conduite.pdf...');
 
             pdfLoadingPromise =
-                pdfjsLib
-                    .getDocument({
-                        url: 'conduite.pdf',
-                        withCredentials: false
-                    })
-                    .promise;
+                pdfjsLib.getDocument({
+                    url: 'conduite.pdf',
+                    withCredentials: false
+                }).promise;
 
-            pdfDocument =
-                await pdfLoadingPromise;
+            pdfDocument = await pdfLoadingPromise;
 
             pdfLoadingPromise = null;
 
-            totalPages =
-                pdfDocument.numPages;
-
+            totalPages = pdfDocument.numPages;
             currentPage = 1;
-
             zoom = 1;
 
-            console.log(
-                '[PDF] ✅ Document chargé:',
-                totalPages,
-                'pages'
-            );
+            console.log('[PDF] ✅ Document chargé:', totalPages, 'pages');
 
-            await renderPage(
-                currentPage
-            );
+            await renderPage(currentPage);
 
         } catch (error) {
 
             pdfLoadingPromise = null;
-
             pdfDocument = null;
 
-            console.error(
-                '[PDF] ❌ Erreur chargement:',
-                error
-            );
+            console.error('[PDF] ❌ Erreur chargement:', error);
 
             let message =
                 'Impossible de charger le fichier conduite.pdf.';
 
-            if (
-                error &&
-                error.name === 'MissingPDFException'
-            ) {
+            if (error && error.name === 'MissingPDFException') {
 
                 message =
-                    'Le fichier conduite.pdf est introuvable. Place-le dans le même dossier que etudiant.html.';
+                    'Le fichier conduite.pdf est introuvable.';
 
-            } else if (
-                error &&
-                error.name === 'InvalidPDFException'
-            ) {
+            } else if (error && error.name === 'InvalidPDFException') {
 
                 message =
-                    'Le fichier conduite.pdf semble être invalide ou endommagé.';
+                    'Le fichier conduite.pdf est invalide ou endommagé.';
             }
 
-            showPdfError(
-                message
-            );
+            showPdfError(message);
         }
     }
 
 
     async function ouvrirConduite() {
 
-        console.log(
-            '[PDF] 📖 Ouverture du règlement'
-        );
+        console.log('[PDF] 📖 Ouverture du règlement');
 
-        viewer.classList.add(
-            'show'
-        );
+        viewer.classList.add('show');
+        viewer.setAttribute('aria-hidden', 'false');
 
-        viewer.setAttribute(
-            'aria-hidden',
-            'false'
-        );
+        document.body.style.overflow = 'hidden';
 
-        document.body.style.overflow =
-            'hidden';
-
-        if (
-            !document.getElementById(
-                'conduiteCanvas'
-            )
-        ) {
+        if (!document.getElementById('conduiteCanvas')) {
 
             canvasContainer.innerHTML = `
                 <canvas id="conduiteCanvas"></canvas>
 
-                <div
-                    class="conduite-loading"
-                    id="conduiteLoading"
-                >
-                    <div
-                        class="spinner-border"
-                        role="status"
-                    ></div>
-
-                    <strong>
-                        Chargement du règlement...
-                    </strong>
-
-                    <small>
-                        Préparation du document
-                    </small>
+                <div class="conduite-loading" id="conduiteLoading">
+                    <div class="spinner-border" role="status"></div>
+                    <strong>Chargement du règlement...</strong>
+                    <small>Préparation du document</small>
                 </div>
             `;
         }
@@ -4134,161 +3950,88 @@ document
 
     function fermerConduite() {
 
-        console.log(
-            '[PDF] 📕 Fermeture du règlement'
-        );
+        console.log('[PDF] 📕 Fermeture du règlement');
 
-        viewer.classList.remove(
-            'show'
-        );
+        viewer.classList.remove('show');
+        viewer.setAttribute('aria-hidden', 'true');
 
-        viewer.setAttribute(
-            'aria-hidden',
-            'true'
-        );
-
-        document.body.style.overflow =
-            '';
+        document.body.style.overflow = '';
     }
 
 
-    prevBtn?.addEventListener(
-        'click',
-        async function () {
+    prevBtn?.addEventListener('click', async function () {
 
-            if (
-                pdfDocument &&
-                currentPage > 1
-            ) {
-
-                await renderPage(
-                    currentPage - 1
-                );
-            }
+        if (pdfDocument && currentPage > 1) {
+            await renderPage(currentPage - 1);
         }
-    );
+    });
 
 
-    nextBtn?.addEventListener(
-        'click',
-        async function () {
+    nextBtn?.addEventListener('click', async function () {
 
-            if (
-                pdfDocument &&
-                currentPage < totalPages
-            ) {
-
-                await renderPage(
-                    currentPage + 1
-                );
-            }
+        if (pdfDocument && currentPage < totalPages) {
+            await renderPage(currentPage + 1);
         }
-    );
+    });
 
 
-    zoomOutBtn?.addEventListener(
-        'click',
-        async function () {
+    zoomOutBtn?.addEventListener('click', async function () {
 
-            if (!pdfDocument) {
-                return;
-            }
+        if (!pdfDocument) return;
 
-            zoom =
-                Math.max(
-                    0.6,
-                    zoom - 0.15
-                );
+        zoom = Math.max(0.6, zoom - 0.15);
 
-            await renderPage(
-                currentPage
-            );
+        await renderPage(currentPage);
+    });
+
+
+    zoomInBtn?.addEventListener('click', async function () {
+
+        if (!pdfDocument) return;
+
+        zoom = Math.min(3, zoom + 0.15);
+
+        await renderPage(currentPage);
+    });
+
+
+    closeBtn?.addEventListener('click', fermerConduite);
+
+
+    document.addEventListener('keydown', function (event) {
+
+        if (
+            event.key === 'Escape' &&
+            viewer.classList.contains('show')
+        ) {
+            fermerConduite();
         }
-    );
-
-
-    zoomInBtn?.addEventListener(
-        'click',
-        async function () {
-
-            if (!pdfDocument) {
-                return;
-            }
-
-            zoom =
-                Math.min(
-                    3,
-                    zoom + 0.15
-                );
-
-            await renderPage(
-                currentPage
-            );
-        }
-    );
-
-
-    closeBtn?.addEventListener(
-        'click',
-        fermerConduite
-    );
-
-
-    document.addEventListener(
-        'keydown',
-        function (event) {
-
-            if (
-                event.key === 'Escape' &&
-                viewer.classList.contains('show')
-            ) {
-
-                fermerConduite();
-            }
-        }
-    );
+    });
 
 
     let resizeTimer = null;
 
-    window.addEventListener(
-        'resize',
-        function () {
+    window.addEventListener('resize', function () {
 
-            if (
-                !viewer.classList.contains(
-                    'show'
-                ) ||
-                !pdfDocument
-            ) {
-
-                return;
-            }
-
-            clearTimeout(
-                resizeTimer
-            );
-
-            resizeTimer =
-                setTimeout(
-                    function () {
-
-                        renderPage(
-                            currentPage
-                        );
-
-                    },
-                    150
-                );
+        if (
+            !viewer.classList.contains('show') ||
+            !pdfDocument
+        ) {
+            return;
         }
-    );
+
+        clearTimeout(resizeTimer);
+
+        resizeTimer = setTimeout(function () {
+
+            renderPage(currentPage);
+
+        }, 150);
+    });
 
 
-    window.ouvrirConduite =
-        ouvrirConduite;
-
-    window.fermerConduite =
-        fermerConduite;
+    window.ouvrirConduite = ouvrirConduite;
+    window.fermerConduite = fermerConduite;
 
 })();
 
@@ -4305,26 +4048,17 @@ document
             'click',
             function () {
 
-                const page =
-                    this.dataset.page;
+                const page = this.dataset.page;
 
-                if (!page) {
-                    return;
-                }
+                if (!page) return;
 
-                if (
-                    page === 'conduite'
-                ) {
+                if (page === 'conduite') {
 
                     if (
-                        typeof window.ouvrirConduite ===
-                        'function'
+                        typeof window.ouvrirConduite === 'function'
                     ) {
-
                         window.ouvrirConduite();
-
                     } else {
-
                         showToast(
                             '❌ Lecteur du règlement indisponible.',
                             'danger'
@@ -4334,38 +4068,22 @@ document
                     return;
                 }
 
-                if (
-                    page === 'paiement-ligne'
-                ) {
-
-                    window.location.href =
-                        'paiement-ligne.html';
-
+                if (page === 'paiement-ligne') {
+                    window.location.href = 'paiement-ligne.html';
                     return;
                 }
 
-                if (
-                    page === 'ia'
-                ) {
-
-                    window.location.href =
-                        'ia.html';
-
+                if (page === 'ia') {
+                    window.location.href = 'ia.html';
                     return;
                 }
 
-                if (
-                    page === 'projet'
-                ) {
-
-                    window.location.href =
-                        'projet.html';
-
+                if (page === 'projet') {
+                    window.location.href = 'projet.html';
                     return;
                 }
 
-                window.location.href =
-                    `${page}.html`;
+                window.location.href = `${page}.html`;
             }
         );
     });
@@ -4378,33 +4096,20 @@ document
 function setupOfflineDetection() {
 
     const offlineBadge =
-        document.getElementById(
-            'offlineBadge'
-        );
+        document.getElementById('offlineBadge');
 
-    if (!offlineBadge) {
-        return;
-    }
+    if (!offlineBadge) return;
 
     function updateStatus() {
 
         if (!navigator.onLine) {
-
-            offlineBadge.classList.add(
-                'show'
-            );
-
+            offlineBadge.classList.add('show');
         } else {
-
-            offlineBadge.classList.remove(
-                'show'
-            );
+            offlineBadge.classList.remove('show');
         }
 
         const cacheStatusText =
-            document.getElementById(
-                'cacheStatusText'
-            );
+            document.getElementById('cacheStatusText');
 
         if (cacheStatusText) {
 
@@ -4415,15 +4120,8 @@ function setupOfflineDetection() {
         }
     }
 
-    window.addEventListener(
-        'online',
-        updateStatus
-    );
-
-    window.addEventListener(
-        'offline',
-        updateStatus
-    );
+    window.addEventListener('online', updateStatus);
+    window.addEventListener('offline', updateStatus);
 
     updateStatus();
 }
@@ -4435,89 +4133,55 @@ function setupOfflineDetection() {
 
 async function registerServiceWorker() {
 
-    if (
-        !('serviceWorker' in navigator)
-    ) {
+    if (!('serviceWorker' in navigator)) {
 
-        console.warn(
-            '[SW] Service Worker non supporté'
-        );
+        console.warn('[SW] Service Worker non supporté');
 
         return null;
     }
 
     try {
 
-        console.log(
-            '[SW] 🔄 Enregistrement du Service Worker...'
-        );
+        console.log('[SW] 🔄 Enregistrement du Service Worker...');
 
         if (
-            typeof window.registerAppServiceWorker ===
-            'function'
+            typeof window.registerAppServiceWorker === 'function'
         ) {
 
-            console.log(
-                '[SW] 📋 Utilisation du gestionnaire centralisé'
-            );
+            console.log('[SW] 📋 Utilisation du gestionnaire centralisé');
 
             const registration =
                 await window.registerAppServiceWorker();
 
             if (registration) {
-
-                console.log(
-                    '[SW] ✅ Service Worker principal enregistré'
-                );
-
+                console.log('[SW] ✅ Service Worker principal enregistré');
             } else {
-
-                console.warn(
-                    '[SW] ⚠️ Échec enregistrement via gestionnaire'
-                );
+                console.warn('[SW] ⚠️ Échec enregistrement');
             }
 
             return registration;
         }
 
-        console.log(
-            '[SW] 📋 Fallback: enregistrement direct'
-        );
+        console.log('[SW] 📋 Fallback: enregistrement direct');
 
         const registration =
             await navigator.serviceWorker.register(
                 '/Espace-etudiant/sw.js',
                 {
-                    scope:
-                        '/Espace-etudiant/'
+                    scope: '/Espace-etudiant/'
                 }
             );
 
-        console.log(
-            '[SW] ✅ Service Worker enregistré en fallback'
-        );
+        console.log('[SW] ✅ Service Worker enregistré en fallback');
 
         return registration;
 
     } catch (error) {
 
-        console.error(
-            '[SW] ❌ Erreur:',
-            error
-        );
-
-        console.error(
-            '  - Message:',
-            error.message
-        );
-
-        console.error(
-            '  - Stack:',
-            error.stack
-        );
+        console.error('[SW] ❌ Erreur:', error);
 
         showToast(
-            '⚠️ Service Worker indisponible. Les notifications pourraient ne pas fonctionner.',
+            '⚠️ Service Worker indisponible.',
             'warning'
         );
 
@@ -4536,23 +4200,14 @@ window.addEventListener(
 
         try {
 
-            const detail =
-                event.detail || {};
-
-            console.log(
-                '[FCM] Notification reçue au premier plan:',
-                detail
-            );
+            const detail = event.detail || {};
 
             const type =
                 detail.type ||
                 detail.data?.type ||
                 '';
 
-            if (
-                type === 'communique'
-            ) {
-
+            if (type === 'communique') {
                 updateNotificationBadgesFromCache();
             }
 
@@ -4573,9 +4228,7 @@ window.addEventListener(
 
 async function init() {
 
-    console.log(
-        '🚀 Dashboard Étudiant - Démarrage'
-    );
+    console.log('🚀 Dashboard Étudiant - Démarrage');
 
     if (!checkSession()) {
         return;
@@ -4609,9 +4262,7 @@ async function init() {
     /* ✅ Charger la photo dans la navbar */
     await chargerPhotoProfil();
 
-    console.log(
-        '[FCM] 🔔 Initialisation des notifications...'
-    );
+    console.log('[FCM] 🔔 Initialisation des notifications...');
 
     await enregistrerTokenFCM(
         currentStudent.id,
@@ -4640,9 +4291,7 @@ async function init() {
                 null;
 
             const img =
-                document.getElementById(
-                    'navbarProfileImg'
-                );
+                document.getElementById('navbarProfileImg');
 
             if (!img) return;
 
@@ -4656,7 +4305,7 @@ async function init() {
                     img.src = photoUrl;
 
                     console.log(
-                        '[PHOTO] 🔄 Photo navbar mise à jour (temps réel)'
+                        '[PHOTO] 🔄 Photo navbar mise à jour'
                     );
                 }
 
@@ -4672,7 +4321,6 @@ async function init() {
             } else {
 
                 if (!img.src.includes('fsa.png')) {
-
                     img.src = 'fsa.png';
                 }
 
@@ -4680,29 +4328,14 @@ async function init() {
             }
         });
 
-    console.log(
-        '✅ Dashboard prêt'
-    );
+    console.log('✅ Dashboard prêt');
 
-    if (
-        window.notificationManager
-    ) {
+    if (window.notificationManager) {
 
         console.log(
             '🔔 NotificationManager actif:',
             window.notificationManager.isActive()
         );
-
-        const token =
-            window.notificationManager.getToken();
-
-        if (token) {
-
-            console.log(
-                '🔑 Token FCM:',
-                token.substring(0, 20) + '...'
-            );
-        }
 
     } else {
 
@@ -4717,9 +4350,7 @@ async function init() {
    DOM READY
 ================================================================ */
 
-if (
-    document.readyState === 'loading'
-) {
+if (document.readyState === 'loading') {
 
     document.addEventListener(
         'DOMContentLoaded',
@@ -4739,7 +4370,6 @@ if (
 window.addEventListener(
     'beforeunload',
     function () {
-
         /* Rien à nettoyer */
     }
 );
@@ -4749,47 +4379,33 @@ window.addEventListener(
    EXPORTS UTILES
 ================================================================ */
 
-window.showToast =
-    showToast;
+window.showToast = showToast;
 
-window.markCommuniqueAsRead =
-    markCommuniqueAsRead;
+window.markCommuniqueAsRead = markCommuniqueAsRead;
 
-window.updateNotificationBadges =
-    updateNotificationBadges;
+window.updateNotificationBadges = updateNotificationBadges;
 
-window.updateNotificationBadgesFromCache =
-    updateNotificationBadgesFromCache;
+window.updateNotificationBadgesFromCache = updateNotificationBadgesFromCache;
 
-window.checkNotificationStatus =
-    checkNotificationStatus;
+window.checkNotificationStatus = checkNotificationStatus;
 
-window.enregistrerTokenFCM =
-    enregistrerTokenFCM;
+window.enregistrerTokenFCM = enregistrerTokenFCM;
 
-window.chargerEtudiant =
-    chargerEtudiant;
+window.chargerEtudiant = chargerEtudiant;
 
-window.chargerPromotions =
-    chargerPromotions;
+window.chargerPromotions = chargerPromotions;
 
-window.getPromotionNom =
-    getPromotionNom;
+window.getPromotionNom = getPromotionNom;
 
-window.verifierPromotionProjet =
-    verifierPromotionProjet;
+window.verifierPromotionProjet = verifierPromotionProjet;
 
-window.setupRealtimeProjectConfig =
-    setupRealtimeProjectConfig;
+window.setupRealtimeProjectConfig = setupRealtimeProjectConfig;
 
-window.updateProjectCardsVisibility =
-    updateProjectCardsVisibility;
+window.updateProjectCardsVisibility = updateProjectCardsVisibility;
 
-window.chargerPhotoProfil =
-    chargerPhotoProfil;
+window.chargerPhotoProfil = chargerPhotoProfil;
 
-window.afficherPhotoModal =
-    afficherPhotoModal;
+window.afficherPhotoModal = afficherPhotoModal;
 
 </script>
 
