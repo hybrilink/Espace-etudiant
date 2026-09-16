@@ -184,7 +184,7 @@
         }
 
         /* ============================================================
-           CARTE ÉTUDIANT — Taille d'origine + logo FSA couleurs réelles
+           CARTE ÉTUDIANT
         ============================================================ */
 
         .etudiant-info-card {
@@ -206,7 +206,6 @@
             min-height: 160px;
         }
 
-        /* Halo décoratif subtil */
         .etudiant-info-card::before {
             content: '';
             position: absolute;
@@ -219,7 +218,6 @@
             z-index: 0;
         }
 
-        /* ✅ LOGO FSA À DROITE — Couleurs d'origine préservées */
         .etudiant-info-card .card-logo {
             position: absolute;
             right: 20px;
@@ -230,12 +228,10 @@
             object-fit: contain;
             opacity: 0.9;
             pointer-events: none;
-border-radius:40px;
+            border-radius: 40px;
             z-index: 1;
-            /* Pas de filtre : les couleurs d'origine du logo sont conservées */
         }
 
-        /* ✅ TEXTE À GAUCHE */
         .etudiant-info-card > div:not(.info-icon) {
             position: relative;
             z-index: 2;
@@ -244,7 +240,6 @@ border-radius:40px;
             text-align: left;
         }
 
-        /* ✅ ICÔNE CHAPEAU EN HAUT À DROITE */
         .etudiant-info-card .info-icon {
             position: absolute;
             right: 25px;
@@ -257,7 +252,6 @@ border-radius:40px;
             text-shadow: 0 2px 12px rgba(0,0,0,0.3);
         }
 
-        /* ✅ TITRE */
         .etudiant-info-card h2 {
             font-size: 1.3rem;
             font-weight: 700;
@@ -268,7 +262,6 @@ border-radius:40px;
             color: #ffffff;
         }
 
-        /* ✅ SOUS-TITRE */
         .etudiant-info-card p {
             margin: 0;
             opacity: 0.9;
@@ -279,7 +272,6 @@ border-radius:40px;
             color: #ffffff;
         }
 
-        /* ✅ BADGE "Compte Actif" */
         .etudiant-info-card .badge-compte {
             background: var(--accent-yellow);
             color: var(--primary-blue);
@@ -293,7 +285,22 @@ border-radius:40px;
             z-index: 2;
         }
 
-        /* ✅ CACHE STATUS */
+        /* ✅ Badge année académique active */
+        .etudiant-info-card .badge-annee {
+            background: rgba(255,255,255,0.18);
+            color: #ffffff;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+            margin-left: 6px;
+            border: 1px solid rgba(255,255,255,0.3);
+            position: relative;
+            z-index: 2;
+        }
+
         .cache-status {
             font-size: 10px;
             color: rgba(255,255,255,0.6);
@@ -437,7 +444,6 @@ border-radius:40px;
             }
         }
 
-        /* ✅ AVATAR DU MODAL PROFIL (format 2:3 RDC) */
         .profile-modal-avatar {
             width: 100px;
             height: 150px;
@@ -534,6 +540,22 @@ border-radius:40px;
 
         .toast-custom .close-toast:hover {
             opacity: 1;
+        }
+
+        /* ============================================================
+           BANDEAU ANNÉE (nouveau)
+        ============================================================ */
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         /* ============================================================
@@ -819,7 +841,6 @@ border-radius:40px;
                 min-width: auto;
             }
 
-            /* ✅ Carte étudiant - Ajustements mobile */
             .etudiant-info-card {
                 padding: 18px;
             }
@@ -882,7 +903,6 @@ border-radius:40px;
                 min-width: 65px;
             }
 
-            /* ✅ Carte étudiant - Très petits écrans */
             .etudiant-info-card .card-logo {
                 width: 70px;
                 height: 70px;
@@ -1010,8 +1030,6 @@ border-radius:40px;
 
         <!-- ========================================================
              CARTE ÉTUDIANT
-             Texte à gauche + Logo FSA à droite (couleurs réelles)
-             + Chapeau en haut à droite
         ========================================================= -->
 
         <div class="etudiant-info-card">
@@ -1035,6 +1053,16 @@ border-radius:40px;
                     Compte Actif
                 </span>
 
+                <!-- ✅ Badge année académique active -->
+                <span
+                    class="badge-annee"
+                    id="anneeActiveBadge"
+                    style="display:none;"
+                >
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span id="anneeActiveText">-</span>
+                </span>
+
                 <div
                     class="cache-status"
                     id="cacheStatus"
@@ -1048,7 +1076,7 @@ border-radius:40px;
 
             </div>
 
-            <!-- 2️⃣ LOGO FSA À DROITE (couleurs d'origine) -->
+            <!-- 2️⃣ LOGO FSA À DROITE -->
             <img
                 src="fsa.png"
                 alt="Logo FSA"
@@ -1393,7 +1421,7 @@ border-radius:40px;
 </div>
 
 <!-- ================================================================
-     MODAL PROFIL (avec photo)
+     MODAL PROFIL
 ================================================================ -->
 
 <div
@@ -1405,7 +1433,6 @@ border-radius:40px;
 
         <div class="text-center">
 
-            <!-- ✅ Photo de profil ou avatar par défaut -->
             <img
                 id="modalProfilePhoto"
                 class="profile-modal-avatar"
@@ -1831,6 +1858,15 @@ let communiquesRealtimeInitialized = false;
 
 
 /* ================================================================
+   ANNÉE ACADÉMIQUE ACTIVE (NOUVEAU)
+================================================================ */
+
+let anneeActiveActuelle = null;
+
+let anneeActiveUnsubscribe = null;
+
+
+/* ================================================================
    CONFIGURATION PROJET - PROMOTIONS CONCERNÉES
 ================================================================ */
 
@@ -2009,6 +2045,294 @@ function escapeHtml(text) {
         String(text);
 
     return div.innerHTML;
+}
+
+
+/* ================================================================
+   BANDEAU ANNÉE ACADÉMIQUE (NOUVEAU)
+================================================================ */
+
+function afficherBandeauAnnee(nomAnnee) {
+
+    // Supprimer un éventuel bandeau existant
+    const existing =
+        document.getElementById('bandeauAnneeAcademique');
+
+    if (existing) {
+        existing.remove();
+    }
+
+    const bandeau =
+        document.createElement('div');
+
+    bandeau.id =
+        'bandeauAnneeAcademique';
+
+    bandeau.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #17a2b8, #138496);
+        color: white;
+        padding: 14px 20px;
+        text-align: center;
+        font-weight: bold;
+        z-index: 10001;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        animation: slideDown 0.4s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-size: 14px;
+    `;
+
+    bandeau.innerHTML = `
+        <i class="bi bi-calendar-check-fill" style="font-size:20px;"></i>
+        <span>Nouvelle année académique active : <strong>${escapeHtml(nomAnnee)}</strong></span>
+    `;
+
+    document.body.appendChild(bandeau);
+
+    setTimeout(() => {
+
+        bandeau.style.transition = 'opacity 0.5s';
+        bandeau.style.opacity = '0';
+
+        setTimeout(() => bandeau.remove(), 500);
+
+    }, 10000);
+}
+
+
+/* ================================================================
+   GESTION DE L'ANNÉE ACADÉMIQUE ACTIVE (NOUVEAU)
+================================================================ */
+
+/**
+ * Vide tout le cache local lié aux données filtrées par année
+ * (communiqués, paiements, cartes, notes, etc.)
+ */
+function viderCacheAnnee() {
+
+    try {
+
+        const keysToRemove = [];
+
+        for (let i = 0; i < localStorage.length; i++) {
+
+            const key =
+                localStorage.key(i);
+
+            if (key && (
+                key.startsWith('fsa_cache_communiques_') ||
+                key.startsWith('fsa_cache_notes_') ||
+                key.startsWith('fsa_cache_paiements_') ||
+                key.startsWith('fsa_cache_cartes_')
+            )) {
+                keysToRemove.push(key);
+            }
+        }
+
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+
+        // ✅ Réinitialiser aussi les communiqués lus
+        localStorage.removeItem('communiques_lus');
+
+        console.log(
+            `[ANNÉE] 🧹 Cache vidé (${keysToRemove.length} entrées)`
+        );
+
+    } catch (e) {
+
+        console.warn('[ANNÉE] Erreur vidage cache:', e);
+    }
+}
+
+
+/**
+ * Recharge toutes les données de l'étudiant pour l'année active
+ */
+async function rechargerDonneesAnnee(anneeInfo) {
+
+    console.log('[ANNÉE] 🔄 Rechargement pour:', anneeInfo);
+
+    // 1. Vider le cache
+    viderCacheAnnee();
+
+    // 2. Réinitialiser les badges
+    updateNotificationBadges(0);
+
+    // 3. Réinitialiser le realtime communiqués
+    if (snapshotUnsubscribe) {
+
+        try {
+            snapshotUnsubscribe();
+        } catch (e) {}
+
+        snapshotUnsubscribe = null;
+    }
+
+    communiquesRealtimeInitialized = false;
+
+    setupRealtimeCommuniques();
+
+    // 4. Recharger les infos étudiant
+    await chargerEtudiant(true);
+
+    await updateWelcomeMessage();
+
+    // 5. Mettre à jour le badge d'année
+    const badge =
+        document.getElementById('anneeActiveBadge');
+
+    const badgeText =
+        document.getElementById('anneeActiveText');
+
+    if (badge && badgeText && anneeInfo && anneeInfo.anneeNom) {
+
+        badgeText.textContent =
+            anneeInfo.anneeNom;
+
+        badge.style.display =
+            'inline-block';
+    }
+
+    // 6. Toast de notification
+    showToast(
+        `📅 Nouvelle année académique : ${anneeInfo.anneeNom}`,
+        'info'
+    );
+
+    // 7. Bandeau
+    afficherBandeauAnnee(anneeInfo.anneeNom);
+}
+
+
+/**
+ * Écoute en temps réel le document configurations/anneeActive
+ * Se déclenche dès que l'admin active une nouvelle année
+ */
+function setupRealtimeAnneeActive() {
+
+    // Nettoyer l'ancien listener
+    if (anneeActiveUnsubscribe) {
+
+        try {
+            anneeActiveUnsubscribe();
+        } catch (e) {}
+
+        anneeActiveUnsubscribe = null;
+    }
+
+    anneeActiveUnsubscribe =
+        db.collection('configurations')
+            .doc('anneeActive')
+            .onSnapshot(
+                (doc) => {
+
+                    if (!doc.exists) {
+
+                        console.log(
+                            '[ANNÉE] ⚠️ Aucune année active configurée'
+                        );
+
+                        return;
+                    }
+
+                    const data =
+                        doc.data() || {};
+
+                    const nouvelAnneeId =
+                        data.anneeId;
+
+                    const nouvelAnneeNom =
+                        data.anneeNom;
+
+                    if (!nouvelAnneeId) {
+                        return;
+                    }
+
+                    // Première détection → mémoriser sans recharger
+                    if (!anneeActiveActuelle) {
+
+                        anneeActiveActuelle = {
+                            id: nouvelAnneeId,
+                            anneeNom: nouvelAnneeNom
+                        };
+
+                        console.log(
+                            '[ANNÉE] ✅ Année active initiale:',
+                            anneeActiveActuelle
+                        );
+
+                        // Mettre à jour le badge
+                        const badge =
+                            document.getElementById(
+                                'anneeActiveBadge'
+                            );
+
+                        const badgeText =
+                            document.getElementById(
+                                'anneeActiveText'
+                            );
+
+                        if (
+                            badge &&
+                            badgeText &&
+                            nouvelAnneeNom
+                        ) {
+
+                            badgeText.textContent =
+                                nouvelAnneeNom;
+
+                            badge.style.display =
+                                'inline-block';
+                        }
+
+                        return;
+                    }
+
+                    // Changement détecté → recharger
+                    if (
+                        anneeActiveActuelle.id !==
+                        nouvelAnneeId
+                    ) {
+
+                        console.log(
+                            '[ANNÉE] 🔔 Changement détecté !'
+                        );
+
+                        console.log(
+                            '   Ancienne:',
+                            anneeActiveActuelle
+                        );
+
+                        console.log(
+                            '   Nouvelle:',
+                            nouvelAnneeId,
+                            nouvelAnneeNom
+                        );
+
+                        anneeActiveActuelle = {
+                            id: nouvelAnneeId,
+                            anneeNom: nouvelAnneeNom
+                        };
+
+                        rechargerDonneesAnnee(
+                            anneeActiveActuelle
+                        );
+                    }
+                },
+                (error) => {
+
+                    console.error(
+                        '[ANNÉE] Erreur écoute année active:',
+                        error
+                    );
+                }
+            );
 }
 
 
@@ -2554,6 +2878,15 @@ function setupRealtimeCommuniques() {
 
                         const data =
                             doc.data() || {};
+
+                        // ✅ FILTRE PAR ANNÉE ACADÉMIQUE ACTIVE
+                        if (
+                            anneeActiveActuelle &&
+                            data.anneeId &&
+                            data.anneeId !== anneeActiveActuelle.id
+                        ) {
+                            return;
+                        }
 
                         if (
                             data.promotions &&
@@ -3607,6 +3940,17 @@ document
                     null;
             }
 
+            // ✅ Nettoyer l'écoute de l'année active
+            if (anneeActiveUnsubscribe) {
+
+                try {
+                    anneeActiveUnsubscribe();
+                } catch (e) {}
+
+                anneeActiveUnsubscribe =
+                    null;
+            }
+
             window.location.href =
                 'login-etudiant.html';
         }
@@ -4257,6 +4601,9 @@ async function init() {
 
     setupRealtimeCommuniques();
 
+    // ✅ NOUVEAU : Écoute du changement d'année académique active
+    setupRealtimeAnneeActive();
+
     await updateWelcomeMessage();
 
     /* ✅ Charger la photo dans la navbar */
@@ -4406,6 +4753,14 @@ window.updateProjectCardsVisibility = updateProjectCardsVisibility;
 window.chargerPhotoProfil = chargerPhotoProfil;
 
 window.afficherPhotoModal = afficherPhotoModal;
+
+window.setupRealtimeAnneeActive = setupRealtimeAnneeActive;
+
+window.rechargerDonneesAnnee = rechargerDonneesAnnee;
+
+window.viderCacheAnnee = viderCacheAnnee;
+
+window.afficherBandeauAnnee = afficherBandeauAnnee;
 
 </script>
 
