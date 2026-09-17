@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Mes Paiements - Faculté Agronomique</title>
     <meta name="theme-color" content="#003366">
-    
+
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192x192.png">
     <link rel="icon" type="image/png" href="icon-96x96.png">
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
@@ -17,44 +17,47 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
-    
+
+    <!-- ⭐ MODULE ANNÉE ACADÉMIQUE CENTRALISÉ -->
+    <script src="annee-utils.js"></script>
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        :root { 
-            --primary-blue: #003366; 
-            --dark-blue: #002244; 
-            --accent-yellow: #ffb347; 
+        :root {
+            --primary-blue: #003366;
+            --dark-blue: #002244;
+            --accent-yellow: #ffb347;
             --success-green: #28a745;
             --danger-red: #dc3545;
             --warning-orange: #fd7e14;
         }
-        
+
         body {
             background: #f0f2f5;
             font-family: 'Segoe UI', sans-serif;
         }
-        
-        .navbar-custom { 
-            background: var(--primary-blue); 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+
+        .navbar-custom {
+            background: var(--primary-blue);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             padding: 12px 0;
         }
-        
+
         .navbar-brand {
             font-weight: bold;
             font-size: 1rem;
         }
-        
-        .profile-photo { 
+
+        .profile-photo {
             width: 45px;
             height: 45px;
-            border-radius: 50%; 
-            background: var(--accent-yellow); 
+            border-radius: 50%;
+            background: var(--accent-yellow);
             display: flex;
             align-items: center;
-            justify-content: center; 
-            cursor: pointer; 
+            justify-content: center;
+            cursor: pointer;
             position: relative;
         }
 
@@ -62,13 +65,45 @@
             font-size: 28px;
             color: var(--primary-blue);
         }
-        
+
         .navbar-right {
             display: flex;
             align-items: center;
             gap: 15px;
+            flex-wrap: wrap;
         }
-        
+
+        /* ⭐ BADGE ANNÉE ACADÉMIQUE */
+        .annee-badge-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,179,71,0.25);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(255,179,71,0.5);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .annee-badge-nav i {
+            color: var(--accent-yellow);
+            font-size: 12px;
+        }
+
+        .annee-badge-nav.chargement {
+            opacity: 0.6;
+            font-style: italic;
+        }
+
+        .annee-badge-nav.erreur {
+            background: rgba(220,53,69,0.25);
+            border-color: rgba(220,53,69,0.5);
+        }
+
         .notification-dot {
             position: absolute;
             top: -5px;
@@ -81,7 +116,7 @@
             display: none;
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes pulse {
             0% {
                 box-shadow: 0 0 0 0 rgba(220,53,69,0.7);
@@ -95,7 +130,7 @@
                 box-shadow: 0 0 0 0 rgba(220,53,69,0);
             }
         }
-        
+
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -104,7 +139,7 @@
             flex-wrap: wrap;
             gap: 10px;
         }
-        
+
         .btn-back {
             background: var(--primary-blue);
             color: white;
@@ -124,7 +159,7 @@
             transform: translateY(-2px);
             color: white;
         }
-        
+
         .btn-refresh {
             background: var(--accent-yellow);
             color: var(--primary-blue);
@@ -140,14 +175,14 @@
             background: #ff9800;
             transform: scale(1.02);
         }
-        
+
         .content-card {
             background: white;
             border-radius: 20px;
             padding: 25px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
-        
+
         .statut-paye {
             color: var(--success-green);
             font-weight: bold;
@@ -157,12 +192,12 @@
             color: var(--warning-orange);
             font-weight: bold;
         }
-        
+
         .paiements-table {
             width: 100%;
             border-collapse: collapse;
         }
-        
+
         .paiements-table th {
             background: var(--primary-blue);
             color: white;
@@ -170,17 +205,17 @@
             text-align: left;
             font-size: 13px;
         }
-        
+
         .paiements-table td {
             padding: 12px 15px;
             border-bottom: 1px solid #e0e0e0;
             font-size: 13px;
         }
-        
+
         .paiements-table tr:hover {
             background: #f8f9fa;
         }
-        
+
         .payment-status-card {
             background: #e8f4fd;
             border-radius: 15px;
@@ -188,7 +223,7 @@
             margin-bottom: 20px;
             border-left: 4px solid var(--primary-blue);
         }
-        
+
         .total-card {
             background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
             color: white;
@@ -197,12 +232,12 @@
             text-align: center;
             margin-top: 20px;
         }
-        
+
         .total-card .total-amount {
             font-size: 28px;
             font-weight: bold;
         }
-        
+
         .fiche-badge {
             display: inline-block;
             background: #ffe8e8;
@@ -214,16 +249,16 @@
             font-size: 11px;
             border: 1px solid var(--danger-red);
         }
-        
+
         .fiche-badge::before {
             content: "📄 ";
             font-weight: normal;
         }
-        
+
         .nouveau-paiement {
             animation: highlightPulse 0.5s ease-in-out;
         }
-        
+
         @keyframes highlightPulse {
             0% {
                 background: #fff3e0;
@@ -233,7 +268,7 @@
                 background: white;
             }
         }
-        
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -245,7 +280,7 @@
             opacity: 0.3;
             margin-bottom: 20px;
         }
-        
+
         .footer-info {
             text-align: center;
             margin-top: 30px;
@@ -254,7 +289,7 @@
             font-size: 12px;
             color: #888;
         }
-        
+
         .toast-notification {
             position: fixed;
             top: 20px;
@@ -263,7 +298,7 @@
             min-width: 280px;
             max-width: 350px;
         }
-        
+
         @keyframes slideInRight {
             from {
                 transform: translateX(100%);
@@ -275,13 +310,13 @@
                 opacity: 1;
             }
         }
-        
+
         .toast {
             animation: slideInRight 0.3s ease-out;
             margin-bottom: 10px;
             border-radius: 12px;
         }
-        
+
         .profile-modal {
             position: fixed;
             top: 0;
@@ -294,7 +329,7 @@
             justify-content: center;
             z-index: 2000;
         }
-        
+
         .profile-modal-content {
             background: white;
             border-radius: 20px;
@@ -302,7 +337,7 @@
             max-width: 400px;
             width: 90%;
         }
-        
+
         .btn-action {
             background: var(--primary-blue);
             color: white;
@@ -312,11 +347,11 @@
             cursor: pointer;
             width: 100%;
         }
-        
+
         .btn-action:hover {
             background: var(--dark-blue);
         }
-        
+
         .loading-spinner {
             display: inline-block;
             width: 40px;
@@ -326,13 +361,13 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-        
+
         @keyframes spin {
             to {
                 transform: rotate(360deg);
             }
         }
-        
+
         .total-paye-card {
             background: linear-gradient(135deg, var(--success-green), #1e7e34);
             border-radius: 15px;
@@ -341,7 +376,7 @@
             margin-bottom: 20px;
             text-align: center;
         }
-        
+
         .total-paye-card .label {
             font-size: 13px;
             opacity: 0.9;
@@ -351,7 +386,7 @@
             font-size: 32px;
             font-weight: bold;
         }
-        
+
         .cache-status {
             font-size: 10px;
             color: #888;
@@ -370,7 +405,38 @@
         .cache-status .offline {
             color: #dc3545;
         }
-        
+
+        /* ⭐ BADGE ANNÉE DANS LE TABLEAU */
+        .badge-annee {
+            background: linear-gradient(135deg, #ffb347, #ff9800);
+            color: var(--dark-blue);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        /* ⭐ SECTION PAR ANNÉE */
+        .annee-section-header {
+            background: linear-gradient(135deg, #003366, #002244);
+            color: white;
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .annee-section-header i {
+            color: var(--accent-yellow);
+            font-size: 18px;
+        }
+
         @media (max-width: 768px) {
             .content-card {
                 padding: 15px;
@@ -395,8 +461,13 @@
             .total-paye-card .amount {
                 font-size: 24px;
             }
+
+            .annee-badge-nav {
+                font-size: 10px;
+                padding: 4px 10px;
+            }
         }
-        
+
         @media print {
             .navbar-custom,
             .page-header,
@@ -429,6 +500,16 @@
 
             <div class="navbar-right">
 
+                <!-- ⭐ BADGE ANNÉE ACADÉMIQUE ACTIVE -->
+                <span
+                    class="annee-badge-nav chargement"
+                    id="anneeBadgeNav"
+                    title="Année académique active"
+                >
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span id="anneeBadgeText">Chargement...</span>
+                </span>
+
                 <div class="profile-photo" id="profileBtn">
                     <i class="bi bi-person-circle"></i>
                     <span class="notification-dot" id="notificationDot"></span>
@@ -441,11 +522,11 @@
             </div>
         </div>
     </nav>
-    
+
     <div class="container mt-4">
 
         <div id="toastContainer" class="toast-notification"></div>
-        
+
         <div class="page-header">
 
             <h4>
@@ -473,7 +554,7 @@
 
             </div>
         </div>
-        
+
         <div class="content-card">
 
             <div id="paiementsContainer">
@@ -491,7 +572,7 @@
             </div>
 
         </div>
-        
+
         <div class="footer-info">
 
             <i class="bi bi-shield-check"></i>
@@ -506,7 +587,7 @@
         </div>
 
     </div>
-    
+
     <!-- MODAL PROFIL -->
     <div id="profileModal" class="profile-modal">
 
@@ -742,7 +823,7 @@
 
         const firebaseConfig = {
 
-            apiKey: "AIzaSyBbQ2N-5ns7qKjBAj5UvDW87s2PZ27F0",
+            apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
             authDomain: "fsa-unilu.firebaseapp.com",
             projectId: "fsa-unilu",
             storageBucket: "fsa-unilu.firebasestorage.app",
@@ -782,23 +863,7 @@
 
 
         // ================================================================
-        // 3. CHARGEMENT DU GESTIONNAIRE DE NOTIFICATIONS
-        // ================================================================
-
-        /*
-         * Le fichier notification-utils.js est chargé plus bas.
-         *
-         * Il centralise :
-         * - le Service Worker ;
-         * - Firebase Cloud Messaging ;
-         * - l'enregistrement du token ;
-         * - les notifications foreground ;
-         * - la gestion des anciennes registrations.
-         */
-
-
-        // ================================================================
-        // 4. VARIABLES
+        // 3. VARIABLES
         // ================================================================
 
         let currentStudent = null;
@@ -809,7 +874,7 @@
 
 
         // ================================================================
-        // 5. SESSION
+        // 4. SESSION
         // ================================================================
 
         function checkSession() {
@@ -886,7 +951,7 @@
 
 
         // ================================================================
-        // 6. FONCTIONS UTILITAIRES
+        // 5. FONCTIONS UTILITAIRES
         // ================================================================
 
         function showToast(
@@ -1180,6 +1245,76 @@
 
 
         // ================================================================
+        // 6. ⭐ ANNÉE ACADÉMIQUE — CALLBACK
+        // ================================================================
+
+        /**
+         * Callback appelé par AnneeManager lors de la détection
+         * ou du changement d'année académique.
+         */
+        function onAnneeChange(annee, estChangement) {
+
+            console.log(
+                '[PAIEMENT] Callback année:',
+                annee,
+                '| changement:',
+                estChangement
+            );
+
+            // Premier chargement : rien à faire
+            if (!estChangement) {
+                return;
+            }
+
+            console.log(
+                '[PAIEMENT] 🔄 Rechargement des paiements pour:',
+                annee?.anneeNom
+            );
+
+            // Vider les transactions locales
+            allTransactions = [];
+
+            // Réinitialiser le listener temps réel
+            setupRealtimeListener();
+
+            // Toast informatif
+            showToast(
+                `📅 Année active : ${annee?.anneeNom || 'nouvelle'}`,
+                'info'
+            );
+        }
+
+
+        /**
+         * Initialise l'écoute de l'année académique active.
+         */
+        function setupRealtimeAnneeActive() {
+
+            if (typeof window.AnneeManager === 'undefined') {
+
+                console.warn(
+                    '[ANNÉE] AnneeManager non disponible. ' +
+                    'Assurez-vous que annee-utils.js est chargé.'
+                );
+
+                const badgeText = document.getElementById('anneeBadgeText');
+                const badgeNav = document.getElementById('anneeBadgeNav');
+
+                if (badgeText) badgeText.textContent = 'N/A';
+                if (badgeNav) {
+                    badgeNav.classList.remove('chargement');
+                    badgeNav.classList.add('erreur');
+                }
+                return;
+            }
+
+            window.AnneeManager.init(db, onAnneeChange);
+
+            console.log('[ANNÉE] ✅ Écoute initialisée');
+        }
+
+
+        // ================================================================
         // 7. CHARGEMENT DES PROMOTIONS
         // ================================================================
 
@@ -1398,7 +1533,7 @@
 
 
         // ================================================================
-        // 10. AFFICHAGE DES PAIEMENTS
+        // 10. ⭐ AFFICHAGE DES PAIEMENTS AVEC FILTRE ANNÉE
         // ================================================================
 
         function afficherPaiements(
@@ -1423,6 +1558,17 @@
                 transactions.length === 0
             ) {
 
+                const anneeNom =
+                    typeof window.AnneeManager !== 'undefined'
+                        ? window.AnneeManager.getAnneeNom()
+                        : null;
+
+                const anneeInfo = anneeNom
+                    ? `<br><small style="color:#17a2b8;font-weight:600;">
+                          📅 Année : ${escapeHtml(anneeNom)}
+                       </small>`
+                    : '';
+
                 container.innerHTML = `
                     <div class="empty-state">
 
@@ -1434,6 +1580,8 @@
                             Vous n'avez effectué aucun paiement
                             pour le moment.
                         </p>
+
+                        ${anneeInfo}
 
                         <hr>
 
@@ -1628,45 +1776,47 @@
                     );
 
 
+                // ⭐ En-tête de section avec année
                 html += `
 
-                    <div class="payment-status-card"
-                         style="margin-top:20px;">
+                    <div class="annee-section-header">
 
-                        <h6>
+                        <i class="bi bi-calendar-check-fill"></i>
 
-                            <i class="bi bi-calendar-week"></i>
-
+                        <span>
                             Année académique :
-                            ${escapeHtml(
-                                anneeNom
-                            )}
+                            ${escapeHtml(anneeNom)}
+                        </span>
 
-                        </h6>
+                        <span style="margin-left:auto;font-size:12px;opacity:0.85;">
+                            ${data.total.toLocaleString('fr-FR')} FC
+                        </span>
 
-                        <div class="table-responsive">
+                    </div>
 
-                            <table class="paiements-table">
+                    <div class="table-responsive">
 
-                                <thead>
+                        <table class="paiements-table">
 
-                                    <tr>
+                            <thead>
 
-                                        <th>Date</th>
+                                <tr>
 
-                                        <th>N° Reçu</th>
+                                    <th>Date</th>
 
-                                        <th>Fiches payées</th>
+                                    <th>N° Reçu</th>
 
-                                        <th>Montant</th>
+                                    <th>Fiches payées</th>
 
-                                        <th>Statut</th>
+                                    <th>Montant</th>
 
-                                    </tr>
+                                    <th>Statut</th>
 
-                                </thead>
+                                </tr>
 
-                                <tbody>
+                            </thead>
+
+                            <tbody>
 
                 `;
 
@@ -1875,37 +2025,35 @@
 
                 html += `
 
-                                </tbody>
+                            </tbody>
 
-                                <tfoot>
+                            <tfoot>
 
-                                    <tr style="background:#e8f4fd;">
+                                <tr style="background:#e8f4fd;">
 
-                                        <td colspan="3"
-                                            style="text-align:right;">
+                                    <td colspan="3"
+                                        style="text-align:right;">
 
-                                            <strong>
-                                                Total :
-                                            </strong>
+                                        <strong>
+                                            Total :
+                                        </strong>
 
-                                        </td>
+                                    </td>
 
-                                        <td colspan="2">
+                                    <td colspan="2">
 
-                                            <strong>
-                                                ${data.total.toLocaleString('fr-FR')}
-                                                FC
-                                            </strong>
+                                        <strong>
+                                            ${data.total.toLocaleString('fr-FR')}
+                                            FC
+                                        </strong>
 
-                                        </td>
+                                    </td>
 
-                                    </tr>
+                                </tr>
 
-                                </tfoot>
+                            </tfoot>
 
-                            </table>
-
-                        </div>
+                        </table>
 
                     </div>
 
@@ -1955,7 +2103,7 @@
 
 
         // ================================================================
-        // 12. ÉCOUTEUR TEMPS RÉEL FIRESTORE
+        // 12. ⭐ ÉCOUTEUR TEMPS RÉEL AVEC FILTRE ANNÉE
         // ================================================================
 
         function setupRealtimeListener() {
@@ -2013,22 +2161,29 @@
                 cachedTransactions.length > 0
             ) {
 
+                // ⭐ Filtrer le cache par année aussi
+                const filteredCache = cachedTransactions.filter(t => {
+                    if (typeof window.AnneeManager === 'undefined') return true;
+                    return window.AnneeManager.appartientAnneeActive(t);
+                });
+
                 allTransactions =
-                    cachedTransactions;
+                    filteredCache;
 
                 afficherPaiements(
-                    cachedTransactions,
+                    filteredCache,
                     true
                 );
 
                 console.log(
-                    '📦 Paiements affichés depuis le cache'
+                    '📦 Paiements affichés depuis le cache:',
+                    filteredCache.length
                 );
 
                 updateCacheStatus(
                     'cached',
                     '📦 Cache (' +
-                    cachedTransactions.length +
+                    filteredCache.length +
                     ' pay.)'
                 );
 
@@ -2074,6 +2229,14 @@
                                             change.type === 'added'
                                         ) {
 
+                                            // ⭐ FILTRE ANNÉE
+                                            if (
+                                                typeof window.AnneeManager !== 'undefined' &&
+                                                !window.AnneeManager.appartientAnneeActive(data)
+                                            ) {
+                                                return;
+                                            }
+
                                             newTransactionsCount++;
 
                                         }
@@ -2100,6 +2263,14 @@
                                     if (
                                         estConcerne
                                     ) {
+
+                                        // ⭐ FILTRE ANNÉE ACADÉMIQUE ACTIVE
+                                        if (
+                                            typeof window.AnneeManager !== 'undefined' &&
+                                            !window.AnneeManager.appartientAnneeActive(data)
+                                        ) {
+                                            return;
+                                        }
 
                                         transactions.push({
 
@@ -2184,14 +2355,6 @@
                                 );
 
 
-                                /*
-                                 * Le PUSH en arrière-plan est envoyé
-                                 * par le serveur / Cloud Function.
-                                 *
-                                 * Cette page ne déclenche plus elle-même
-                                 * un push FCM.
-                                 */
-
                                 if (
                                     !document.hasFocus()
                                 ) {
@@ -2254,12 +2417,17 @@
                                     cached.length > 0
                                 ) {
 
+                                    const filtered = cached.filter(t => {
+                                        if (typeof window.AnneeManager === 'undefined') return true;
+                                        return window.AnneeManager.appartientAnneeActive(t);
+                                    });
+
                                     allTransactions =
-                                        cached;
+                                        filtered;
 
 
                                     afficherPaiements(
-                                        cached,
+                                        filtered,
                                         true
                                     );
 
@@ -2422,6 +2590,13 @@
                     'Voulez-vous vous déconnecter ?'
                 )
             ) {
+
+                // ⭐ Nettoyer l'année
+                if (window.AnneeManager) {
+                    try {
+                        window.AnneeManager.reset();
+                    } catch (e) {}
+                }
 
                 if (snapshotUnsubscribe) {
 
@@ -2643,16 +2818,6 @@
 
             try {
 
-                /*
-                 * On utilise le gestionnaire centralisé.
-                 *
-                 * notification-utils.js s'occupe de :
-                 * - enregistrer ./sw.js ;
-                 * - utiliser le scope /Espace-etudiant/ ;
-                 * - supprimer les anciennes registrations inutiles ;
-                 * - connecter Firebase Messaging au SW central.
-                 */
-
                 if (
                     typeof window.registerAppServiceWorker ===
                     'function'
@@ -2731,17 +2896,6 @@
 
             try {
 
-                /*
-                 * IMPORTANT :
-                 * init() ne doit pas demander automatiquement
-                 * la permission de notification.
-                 *
-                 * La permission doit être demandée depuis une
-                 * action explicite de l'utilisateur, par exemple
-                 * depuis le bouton "Activer les notifications"
-                 * de etudiant.html.
-                 */
-
                 if (
                     window.notificationManager &&
                     typeof window.notificationManager.init ===
@@ -2800,14 +2954,6 @@
                         'paiements_' +
                         currentStudent.id;
 
-
-                    /*
-                     * Correction :
-                     * l'ancien code testait CacheManager.isValid
-                     * comme une propriété inexistante.
-                     *
-                     * Maintenant isValid() est une vraie méthode.
-                     */
 
                     if (
                         !CacheManager.isValid(
@@ -2892,6 +3038,14 @@
 
                 }
 
+                if (window.AnneeManager) {
+
+                    try {
+                        window.AnneeManager.destroy();
+                    } catch (e) {}
+
+                }
+
             }
         );
 
@@ -2924,6 +3078,10 @@
 
 
             CacheManager.cleanExpired();
+
+
+            // ⭐ 1. Initialiser l'année académique EN PREMIER
+            setupRealtimeAnneeActive();
 
 
             // ------------------------------------------------------------
@@ -3013,9 +3171,7 @@
 
     <!-- ================================================================
          NOTIFICATION UTILITIES
-         IMPORTANT : ce fichier doit être chargé après Firebase.
-         Il utilise le Service Worker central ./sw.js.
-         ================================================================ -->
+    ================================================================ -->
 
     <script src="./notification-utils.js"></script>
 
