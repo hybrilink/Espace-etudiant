@@ -21,11 +21,11 @@
     <!-- ==================== PDF ==================== -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <!--
-        Génération QR Code :
-        Le contenu envoyé au QR reste volontairement très court.
-    -->
+    <!-- ==================== QR CODE ==================== -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- ⭐ MODULE ANNÉE ACADÉMIQUE CENTRALISÉ -->
+    <script src="annee-utils.js"></script>
 
     <style>
         :root {
@@ -82,6 +82,37 @@
             background: rgba(255,255,255,0.25);
             transform: translateX(-3px);
             color: white;
+        }
+
+        /* ⭐ BADGE ANNÉE ACADÉMIQUE */
+        .annee-badge-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,179,71,0.25);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(255,179,71,0.5);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .annee-badge-nav i {
+            color: var(--accent-yellow);
+            font-size: 12px;
+        }
+
+        .annee-badge-nav.chargement {
+            opacity: 0.6;
+            font-style: italic;
+        }
+
+        .annee-badge-nav.erreur {
+            background: rgba(220,53,69,0.25);
+            border-color: rgba(220,53,69,0.5);
         }
 
         .container-custom {
@@ -238,22 +269,10 @@
             min-width: 40px;
         }
 
-        .progress-bar.stage-1 {
-            background: #dc3545;
-        }
-
-        .progress-bar.stage-2 {
-            background: #fd7e14;
-        }
-
-        .progress-bar.stage-3 {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .progress-bar.stage-4 {
-            background: var(--success-green);
-        }
+        .progress-bar.stage-1 { background: #dc3545; }
+        .progress-bar.stage-2 { background: #fd7e14; }
+        .progress-bar.stage-3 { background: #ffc107; color: #333; }
+        .progress-bar.stage-4 { background: var(--success-green); }
 
         .btn-download-fv {
             background: var(--success-green);
@@ -335,13 +354,8 @@
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .spinner {
@@ -352,6 +366,21 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin: 0 auto 15px;
+        }
+
+        /* ⭐ BADGE ANNÉE DANS LA CARTE PROJET */
+        .badge-annee-projet {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #ffb347, #ff9800);
+            color: var(--dark-blue);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 8px;
+            vertical-align: middle;
         }
 
         @media (max-width: 768px) {
@@ -369,6 +398,11 @@
             .submission-card h3 {
                 font-size: 1.2rem;
             }
+
+            .annee-badge-nav {
+                font-size: 10px;
+                padding: 4px 10px;
+            }
         }
     </style>
 </head>
@@ -384,11 +418,24 @@
                 MON PROJET DE FIN D'ÉTUDES
             </a>
 
-            <a href="etudiant.html" class="btn-back">
-                <i class="bi bi-arrow-left"></i>
-                Retour
-            </a>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
 
+                <!-- ⭐ BADGE ANNÉE ACADÉMIQUE ACTIVE -->
+                <span
+                    class="annee-badge-nav chargement"
+                    id="anneeBadgeNav"
+                    title="Année académique active"
+                >
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span id="anneeBadgeText">Chargement...</span>
+                </span>
+
+                <a href="etudiant.html" class="btn-back">
+                    <i class="bi bi-arrow-left"></i>
+                    Retour
+                </a>
+
+            </div>
         </div>
     </nav>
 
@@ -429,7 +476,7 @@
         // ================================================================
 
         const firebaseConfig = {
-            apiKey: "AIzaSyBb82N-5ns7qKjBAj5UvDW87s2PZ27F0",
+            apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
             authDomain: "fsa-unilu.firebaseapp.com",
             projectId: "fsa-unilu",
             storageBucket: "fsa-unilu.firebasestorage.app",
@@ -784,7 +831,74 @@
 
 
         // ================================================================
-        // CHARGER LE PROJET DE L'ÉTUDIANT
+        // ⭐ ANNÉE ACADÉMIQUE — CALLBACK
+        // ================================================================
+
+        function onAnneeChange(annee, estChangement) {
+
+            console.log(
+                '[TP] Callback année:',
+                annee,
+                '| changement:',
+                estChangement
+            );
+
+            // Premier chargement : rien à faire
+            if (!estChangement) {
+                return;
+            }
+
+            console.log(
+                '[TP] 🔄 Rechargement pour:',
+                annee?.anneeNom
+            );
+
+            // Vider les données locales
+            studentProject = null;
+            directorInfo = null;
+
+            // Recharger la page
+            renderPage().then(() => {
+                // Réinitialiser l'écoute temps réel du projet
+                setupProjectRealtimeListener();
+            });
+
+            // Toast informatif
+            showToast(
+                `📅 Année active : ${annee?.anneeNom || 'nouvelle'}`,
+                'info'
+            );
+        }
+
+
+        function setupRealtimeAnneeActive() {
+
+            if (typeof window.AnneeManager === 'undefined') {
+
+                console.warn(
+                    '[ANNÉE] AnneeManager non disponible. ' +
+                    'Assurez-vous que annee-utils.js est chargé.'
+                );
+
+                const badgeText = document.getElementById('anneeBadgeText');
+                const badgeNav = document.getElementById('anneeBadgeNav');
+
+                if (badgeText) badgeText.textContent = 'N/A';
+                if (badgeNav) {
+                    badgeNav.classList.remove('chargement');
+                    badgeNav.classList.add('erreur');
+                }
+                return;
+            }
+
+            window.AnneeManager.init(db, onAnneeChange);
+
+            console.log('[ANNÉE] ✅ Écoute initialisée');
+        }
+
+
+        // ================================================================
+        // ⭐ CHARGER LE PROJET DE L'ÉTUDIANT (filtre année)
         // ================================================================
 
         async function loadStudentProject() {
@@ -798,20 +912,28 @@
                             '==',
                             currentStudent.id
                         )
-                        .limit(1)
+                        .limit(10)
                         .get();
 
-                if (!snapshot.empty) {
+                studentProject = null;
+
+                snapshot.forEach(doc => {
+
+                    const data = doc.data();
+
+                    // ⭐ FILTRE ANNÉE ACADÉMIQUE ACTIVE
+                    if (
+                        typeof window.AnneeManager !== 'undefined' &&
+                        !window.AnneeManager.appartientAnneeActive(data)
+                    ) {
+                        return;
+                    }
 
                     studentProject = {
-                        id: snapshot.docs[0].id,
-                        ...snapshot.docs[0].data()
+                        id: doc.id,
+                        ...data
                     };
-
-                } else {
-
-                    studentProject = null;
-                }
+                });
 
                 return studentProject;
 
@@ -1064,7 +1186,7 @@
 
 
         // ================================================================
-        // AFFICHAGE PROJET SOUMIS
+        // ⭐ AFFICHAGE PROJET SOUMIS (avec badge année)
         // ================================================================
 
         function renderSubmittedProject() {
@@ -1110,6 +1232,23 @@
                 }
             }
 
+            // ⭐ Année académique du projet
+            const anneeNom =
+                studentProject.anneeAcademiqueNom ||
+                (
+                    typeof window.AnneeManager !== 'undefined'
+                        ? window.AnneeManager.getAnneeNom()
+                        : null
+                ) ||
+                '—';
+
+            const anneeBadge = `
+                <span class="badge-annee-projet">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    ${escapeHtml(anneeNom)}
+                </span>
+            `;
+
             let html = `
 
                 <div class="already-submitted-card">
@@ -1118,6 +1257,7 @@
 
                     <h5>
                         Votre sujet a été soumis avec succès
+                        ${anneeBadge}
                     </h5>
 
                     <p class="text-muted mb-0">
@@ -1169,6 +1309,23 @@
                         </strong>
 
                         ${escapeHtml(promotionName)}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+
+                            <i class="bi bi-calendar-check-fill me-2"></i>
+
+                            Année académique :
+
+                        </strong>
+
+                        <span style="background:#ffb347;color:#002244;padding:3px 12px;border-radius:12px;font-size:12px;font-weight:700;">
+                            ${escapeHtml(anneeNom)}
+                        </span>
 
                     </p>
 
@@ -1606,7 +1763,7 @@
 
 
         // ================================================================
-        // SOUMISSION DU SUJET
+        // ⭐ SOUMISSION DU SUJET (avec anneeAcademiqueId)
         // ================================================================
 
         function setupFormListener() {
@@ -1663,6 +1820,23 @@
                     }
 
 
+                    // ⭐ Récupérer l'année active
+                    const anneeActive =
+                        typeof window.AnneeManager !== 'undefined'
+                            ? window.AnneeManager.getAnnee()
+                            : null;
+
+                    if (!anneeActive || !anneeActive.id) {
+
+                        showToast(
+                            'Aucune année académique active',
+                            'danger'
+                        );
+
+                        return;
+                    }
+
+
                     if (
                         !confirm(
                             '⚠️ ATTENTION : Cette action est IRRÉVERSIBLE.\n\n' +
@@ -1695,11 +1869,24 @@
                                 '==',
                                 currentStudent.id
                             )
-                            .limit(1)
+                            .limit(10)
                             .get();
 
 
-                        if (!existing.empty) {
+                        let existantDansAnnee = null;
+
+                        existing.forEach(doc => {
+                            const data = doc.data();
+                            if (
+                                !data.anneeAcademiqueId ||
+                                data.anneeAcademiqueId === anneeActive.id
+                            ) {
+                                existantDansAnnee = doc.id;
+                            }
+                        });
+
+
+                        if (existantDansAnnee) {
 
                             showLoading(false);
 
@@ -1714,6 +1901,7 @@
                         }
 
 
+                        // ⭐ Création du projet avec année
                         const projectData = {
 
                             etudiantId:
@@ -1733,6 +1921,13 @@
 
                             sujet:
                                 sujet,
+
+                            // ⭐ ANNÉE ACADÉMIQUE
+                            anneeAcademiqueId:
+                                anneeActive.id,
+
+                            anneeAcademiqueNom:
+                                anneeActive.anneeNom,
 
                             dateSoumission:
                                 firebase.firestore
@@ -1772,6 +1967,8 @@
 
                                 await renderPage();
 
+                                setupProjectRealtimeListener();
+
                             },
                             1500
                         );
@@ -1803,19 +2000,6 @@
 
         // ================================================================
         // FEU VERT
-        //
-        // IMPORTANT :
-        //
-        // 1. feu.png doit être dans le même dossier que Projet.html.
-        //
-        // 2. Les données sont dessinées UNIQUEMENT dans les zones
-        //    prévues du modèle feu.png.
-        //
-        // 3. Le QR contient uniquement un identifiant court.
-        //
-        // 4. Aucun ajout du nom/signature du doyen.
-        //
-        // 5. Les coordonnées restent basées sur feu.png en 1024 x 1536.
         // ================================================================
 
 
@@ -1851,13 +2035,15 @@
 
             return safeString(
 
-                studentProject?.anneeAcademique ||
+                studentProject?.anneeAcademiqueNom ||
 
-                currentStudent?.anneeAcademique ||
+                (
+                    typeof window.AnneeManager !== 'undefined'
+                        ? window.AnneeManager.getAnneeNom()
+                        : null
+                ) ||
 
-                currentStudent?.anneeAcademiqueId ||
-
-                '2026-2027'
+                '2025-2026'
             );
         }
 
@@ -2050,20 +2236,6 @@
                     '0'
                 );
 
-
-            /*
-             * Payload volontairement très court.
-             *
-             * Exemple :
-             *
-             * FV|4119320ET|Ab12Cd34|20260904
-             *
-             * NE JAMAIS mettre :
-             *
-             * JSON.stringify(studentProject)
-             *
-             * dans le QR.
-             */
 
             return `FV|${matricule}|${projectId}|${stamp}`;
         }
@@ -2756,12 +2928,8 @@
 
                 // ========================================================
                 // 4. COORDONNÉES FEU.PNG
-                //
-                // Fond prévu en 1024 x 1536.
                 // ========================================================
 
-
-                // ---------- N° DOCUMENT ----------
 
                 drawFittedText(
                     ctx,
@@ -2775,8 +2943,6 @@
                     'left'
                 );
 
-
-                // ---------- ÉTUDIANT ----------
 
                 drawFittedText(
                     ctx,
@@ -2822,8 +2988,6 @@
                 );
 
 
-                // ---------- PROJET ----------
-
                 drawFittedText(
                     ctx,
                     departement,
@@ -2847,8 +3011,6 @@
                     10
                 );
 
-
-                // ---------- DIRECTEUR ----------
 
                 drawFittedText(
                     ctx,
@@ -2882,8 +3044,6 @@
                     9
                 );
 
-
-                // ---------- DATE ----------
 
                 const now =
                     new Date();
@@ -2928,8 +3088,6 @@
                     );
 
 
-                // Fond blanc de sécurité.
-
                 ctx.save();
 
 
@@ -2956,8 +3114,6 @@
 
                 ctx.restore();
 
-
-                // Code sous le QR.
 
                 drawFittedText(
                     ctx,
@@ -3110,6 +3266,139 @@
 
 
         // ================================================================
+        // ⭐ ÉCOUTE TEMPS RÉEL DU PROJET
+        // ================================================================
+
+        let projectRealtimeUnsubscribe = null;
+
+        function setupProjectRealtimeListener() {
+
+            // Nettoyer l'ancien listener
+            if (projectRealtimeUnsubscribe) {
+                try { projectRealtimeUnsubscribe(); } catch (e) {}
+                projectRealtimeUnsubscribe = null;
+            }
+
+            if (!currentStudent || !currentStudent.id) {
+                return;
+            }
+
+            console.log('🔄 Écoute temps réel du projet...');
+
+            // On écoute tous les projets de l'étudiant (pour filtrer par année)
+            projectRealtimeUnsubscribe =
+                db.collection('projets')
+                    .where('etudiantId', '==', currentStudent.id)
+                    .onSnapshot(
+                        async (snapshot) => {
+
+                            let nouveauProjet = null;
+
+                            snapshot.forEach(doc => {
+                                const data = doc.data();
+
+                                // ⭐ FILTRE ANNÉE
+                                if (
+                                    typeof window.AnneeManager !== 'undefined' &&
+                                    !window.AnneeManager.appartientAnneeActive(data)
+                                ) {
+                                    return;
+                                }
+
+                                nouveauProjet = {
+                                    id: doc.id,
+                                    ...data
+                                };
+                            });
+
+                            const oldEtape =
+                                studentProject
+                                    ? Number(studentProject.etape || 0)
+                                    : 0;
+
+                            const oldDirecteurId =
+                                studentProject
+                                    ? studentProject.directeurId
+                                    : null;
+
+                            const oldSujetReformule =
+                                studentProject
+                                    ? studentProject.sujetReformule || ''
+                                    : '';
+
+                            studentProject = nouveauProjet;
+
+                            if (!studentProject) {
+                                // Pas de projet pour cette année → afficher le formulaire
+                                await renderPage();
+                                setupFormListener();
+                                return;
+                            }
+
+                            const newEtape =
+                                Number(studentProject.etape || 0);
+
+                            // Étape modifiée
+                            if (newEtape !== oldEtape) {
+
+                                const newPourcentage =
+                                    Math.max(
+                                        0,
+                                        Math.min(100, newEtape * 25)
+                                    );
+
+                                showToast(
+                                    `🎉 Progression mise à jour : ${newPourcentage}% - ` +
+                                    (
+                                        newEtape >= 4
+                                            ? 'Feu Vert obtenu !'
+                                            : 'Étape ' + newEtape + ' validée'
+                                    ),
+                                    'info'
+                                );
+
+                                await renderPage();
+                            }
+
+                            // Directeur modifié
+                            if (
+                                studentProject.directeurId !== oldDirecteurId &&
+                                studentProject.directeurId
+                            ) {
+                                await loadDirectorInfo(studentProject.directeurId);
+
+                                showToast(
+                                    '👨‍🏫 Un directeur de projet vous a été assigné !',
+                                    'info'
+                                );
+
+                                await renderPage();
+                            }
+
+                            // Sujet reformulé
+                            const newSujetReformule =
+                                studentProject.sujetReformule || '';
+
+                            if (
+                                newSujetReformule &&
+                                newSujetReformule !== oldSujetReformule
+                            ) {
+                                showToast(
+                                    '✏️ Votre sujet a été reformulé par votre directeur.',
+                                    'info'
+                                );
+
+                                await renderPage();
+                            }
+                        },
+                        (error) => {
+                            console.error('Erreur écoute projet:', error);
+                        }
+                    );
+        }
+
+
+        // ================================================================
         // SERVICE WORKER CENTRAL
         // ================================================================
 
@@ -3129,18 +3418,6 @@
 
             try {
 
-                /*
-                 * PRIORITÉ :
-                 *
-                 * notification-utils.js fournit maintenant
-                 * la fonction centrale :
-                 *
-                 * window.registerAppServiceWorker()
-                 *
-                 * On l'utilise afin d'éviter plusieurs
-                 * Service Workers concurrents.
-                 */
-
                 if (
                     typeof window.registerAppServiceWorker ===
                     'function'
@@ -3159,15 +3436,6 @@
                     return registration;
                 }
 
-
-                /*
-                 * FALLBACK :
-                 *
-                 * Si notification-utils.js n'est pas disponible,
-                 * on enregistre directement sw.js.
-                 *
-                 * Aucun SAVE_STUDENT_SESSION ici.
-                 */
 
                 const scope =
                     '/Espace-etudiant/';
@@ -3298,12 +3566,6 @@
             );
 
 
-            console.log(
-                '📋 Départements disponibles:',
-                DEPARTEMENTS
-            );
-
-
             // ============================================================
             // ANIMATION TOAST
             // ============================================================
@@ -3343,6 +3605,10 @@
             );
 
 
+            // ⭐ 1. Initialiser l'année académique EN PREMIER
+            setupRealtimeAnneeActive();
+
+
             // ============================================================
             // NOTIFICATIONS
             // ============================================================
@@ -3365,204 +3631,32 @@
 
 
             // ============================================================
-            // ÉCOUTE TEMPS RÉEL DU PROJET
+            // ÉCOUTE TEMPS RÉEL
             // ============================================================
 
-            try {
-
-                const snapshot =
-                    await db.collection(
-                        'projets'
-                    )
-                    .where(
-                        'etudiantId',
-                        '==',
-                        currentStudent.id
-                    )
-                    .limit(1)
-                    .get();
-
-
-                if (!snapshot.empty) {
-
-                    const projectId =
-                        snapshot.docs[0].id;
-
-
-                    db.collection(
-                        'projets'
-                    )
-                    .doc(projectId)
-                    .onSnapshot(
-
-                        async (doc) => {
-
-                            if (!doc.exists) {
-                                return;
-                            }
-
-
-                            const oldEtape =
-                                studentProject
-                                    ? Number(
-                                        studentProject.etape ||
-                                        0
-                                    )
-                                    : 0;
-
-
-                            const oldDirecteurId =
-                                studentProject
-                                    ? studentProject.directeurId
-                                    : null;
-
-
-                            const oldSujetReformule =
-                                studentProject
-                                    ? studentProject.sujetReformule ||
-                                      ''
-                                    : '';
-
-
-                            studentProject = {
-
-                                id:
-                                    doc.id,
-
-                                ...doc.data()
-                            };
-
-
-                            const newEtape =
-                                Number(
-                                    studentProject.etape ||
-                                    0
-                                );
-
-
-                            // =================================================
-                            // ÉTAPE MODIFIÉE
-                            // =================================================
-
-                            if (
-                                newEtape !==
-                                oldEtape
-                            ) {
-
-                                const newPourcentage =
-                                    Math.max(
-                                        0,
-                                        Math.min(
-                                            100,
-                                            newEtape *
-                                            25
-                                        )
-                                    );
-
-
-                                showToast(
-
-                                    `🎉 Progression mise à jour : ${newPourcentage}% - ` +
-
-                                    (
-                                        newEtape >= 4
-
-                                            ? 'Feu Vert obtenu !'
-
-                                            : 'Étape ' +
-                                              newEtape +
-                                              ' validée'
-                                    ),
-
-                                    'info'
-                                );
-
-
-                                await renderPage();
-                            }
-
-
-                            // =================================================
-                            // DIRECTEUR MODIFIÉ
-                            // =================================================
-
-                            if (
-
-                                studentProject.directeurId !==
-                                oldDirecteurId
-
-                                &&
-
-                                studentProject.directeurId
-
-                            ) {
-
-                                await loadDirectorInfo(
-                                    studentProject.directeurId
-                                );
-
-
-                                showToast(
-                                    '👨‍🏫 Un directeur de projet vous a été assigné !',
-                                    'info'
-                                );
-
-
-                                await renderPage();
-                            }
-
-
-                            // =================================================
-                            // SUJET REFORMULÉ
-                            // =================================================
-
-                            const newSujetReformule =
-                                studentProject.sujetReformule ||
-                                '';
-
-
-                            if (
-                                newSujetReformule &&
-                                newSujetReformule !==
-                                oldSujetReformule
-                            ) {
-
-                                showToast(
-                                    '✏️ Votre sujet a été reformulé par votre directeur.',
-                                    'info'
-                                );
-
-
-                                await renderPage();
-                            }
-
-                        },
-
-
-                        (error) => {
-
-                            console.error(
-                                'Erreur écoute projet:',
-                                error
-                            );
-                        }
-                    );
-                }
-
-
-            } catch (error) {
-
-                console.error(
-                    'Erreur initialisation écoute temps réel:',
-                    error
-                );
-            }
+            setupProjectRealtimeListener();
 
 
             console.log(
                 '✅ Page Projet Étudiant prête'
             );
         }
+
+
+        // ================================================================
+        // NETTOYAGE
+        // ================================================================
+
+        window.addEventListener('beforeunload', () => {
+
+            if (projectRealtimeUnsubscribe) {
+                try { projectRealtimeUnsubscribe(); } catch (e) {}
+            }
+
+            if (window.AnneeManager) {
+                try { window.AnneeManager.destroy(); } catch (e) {}
+            }
+        });
 
 
         // ================================================================
