@@ -24,6 +24,11 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 
     <!-- ================================================================ -->
+    <!-- ⭐ MODULE ANNÉE ACADÉMIQUE CENTRALISÉ -->
+    <!-- ================================================================ -->
+    <script src="annee-utils.js"></script>
+
+    <!-- ================================================================ -->
     <!-- ERUDA - CONSOLE SUR LE TELEPHONE -->
     <!-- ================================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
@@ -92,6 +97,37 @@
             display: flex;
             align-items: center;
             gap: 15px;
+        }
+
+        /* ⭐ BADGE ANNÉE ACADÉMIQUE */
+        .annee-badge-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,179,71,0.25);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(255,179,71,0.5);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .annee-badge-nav i {
+            color: var(--accent-yellow);
+            font-size: 12px;
+        }
+
+        .annee-badge-nav.chargement {
+            opacity: 0.6;
+            font-style: italic;
+        }
+
+        .annee-badge-nav.erreur {
+            background: rgba(220,53,69,0.25);
+            border-color: rgba(220,53,69,0.5);
         }
 
         .notification-dot {
@@ -227,6 +263,21 @@
             font-size: 10px;
             font-weight: bold;
             animation: blink 1.5s infinite;
+        }
+
+        /* ⭐ BADGE ANNÉE SUR LE COMMUNIQUÉ */
+        .annee-badge-communique {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, #ffb347, #ff9800);
+            color: var(--dark-blue);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-left: 8px;
+            vertical-align: middle;
         }
 
         @keyframes blink {
@@ -480,6 +531,11 @@
                 min-width: auto;
                 max-width: none;
             }
+
+            .annee-badge-nav {
+                font-size: 10px;
+                padding: 4px 10px;
+            }
         }
     </style>
 </head>
@@ -498,6 +554,16 @@
             </a>
 
             <div class="navbar-right">
+
+                <!-- ⭐ BADGE ANNÉE ACADÉMIQUE ACTIVE -->
+                <span
+                    class="annee-badge-nav chargement"
+                    id="anneeBadgeNav"
+                    title="Année académique active"
+                >
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span id="anneeBadgeText">Chargement...</span>
+                </span>
 
                 <div class="profile-photo" id="profileBtn">
                     <i class="bi bi-person-circle"></i>
@@ -682,7 +748,7 @@
         // ================================================================
 
         const firebaseConfig = {
-            apiKey: "AIzaSyBb82N-5ns7qKjBAj5UvDW87s2PZ27F0",
+            apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
             authDomain: "fsa-unilu.firebaseapp.com",
             projectId: "fsa-unilu",
             storageBucket: "fsa-unilu.firebasestorage.app",
@@ -749,22 +815,6 @@
         // ================================================================
         // 3. CHARGEMENT DU GESTIONNAIRE CENTRALISÉ
         // ================================================================
-
-        /*
-         * IMPORTANT :
-         *
-         * notification-utils.js est chargé APRÈS Firebase.
-         *
-         * Il utilise le SW central :
-         *
-         *     sw.js
-         *
-         * Il n'y a PLUS de :
-         *
-         *     firebase-messaging-sw.js
-         *
-         * sur cette page.
-         */
 
         (function loadNotificationManager() {
 
@@ -1101,7 +1151,86 @@
 
 
         // ================================================================
-        // 6. NOTIFICATIONS - GESTIONNAIRE CENTRALISÉ
+        // 6. ⭐ ANNÉE ACADÉMIQUE — CALLBACK
+        // ================================================================
+
+        /**
+         * Callback appelé par AnneeManager lors de la détection
+         * ou du changement d'année académique.
+         */
+        function onAnneeChange(annee, estChangement) {
+
+            console.log(
+                '[COMMUNIQUER] Callback année:',
+                annee,
+                '| changement:',
+                estChangement
+            );
+
+            // Premier chargement : rien à faire
+            if (!estChangement) {
+                return;
+            }
+
+            console.log(
+                '[COMMUNIQUER] 🔄 Rechargement des communiqués pour:',
+                annee?.anneeNom
+            );
+
+            // Vider les communiqués locaux
+            allCommuniques = [];
+
+            // Réinitialiser le listener temps réel
+            if (snapshotUnsubscribe) {
+
+                try {
+                    snapshotUnsubscribe();
+                } catch (e) {}
+
+                snapshotUnsubscribe = null;
+            }
+
+            setupRealtimeListener();
+
+            // Toast informatif
+            showToast(
+                `📅 Année active : ${annee?.anneeNom || 'nouvelle'}`,
+                'info'
+            );
+        }
+
+
+        /**
+         * Initialise l'écoute de l'année académique active.
+         */
+        function setupRealtimeAnneeActive() {
+
+            if (typeof window.AnneeManager === 'undefined') {
+
+                console.warn(
+                    '[ANNÉE] AnneeManager non disponible. ' +
+                    'Assurez-vous que annee-utils.js est chargé.'
+                );
+
+                const badgeText = document.getElementById('anneeBadgeText');
+                const badgeNav = document.getElementById('anneeBadgeNav');
+
+                if (badgeText) badgeText.textContent = 'N/A';
+                if (badgeNav) {
+                    badgeNav.classList.remove('chargement');
+                    badgeNav.classList.add('erreur');
+                }
+                return;
+            }
+
+            window.AnneeManager.init(db, onAnneeChange);
+
+            console.log('[ANNÉE] ✅ Écoute initialisée');
+        }
+
+
+        // ================================================================
+        // 7. NOTIFICATIONS - GESTIONNAIRE CENTRALISÉ
         // ================================================================
 
         async function enregistrerTokenFCM(
@@ -1126,17 +1255,6 @@
 
                     return null;
                 }
-
-                /*
-                 * IMPORTANT :
-                 *
-                 * init() ne doit pas forcer la demande
-                 * de permission au chargement de la page.
-                 *
-                 * Si l'autorisation a déjà été donnée,
-                 * le gestionnaire peut récupérer/enregistrer
-                 * le token.
-                 */
 
                 const token =
                     await window.notificationManager.init(
@@ -1182,7 +1300,7 @@
 
 
         // ================================================================
-        // 7. VÉRIFICATION UI NOTIFICATIONS
+        // 8. VÉRIFICATION UI NOTIFICATIONS
         // ================================================================
 
         function checkNotificationStatus() {
@@ -1233,11 +1351,6 @@
                 }
             }
 
-            /*
-             * Permission par défaut :
-             * afficher le bouton Activer.
-             */
-
             if (
                 Notification.permission ===
                 'default'
@@ -1253,7 +1366,7 @@
 
 
         // ================================================================
-        // 8. BOUTON ACTIVER NOTIFICATIONS
+        // 9. BOUTON ACTIVER NOTIFICATIONS
         // ================================================================
 
         document
@@ -1286,12 +1399,6 @@
                     `;
 
                     try {
-
-                        /*
-                         * Cette méthode est la seule qui doit
-                         * demander explicitement l'autorisation
-                         * de notification.
-                         */
 
                         if (
                             window.notificationManager &&
@@ -1379,7 +1486,7 @@
 
 
         // ================================================================
-        // 9. PROMOTIONS
+        // 10. PROMOTIONS
         // ================================================================
 
         async function chargerPromotions(
@@ -1443,7 +1550,7 @@
 
 
         // ================================================================
-        // 10. GESTION DES COMMUNIQUÉS LUS
+        // 11. GESTION DES COMMUNIQUÉS LUS
         // ================================================================
 
         function getReadCommuniques() {
@@ -1537,7 +1644,7 @@
 
 
         // ================================================================
-        // 11. AFFICHAGE DES COMMUNIQUÉS
+        // 12. ⭐ AFFICHAGE DES COMMUNIQUÉS AVEC BADGE ANNÉE
         // ================================================================
 
         function renderCommuniques(
@@ -1559,6 +1666,17 @@
                 allCommuniques.length === 0
             ) {
 
+                const anneeNom =
+                    typeof window.AnneeManager !== 'undefined'
+                        ? window.AnneeManager.getAnneeNom()
+                        : null;
+
+                const anneeInfo = anneeNom
+                    ? `<br><small style="color:#17a2b8;font-weight:600;">
+                          📅 Année : ${escapeHtml(anneeNom)}
+                       </small>`
+                    : '';
+
                 container.innerHTML = `
                     <div class="empty-state">
 
@@ -1571,6 +1689,8 @@
                         <p class="text-muted">
                             Les communiqués apparaîtront ici en temps réel ⚡
                         </p>
+
+                        ${anneeInfo}
 
                         ${
                             fromCache
@@ -1621,6 +1741,22 @@
                             '<br>'
                         );
 
+                    // ⭐ Année académique du communiqué
+                    const anneeNom =
+                        communique.anneeAcademiqueNom ||
+                        (
+                            typeof window.AnneeManager !== 'undefined'
+                                ? window.AnneeManager.getAnneeNom()
+                                : null
+                        );
+
+                    const anneeBadge = anneeNom
+                        ? `<span class="annee-badge-communique">
+                              <i class="bi bi-calendar-check-fill"></i>
+                              ${escapeHtml(anneeNom)}
+                           </span>`
+                        : '';
+
                     html += `
 
                         <div
@@ -1642,6 +1778,7 @@
                                 <span>
                                     <i class="bi bi-megaphone-fill"></i>
                                     ${escapeHtml(titre)}
+                                    ${anneeBadge}
                                 </span>
 
                                 ${
@@ -1721,7 +1858,7 @@
 
 
         // ================================================================
-        // 12. CLIC SUR UN COMMUNIQUÉ
+        // 13. CLIC SUR UN COMMUNIQUÉ
         // ================================================================
 
         window.handleCardClick =
@@ -1755,7 +1892,7 @@
 
 
         // ================================================================
-        // 13. ÉCOUTEUR TEMPS RÉEL
+        // 14. ⭐ ÉCOUTEUR TEMPS RÉEL AVEC FILTRE ANNÉE
         // ================================================================
 
         function setupRealtimeListener() {
@@ -1781,11 +1918,6 @@
             console.log(
                 '🔄 Écoute en temps réel des communiqués...'
             );
-
-            /*
-             * On récupère les communications dont
-             * la date de fin est récente ou future.
-             */
 
             snapshotUnsubscribe =
                 db
@@ -1819,16 +1951,6 @@
                             const nouveauxCommuniques =
                                 [];
 
-                            /*
-                             * Détection des changements.
-                             *
-                             * IMPORTANT :
-                             * aucun push n'est envoyé ici.
-                             *
-                             * Le push distant doit être envoyé
-                             * par la Cloud Function.
-                             */
-
                             snapshot
                                 .docChanges()
                                 .forEach(
@@ -1845,23 +1967,20 @@
                                             'added'
                                         ) {
 
+                                            // ⭐ FILTRE ANNÉE
+                                            if (
+                                                typeof window.AnneeManager !== 'undefined' &&
+                                                !window.AnneeManager.appartientAnneeActive(data)
+                                            ) {
+                                                return;
+                                            }
+
                                             const nouveau = {
 
                                                 id: docId,
 
                                                 ...data
                                             };
-
-                                            /*
-                                             * Pour éviter de considérer
-                                             * tous les documents existants
-                                             * comme de nouveaux communiqués
-                                             * lors du premier chargement,
-                                             * on ne déclenche le toast
-                                             * que si la page avait déjà
-                                             * reçu au moins une fois
-                                             * les données.
-                                             */
 
                                             if (
                                                 allCommuniques.length > 0
@@ -1892,13 +2011,16 @@
                                     const data =
                                         doc.data();
 
+                                    // ⭐ FILTRE ANNÉE ACADÉMIQUE ACTIVE
+                                    if (
+                                        typeof window.AnneeManager !== 'undefined' &&
+                                        !window.AnneeManager.appartientAnneeActive(data)
+                                    ) {
+                                        return;
+                                    }
+
                                     /*
                                      * Filtrage par promotion.
-                                     *
-                                     * Si le communiqué ne possède
-                                     * pas de promotions ou que la
-                                     * liste est vide, il est visible
-                                     * par tous.
                                      */
 
                                     if (
@@ -1938,6 +2060,15 @@
 
                                         dateFin:
                                             data.dateFin ||
+                                            null,
+
+                                        // ⭐ Année académique
+                                        anneeAcademiqueId:
+                                            data.anneeAcademiqueId ||
+                                            null,
+
+                                        anneeAcademiqueNom:
+                                            data.anneeAcademiqueNom ||
                                             null,
 
                                         createur:
@@ -2013,18 +2144,9 @@
                             );
 
 
-                            /*
-                             * Mise à jour globale.
-                             */
-
                             allCommuniques =
                                 communiquesTemp;
 
-
-                            /*
-                             * Notification visuelle uniquement
-                             * pour les nouveaux communiqués.
-                             */
 
                             if (
                                 nouveauxCommuniques.length > 0
@@ -2043,12 +2165,6 @@
                                                 'info'
                                             );
 
-                                            /*
-                                             * Le point rouge indique
-                                             * qu'un nouveau communiqué
-                                             * n'a pas encore été lu.
-                                             */
-
                                             const dot =
                                                 document.getElementById(
                                                     'notificationDot'
@@ -2058,13 +2174,6 @@
                                                 dot.style.display =
                                                     'block';
                                             }
-
-                                            /*
-                                             * Petit son local optionnel.
-                                             *
-                                             * Aucun push n'est envoyé
-                                             * depuis le navigateur.
-                                             */
 
                                             try {
 
@@ -2107,12 +2216,6 @@
                                 'offline',
                                 '⚠️ Hors ligne'
                             );
-
-                            /*
-                             * Firestore possède son propre cache
-                             * hors ligne. On essaie donc de garder
-                             * les données déjà présentes.
-                             */
 
                             if (
                                 allCommuniques.length > 0
@@ -2163,7 +2266,7 @@
 
 
         // ================================================================
-        // 14. PROFIL
+        // 15. PROFIL
         // ================================================================
 
         async function loadProfileData() {
@@ -2254,7 +2357,7 @@
 
 
         // ================================================================
-        // 15. OUVERTURE PROFIL
+        // 16. OUVERTURE PROFIL
         // ================================================================
 
         document
@@ -2274,7 +2377,7 @@
 
 
         // ================================================================
-        // 16. FERMETURE PROFIL
+        // 17. FERMETURE PROFIL
         // ================================================================
 
         window.closeProfileModal =
@@ -2312,7 +2415,7 @@
 
 
         // ================================================================
-        // 17. DÉCONNEXION
+        // 18. DÉCONNEXION
         // ================================================================
 
         document
@@ -2330,10 +2433,6 @@
                     return;
                 }
 
-                /*
-                 * Arrêt du listener Firestore.
-                 */
-
                 if (snapshotUnsubscribe) {
 
                     try {
@@ -2344,10 +2443,12 @@
                         null;
                 }
 
-                /*
-                 * Réinitialisation du gestionnaire
-                 * centralisé.
-                 */
+                // ⭐ Nettoyer l'année
+                if (window.AnneeManager) {
+                    try {
+                        window.AnneeManager.reset();
+                    } catch (e) {}
+                }
 
                 if (
                     window.notificationManager &&
@@ -2382,7 +2483,7 @@
 
 
         // ================================================================
-        // 18. CHANGEMENT MOT DE PASSE
+        // 19. CHANGEMENT MOT DE PASSE
         // ================================================================
 
         document
@@ -2489,7 +2590,7 @@
 
 
         // ================================================================
-        // 19. SERVICE WORKER CENTRALISÉ
+        // 20. SERVICE WORKER CENTRALISÉ
         // ================================================================
 
         async function registerServiceWorker() {
@@ -2506,11 +2607,6 @@
             }
 
             try {
-
-                /*
-                 * Utiliser le gestionnaire centralisé
-                 * lorsqu'il est disponible.
-                 */
 
                 if (
                     window.registerAppServiceWorker &&
@@ -2532,11 +2628,6 @@
                     return registration;
                 }
 
-
-                /*
-                 * Fallback :
-                 * enregistrer directement sw.js.
-                 */
 
                 let registration =
                     await navigator
@@ -2579,7 +2670,7 @@
 
 
         // ================================================================
-        // 20. MODE HORS LIGNE
+        // 21. MODE HORS LIGNE
         // ================================================================
 
         function setupOfflineDetection() {
@@ -2608,11 +2699,6 @@
                     offlineBadge.classList.remove(
                         'show'
                     );
-
-                    /*
-                     * Ne pas remplacer inutilement
-                     * le statut temps réel.
-                     */
 
                     if (
                         allCommuniques.length > 0
@@ -2649,17 +2735,12 @@
 
 
         // ================================================================
-        // 21. INITIALISATION NOTIFICATIONS
+        // 22. INITIALISATION NOTIFICATIONS
         // ================================================================
 
         async function initialiserNotifications() {
 
             try {
-
-                /*
-                 * Attendre brièvement que notification-utils.js
-                 * ait terminé son chargement si nécessaire.
-                 */
 
                 let tentatives = 0;
 
@@ -2694,12 +2775,6 @@
                 }
 
 
-                /*
-                 * Initialisation silencieuse.
-                 *
-                 * La permission n'est pas demandée ici.
-                 */
-
                 await window
                     .notificationManager
                     .init(
@@ -2727,7 +2802,7 @@
 
 
         // ================================================================
-        // 22. INITIALISATION PRINCIPALE
+        // 23. INITIALISATION PRINCIPALE
         // ================================================================
 
         async function init() {
@@ -2754,56 +2829,28 @@
                 '⚡ Écoute en temps réel activée'
             );
 
+            // ⭐ 1. Initialiser l'année académique EN PREMIER
+            setupRealtimeAnneeActive();
 
-            /*
-             * Charger les promotions.
-             */
-
+            // 2. Charger les promotions
             await chargerPromotions();
 
-
-            /*
-             * Enregistrer le SW centralisé.
-             */
-
+            // 3. Enregistrer le SW centralisé
             await registerServiceWorker();
 
-
-            /*
-             * Initialiser les notifications
-             * sans demander automatiquement
-             * la permission.
-             */
-
+            // 4. Initialiser les notifications
             await initialiserNotifications();
 
-
-            /*
-             * Écouter Firestore.
-             */
-
+            // 5. Écouter Firestore
             setupRealtimeListener();
 
-
-            /*
-             * Détection hors ligne.
-             */
-
+            // 6. Détection hors ligne
             setupOfflineDetection();
 
-
-            /*
-             * Vérification du bouton notifications.
-             */
-
+            // 7. Vérification du bouton notifications
             checkNotificationStatus();
 
-
-            /*
-             * Vérifier si un communiqué précis
-             * doit être ouvert.
-             */
-
+            // 8. Ouvrir un communiqué précis si demandé
             const params =
                 new URLSearchParams(
                     window.location.search
@@ -2812,7 +2859,6 @@
             const communiqueId =
                 params.get('communique') ||
                 params.get('id');
-
 
             if (communiqueId) {
 
@@ -2844,11 +2890,9 @@
                 );
             }
 
-
             console.log(
                 '✅ Communiquer prêt - Temps réel + Cache actifs'
             );
-
 
             if (
                 window.notificationManager &&
@@ -2876,7 +2920,7 @@
 
 
         // ================================================================
-        // 23. NETTOYAGE
+        // 24. NETTOYAGE
         // ================================================================
 
         window.addEventListener(
@@ -2892,19 +2936,25 @@
                     snapshotUnsubscribe =
                         null;
                 }
+
+                if (window.AnneeManager) {
+                    try {
+                        window.AnneeManager.destroy();
+                    } catch (e) {}
+                }
             }
         );
 
 
         // ================================================================
-        // 24. DÉMARRAGE
+        // 25. DÉMARRAGE
         // ================================================================
 
         init();
 
 
         // ================================================================
-        // 25. LOGS CONSOLE
+        // 26. LOGS CONSOLE
         // ================================================================
 
         console.log(
