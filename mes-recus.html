@@ -21,6 +21,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 
+    <!-- ⭐ MODULE ANNÉE ACADÉMIQUE CENTRALISÉ -->
+    <script src="annee-utils.js"></script>
+
     <!-- Configuration du sceau et de la signature -->
     <script>
         const SCEAU_ADMIN =
@@ -68,6 +71,34 @@
             text-decoration: none;
         }
 
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* ⭐ BADGE ANNÉE ACADÉMIQUE */
+        .annee-badge-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,179,71,0.25);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(255,179,71,0.5);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .annee-badge-nav i { color: var(--accent-yellow); font-size: 12px; }
+        .annee-badge-nav.chargement { opacity: 0.6; font-style: italic; }
+        .annee-badge-nav.erreur {
+            background: rgba(220,53,69,0.25);
+            border-color: rgba(220,53,69,0.5);
+        }
+
         .profile-photo {
             width: 40px;
             height: 40px;
@@ -83,12 +114,6 @@
         .profile-photo i {
             font-size: 24px;
             color: var(--primary-blue);
-        }
-
-        .navbar-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
         }
 
         .notification-dot {
@@ -336,13 +361,11 @@
                 box-shadow: 0 0 8px rgba(191,149,63,0.4);
                 border-color: #bf953f;
             }
-
             50% {
                 background-position: 100% 50%;
                 box-shadow: 0 0 20px rgba(255,215,0,0.7);
                 border-color: #ffd700;
             }
-
             100% {
                 background-position: 0% 0%;
                 box-shadow: 0 0 8px rgba(191,149,63,0.4);
@@ -564,6 +587,19 @@
             line-height: 1.2;
         }
 
+        /* ⭐ BADGE ANNÉE SUR LA CARTE */
+        .badge-annee-carte {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffb347, #ff9800);
+            color: var(--dark-blue);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 8px;
+            font-weight: 700;
+            margin-top: 3px;
+            letter-spacing: 0.3px;
+        }
+
         .action-bar {
             display: flex;
             justify-content: space-between;
@@ -649,7 +685,6 @@
                 transform: translateX(100%);
                 opacity: 0;
             }
-
             to {
                 transform: translateX(0);
                 opacity: 1;
@@ -726,11 +761,9 @@
                 transform: scale(0);
                 opacity: 0;
             }
-
             50% {
                 transform: scale(1.1);
             }
-
             100% {
                 transform: scale(1);
                 opacity: 1;
@@ -883,7 +916,6 @@
             margin-bottom: 10px;
         }
 
-        /* ✅ NOUVEAU : Bannière d'attente de paiement */
         .pending-payment-banner {
             background: linear-gradient(135deg, #fff8e1, #ffe0b2);
             border-left: 5px solid #ff9800;
@@ -1016,6 +1048,11 @@
                 left: 10px;
                 max-width: none;
             }
+
+            .annee-badge-nav {
+                font-size: 10px;
+                padding: 4px 10px;
+            }
         }
 
         @media print {
@@ -1068,6 +1105,17 @@
         </a>
 
         <div class="navbar-right">
+
+            <!-- ⭐ BADGE ANNÉE ACADÉMIQUE ACTIVE -->
+            <span
+                class="annee-badge-nav chargement"
+                id="anneeBadgeNav"
+                title="Année académique active"
+            >
+                <i class="bi bi-calendar-check-fill"></i>
+                <span id="anneeBadgeText">Chargement...</span>
+            </span>
+
             <div class="profile-photo" id="profileBtn">
                 <i class="bi bi-person-circle"></i>
                 <span class="notification-dot" id="notificationDot"></span>
@@ -1111,7 +1159,7 @@
         </button>
     </div>
 
-    <!-- ✅ NOUVEAU : Bannière d'attente de paiement -->
+    <!-- Bannière d'attente de paiement -->
     <div id="pendingPaymentBanner" class="pending-payment-banner">
         <h6>
             <i class="bi bi-hourglass-split"></i>
@@ -1589,7 +1637,83 @@ function updateCacheStatus(
 
 
 /* ================================================================
-   6. NOTIFICATION UTILITIES
+   6. ⭐ ANNÉE ACADÉMIQUE — CALLBACK
+================================================================ */
+
+/**
+ * Callback appelé par AnneeManager lors de la détection
+ * ou du changement d'année académique.
+ */
+function onAnneeChange(annee, estChangement) {
+
+    console.log(
+        '[MES-RECUS] Callback année:',
+        annee,
+        '| changement:',
+        estChangement
+    );
+
+    // Premier chargement : rien à faire
+    if (!estChangement) {
+        return;
+    }
+
+    console.log(
+        '[MES-RECUS] 🔄 Rechargement des cartes pour:',
+        annee?.anneeNom
+    );
+
+    // Réinitialiser les états
+    allCartes = [];
+    previousCartes = [];
+    firstRealtimeSnapshot = true;
+    newCartesCount = 0;
+
+    // Cacher le badge de nouvelles cartes
+    showNewCardBadge(0);
+
+    // Réinitialiser le listener temps réel
+    setupRealtimeListener();
+
+    // Toast informatif
+    showToast(
+        `📅 Année active : ${annee?.anneeNom || 'nouvelle'}`,
+        'info'
+    );
+}
+
+
+/**
+ * Initialise l'écoute de l'année académique active.
+ */
+function setupRealtimeAnneeActive() {
+
+    if (typeof window.AnneeManager === 'undefined') {
+
+        console.warn(
+            '[ANNÉE] AnneeManager non disponible. ' +
+            'Assurez-vous que annee-utils.js est chargé.'
+        );
+
+        const badgeText = document.getElementById('anneeBadgeText');
+        const badgeNav = document.getElementById('anneeBadgeNav');
+
+        if (badgeText) badgeText.textContent = 'N/A';
+        if (badgeNav) {
+            badgeNav.classList.remove('chargement');
+            badgeNav.classList.add('erreur');
+        }
+        return;
+    }
+
+    window.AnneeManager.init(db, onAnneeChange);
+
+    console.log('[ANNÉE] ✅ Écoute initialisée');
+}
+
+
+/* ================================================================
+   7. NOTIFICATION UTILITIES
 ================================================================ */
 
 function loadNotificationUtils() {
@@ -1664,7 +1788,7 @@ function loadNotificationUtils() {
 
 
 /* ================================================================
-   7. PROMOTIONS
+   8. PROMOTIONS
 ================================================================ */
 
 async function chargerPromotions(
@@ -1728,7 +1852,7 @@ function getPromotionNom(
 
 
 /* ================================================================
-   8. QR CODE
+   9. QR CODE
 ================================================================ */
 
 function genererQRCodeReel(
@@ -1758,7 +1882,7 @@ function genererQRCodeReel(
 
 
 /* ================================================================
-   9. SIGNATURE NUMÉRIQUE
+   10. SIGNATURE NUMÉRIQUE
 ================================================================ */
 
 async function generateDigitalSignature(data) {
@@ -1806,7 +1930,7 @@ async function generateDigitalSignature(data) {
 
 
 /* ================================================================
-   10. CHARGER CONFIGURATIONS
+   11. CHARGER CONFIGURATIONS
 ================================================================ */
 
 async function chargerConfigurations() {
@@ -1843,7 +1967,7 @@ async function chargerConfigurations() {
 
 
 /* ================================================================
-   11. CHARGER FICHES
+   12. CHARGER FICHES
 ================================================================ */
 
 async function chargerFiches() {
@@ -1874,7 +1998,7 @@ async function chargerFiches() {
 
 
 /* ================================================================
-   12. CHARGER TRANSACTIONS
+   13. CHARGER TRANSACTIONS
 ================================================================ */
 
 async function chargerTransactionsEtudiant() {
@@ -1917,7 +2041,7 @@ async function chargerTransactionsEtudiant() {
 
 
 /* ================================================================
-   13. GET FICHES PAYÉES
+   14. GET FICHES PAYÉES
 ================================================================ */
 
 function getFichesPayeesIds() {
@@ -1937,12 +2061,8 @@ function getFichesPayeesIds() {
 
 
 /* ================================================================
-   14. VÉRIFIER LE STATUT DE PAIEMENT
-   (SANS CRÉATION DE CARTE)
-   
-   Cette fonction vérifie UNIQUEMENT si l'étudiant a payé toutes
-   les fiches configurées par l'admin. Elle NE CRÉE PAS de carte.
-   Elle affiche juste la bannière d'attente si nécessaire.
+   15. VÉRIFIER LE STATUT DE PAIEMENT
+   ⭐ AVEC FILTRE ANNÉE ACADÉMIQUE
 ================================================================ */
 
 async function verifierStatutPaiement() {
@@ -1991,6 +2111,15 @@ async function verifierStatutPaiement() {
             const cartesExistantes = new Set();
             cartesSnap.forEach(doc => {
                 const data = doc.data();
+
+                // ⭐ FILTRE ANNÉE
+                if (
+                    typeof window.AnneeManager !== 'undefined' &&
+                    !window.AnneeManager.appartientAnneeActive(data)
+                ) {
+                    return;
+                }
+
                 if (data.semestre) {
                     cartesExistantes.add(data.semestre);
                 }
@@ -2071,7 +2200,7 @@ async function verifierStatutPaiement() {
 
 
 /* ================================================================
-   15. AFFICHAGE DES CARTES
+   16. AFFICHAGE DES CARTES (avec badge année sur chaque carte)
 ================================================================ */
 
 async function afficherCartes(
@@ -2091,6 +2220,17 @@ async function afficherCartes(
         cartes.length === 0
     ) {
 
+        const anneeNom =
+            typeof window.AnneeManager !== 'undefined'
+                ? window.AnneeManager.getAnneeNom()
+                : null;
+
+        const anneeInfo = anneeNom
+            ? `<br><small style="color:#17a2b8;font-weight:600;">
+                  📅 Année : ${escapeHtml(anneeNom)}
+               </small>`
+            : '';
+
         container.innerHTML = `
             <div class="empty-state text-center p-4">
 
@@ -2104,6 +2244,8 @@ async function afficherCartes(
                 <p class="text-muted small">
                     Vos cartes apparaîtront ici dès que la comptabilité les aura générées.
                 </p>
+
+                ${anneeInfo}
 
                 ${
                     fromCache
@@ -2199,6 +2341,16 @@ async function afficherCartes(
         const checksum =
             carte.checksum ||
             'FSA2025';
+
+        // ⭐ Année académique sur la carte
+        const anneeNom =
+            carte.anneeAcademiqueNom ||
+            (
+                typeof window.AnneeManager !== 'undefined'
+                    ? window.AnneeManager.getAnneeNom()
+                    : null
+            ) ||
+            '—';
 
         html += `
 
@@ -2477,6 +2629,12 @@ async function afficherCartes(
                                             ${escapeHtml(codeAcces)}
                                         </div>
 
+                                        <!-- ⭐ BADGE ANNÉE ACADÉMIQUE SUR LA CARTE -->
+                                        <div class="badge-annee-carte">
+                                            <i class="bi bi-calendar-check-fill"></i>
+                                            ${escapeHtml(anneeNom)}
+                                        </div>
+
                                     </div>
 
                                 </div>
@@ -2633,7 +2791,7 @@ async function afficherCartes(
 
 
 /* ================================================================
-   16. QR MODAL
+   17. QR MODAL
 ================================================================ */
 
 function openQRModal(
@@ -2714,7 +2872,7 @@ document.addEventListener(
 
 
 /* ================================================================
-   17. NOUVELLES CARTES
+   18. NOUVELLES CARTES
 ================================================================ */
 
 function showNewCardBadge(count) {
@@ -2779,7 +2937,7 @@ function updateNotificationDot(
 
 
 /* ================================================================
-   18. RÉCUPÉRATION DES CARTES
+   19. RÉCUPÉRATION DES CARTES ⭐ AVEC FILTRE ANNÉE
 ================================================================ */
 
 async function recupererCartes(
@@ -2863,6 +3021,14 @@ async function recupererCartes(
             const data =
                 doc.data();
 
+            // ⭐ FILTRE ANNÉE ACADÉMIQUE ACTIVE
+            if (
+                typeof window.AnneeManager !== 'undefined' &&
+                !window.AnneeManager.appartientAnneeActive(data)
+            ) {
+                continue;
+            }
+
             const signature =
                 await generateDigitalSignature({
 
@@ -2945,12 +3111,20 @@ async function recupererCartes(
                     ),
 
                 semestre:
-
                     semestre,
 
                 semestreNom:
                     data.semestreNom ||
                     semestreNom,
+
+                // ⭐ ANNÉE ACADÉMIQUE
+                anneeAcademiqueId:
+                    data.anneeAcademiqueId ||
+                    null,
+
+                anneeAcademiqueNom:
+                    data.anneeAcademiqueNom ||
+                    null,
 
                 dateGeneration:
                     formatDate(
@@ -3039,12 +3213,18 @@ async function recupererCartes(
                     Array.isArray(parsed.data)
                 ) {
 
+                    // ⭐ Filtrer le cache par année aussi
+                    const filtered = parsed.data.filter(c => {
+                        if (typeof window.AnneeManager === 'undefined') return true;
+                        return window.AnneeManager.appartientAnneeActive(c);
+                    });
+
                     showToast(
                         'Mode hors ligne - données en cache',
                         'warning'
                     );
 
-                    return parsed.data;
+                    return filtered;
                 }
 
             } catch (cacheError) {
@@ -3062,7 +3242,7 @@ async function recupererCartes(
 
 
 /* ================================================================
-   19. RAFRAÎCHISSEMENT
+   20. RAFRAÎCHISSEMENT
 ================================================================ */
 
 async function rafraichirCartes() {
@@ -3118,7 +3298,7 @@ window.rafraichirCartes =
 
 
 /* ================================================================
-   20. ÉCOUTE TEMPS RÉEL DES CARTES
+   21. ÉCOUTE TEMPS RÉEL DES CARTES
 ================================================================ */
 
 function setupRealtimeListener() {
@@ -3170,18 +3350,24 @@ function setupRealtimeListener() {
                 Array.isArray(parsed.data)
             ) {
 
+                // ⭐ Filtrer le cache
+                const filtered = parsed.data.filter(c => {
+                    if (typeof window.AnneeManager === 'undefined') return true;
+                    return window.AnneeManager.appartientAnneeActive(c);
+                });
+
                 allCartes =
-                    parsed.data;
+                    filtered;
 
                 previousCartes =
                     JSON.parse(
                         JSON.stringify(
-                            parsed.data
+                            filtered
                         )
                     );
 
                 afficherCartes(
-                    parsed.data,
+                    filtered,
                     true
                 );
 
@@ -3431,11 +3617,7 @@ function setupRealtimeListener() {
 
 
 /* ================================================================
-   21. ÉCOUTE TEMPS RÉEL DES TRANSACTIONS
-   
-   Quand une transaction est ajoutée, on revérifie le statut
-   (SANS créer de carte). Si la carte a été créée par la
-   comptabilité, le listener cartesAcces la détectera.
+   22. ÉCOUTE TEMPS RÉEL DES TRANSACTIONS
 ================================================================ */
 
 function setupTransactionsListener() {
@@ -3488,7 +3670,7 @@ function setupTransactionsListener() {
 
 
 /* ================================================================
-   22. PROFIL
+   23. PROFIL
 ================================================================ */
 
 async function loadProfileData() {
@@ -3559,7 +3741,7 @@ document.getElementById(
 
 
 /* ================================================================
-   23. DÉCONNEXION
+   24. DÉCONNEXION
 ================================================================ */
 
 document.getElementById(
@@ -3571,6 +3753,13 @@ document.getElementById(
             'Déconnexion ?'
         )
     ) {
+
+        // ⭐ Nettoyer l'année
+        if (window.AnneeManager) {
+            try {
+                window.AnneeManager.reset();
+            } catch (e) {}
+        }
 
         localStorage.removeItem(
             'session_etudiant'
@@ -3598,7 +3787,7 @@ document.getElementById(
 
 
 /* ================================================================
-   24. CHANGEMENT MOT DE PASSE
+   25. CHANGEMENT MOT DE PASSE
 ================================================================ */
 
 document.getElementById(
@@ -3693,7 +3882,7 @@ document.getElementById(
 
 
 /* ================================================================
-   25. BOUTON SYNC
+   26. BOUTON SYNC
 ================================================================ */
 
 document.getElementById(
@@ -3705,7 +3894,7 @@ document.getElementById(
 
 
 /* ================================================================
-   26. SERVICE WORKER CENTRAL
+   27. SERVICE WORKER CENTRAL
 ================================================================ */
 
 async function registerServiceWorker() {
@@ -3779,7 +3968,7 @@ async function registerServiceWorker() {
 
 
 /* ================================================================
-   27. MODE HORS LIGNE
+   28. MODE HORS LIGNE
 ================================================================ */
 
 function setupOfflineDetection() {
@@ -3831,7 +4020,7 @@ function setupOfflineDetection() {
 
 
 /* ================================================================
-   28. STATUT NOTIFICATIONS
+   29. STATUT NOTIFICATIONS
 ================================================================ */
 
 function checkNotificationStatus() {
@@ -3876,7 +4065,7 @@ function checkNotificationStatus() {
 
 
 /* ================================================================
-   29. ACTIVATION DES NOTIFICATIONS
+   30. ACTIVATION DES NOTIFICATIONS
 ================================================================ */
 
 document.getElementById(
@@ -3973,11 +4162,7 @@ document.getElementById(
 
 
 /* ================================================================
-   30. ÉCOUTE DES MESSAGES DU SERVICE WORKER
-   
-   Quand une notification est reçue en arrière-plan (via FCM),
-   le Service Worker peut envoyer un message à la page pour
-   rafraîchir automatiquement les cartes.
+   31. ÉCOUTE DES MESSAGES DU SERVICE WORKER
 ================================================================ */
 
 if ('serviceWorker' in navigator) {
@@ -3994,7 +4179,6 @@ if ('serviceWorker' in navigator) {
                 data
             );
 
-            // Si c'est une notification de nouvelle carte
             if (
                 data.type === 'carte' ||
                 data.data?.type === 'carte'
@@ -4016,7 +4200,7 @@ if ('serviceWorker' in navigator) {
 
 
 /* ================================================================
-   31. INITIALISATION
+   32. INITIALISATION
 ================================================================ */
 
 async function init() {
@@ -4057,6 +4241,10 @@ async function init() {
             </div>
         `;
     }
+
+
+    // ⭐ 1. Initialiser l'année académique EN PREMIER
+    setupRealtimeAnneeActive();
 
 
     const notificationsReady =
@@ -4135,7 +4323,7 @@ async function init() {
 
 
 /* ================================================================
-   32. VISIBILITÉ DE LA PAGE
+   33. VISIBILITÉ DE LA PAGE
 ================================================================ */
 
 document.addEventListener(
@@ -4182,7 +4370,7 @@ document.addEventListener(
 
 
 /* ================================================================
-   33. DÉMARRAGE
+   34. DÉMARRAGE
 ================================================================ */
 
 document.addEventListener(
