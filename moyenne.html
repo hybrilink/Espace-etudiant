@@ -22,6 +22,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 
+    <!-- ⭐ MODULE ANNÉE ACADÉMIQUE CENTRALISÉ -->
+    <script src="annee-utils.js"></script>
+
     <!-- Console mobile -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>
@@ -94,6 +97,37 @@
             align-items: center;
             gap: 15px;
             flex-wrap: wrap;
+        }
+
+        /* ⭐ BADGE ANNÉE ACADÉMIQUE */
+        .annee-badge-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,179,71,0.25);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(255,179,71,0.5);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .annee-badge-nav i {
+            color: var(--accent-yellow);
+            font-size: 12px;
+        }
+
+        .annee-badge-nav.chargement {
+            opacity: 0.6;
+            font-style: italic;
+        }
+
+        .annee-badge-nav.erreur {
+            background: rgba(220,53,69,0.25);
+            border-color: rgba(220,53,69,0.5);
         }
 
         .profile-photo {
@@ -441,6 +475,11 @@
                 font-size: 12px;
             }
 
+            .annee-badge-nav {
+                font-size: 10px;
+                padding: 4px 10px;
+            }
+
             .toast-custom {
                 right: 10px;
                 left: 10px;
@@ -470,6 +509,16 @@
             </a>
 
             <div class="navbar-right">
+
+                <!-- ⭐ BADGE ANNÉE ACADÉMIQUE ACTIVE -->
+                <span
+                    class="annee-badge-nav chargement"
+                    id="anneeBadgeNav"
+                    title="Année académique active"
+                >
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span id="anneeBadgeText">Chargement...</span>
+                </span>
 
                 <div class="profile-photo" id="profileBtn">
                     <i class="bi bi-person-circle"></i>
@@ -706,7 +755,7 @@
         // ================================================================
 
         const firebaseConfig = {
-            apiKey: "AIzaSyBbQ2N-5ns7qKjBAj5UvDW87s2PZ27F0",
+            apiKey: "AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
             authDomain: "fsa-unilu.firebaseapp.com",
             projectId: "fsa-unilu",
             storageBucket: "fsa-unilu.firebasestorage.app",
@@ -734,7 +783,6 @@
 
     <!-- ================================================================
          NOTIFICATION UTILS CENTRALISÉ
-         Un seul Service Worker : sw.js
     ================================================================ -->
     <script src="./notification-utils.js"></script>
 
@@ -744,13 +792,16 @@
     <script>
 
         // ================================================================
-        // 2. VARIABLES
+        // 2. VARIABLES GLOBALES
         // ================================================================
 
         let currentStudent = null;
         let allCotations = [];
         let allPromotions = [];
         let unsubscribe = null;
+
+        // ⭐ Référence au callback année
+        let anneeCallbackRegistered = false;
 
         // ================================================================
         // 3. SESSION ÉTUDIANT
@@ -959,7 +1010,56 @@
         }
 
         // ================================================================
-        // 7. NOTIFICATIONS CENTRALISÉES
+        // 7. ⭐ ANNÉE ACADÉMIQUE — CALLBACK
+        // ================================================================
+
+        /**
+         * Callback appelé par AnneeManager lors de la détection
+         * ou du changement d'année académique.
+         *
+         * @param {Object} annee - { id, anneeNom }
+         * @param {boolean} estChangement - true si vrai changement
+         */
+        function onAnneeChange(annee, estChangement) {
+
+            console.log(
+                '[MOYENNE] Callback année:',
+                annee,
+                '| changement:',
+                estChangement
+            );
+
+            // Premier chargement : rien à faire de spécial
+            // (le listener Firestore va naturellement charger les données filtrées)
+            if (!estChangement) {
+                return;
+            }
+
+            // Changement détecté → vider les données locales
+            console.log(
+                '[MOYENNE] 🔄 Rechargement des notes pour:',
+                annee?.anneeNom
+            );
+
+            allCotations = [];
+
+            afficherNotes(false);
+
+            // Réinitialiser le statut
+            updateCacheStatus('live', '🔄 Synchronisation...');
+
+            // Afficher un toast informatif
+            showToast(
+                `📅 Année active : ${annee?.anneeNom || 'nouvelle'}`,
+                'info'
+            );
+
+            // Le listener Firestore temps réel va automatiquement
+            // republier les notes filtrées par la nouvelle année.
+        }
+
+        // ================================================================
+        // 8. NOTIFICATIONS CENTRALISÉES
         // ================================================================
 
         async function initialiserNotifications() {
@@ -1004,7 +1104,7 @@
         }
 
         // ================================================================
-        // 8. ÉTAT DES NOTIFICATIONS
+        // 9. ÉTAT DES NOTIFICATIONS
         // ================================================================
 
         function mettreAJourEtatNotification() {
@@ -1047,7 +1147,7 @@
         }
 
         // ================================================================
-        // 9. BOUTON ACTIVER NOTIFICATIONS
+        // 10. BOUTON ACTIVER NOTIFICATIONS
         // ================================================================
 
         document
@@ -1144,7 +1244,7 @@
             );
 
         // ================================================================
-        // 10. PROMOTIONS
+        // 11. PROMOTIONS
         // ================================================================
 
         async function chargerPromotions(
@@ -1186,7 +1286,7 @@
         }
 
         // ================================================================
-        // 11. NOM PROMOTION
+        // 12. NOM PROMOTION
         // ================================================================
 
         function getPromotionNom(
@@ -1208,7 +1308,7 @@
         }
 
         // ================================================================
-        // 12. VÉRIFICATION RÉUSSITE
+        // 13. VÉRIFICATION RÉUSSITE
         // ================================================================
 
         function estReussite(valeur) {
@@ -1226,7 +1326,7 @@
         }
 
         // ================================================================
-        // 13. NOTE SIMPLE
+        // 14. NOTE SIMPLE
         // ================================================================
 
         function getNoteSimple(valeur) {
@@ -1257,7 +1357,7 @@
         }
 
         // ================================================================
-        // 14. BADGE MOYENNE
+        // 15. BADGE MOYENNE
         // ================================================================
 
         function getMoyenneBadge(valeur) {
@@ -1300,7 +1400,7 @@
         }
 
         // ================================================================
-        // 15. AFFICHAGE DES NOTES
+        // 16. AFFICHAGE DES NOTES
         // ================================================================
 
         function afficherNotes(
@@ -1326,6 +1426,17 @@
 
             if (allCotations.length === 0) {
 
+                const anneeActuelle =
+                    typeof window.AnneeManager !== 'undefined'
+                        ? window.AnneeManager.getAnneeNom()
+                        : null;
+
+                const anneeInfo = anneeActuelle
+                    ? `<br><small style="color:#17a2b8;font-weight:600;">
+                          📅 Année : ${escapeHtml(anneeActuelle)}
+                       </small>`
+                    : '';
+
                 container.innerHTML = `
 
                     <div class="empty-state">
@@ -1341,6 +1452,8 @@
                             dès que vos professeurs
                             les publieront.
                         </p>
+
+                        ${anneeInfo}
 
                         ${
                             fromCache
@@ -1568,7 +1681,7 @@
         }
 
         // ================================================================
-        // 16. CONVERSION DATE FIRESTORE
+        // 17. CONVERSION DATE FIRESTORE
         // ================================================================
 
         function getTimestampMillis(
@@ -1645,7 +1758,7 @@
         }
 
         // ================================================================
-        // 17. ÉCOUTEUR TEMPS RÉEL
+        // 18. ⭐ ÉCOUTEUR TEMPS RÉEL AVEC FILTRE ANNÉE
         // ================================================================
 
         function setupRealtimeListener() {
@@ -1714,6 +1827,14 @@
                                         const data =
                                             change.doc.data();
 
+                                        // ⭐ FILTRE ANNÉE
+                                        if (
+                                            typeof window.AnneeManager !== 'undefined' &&
+                                            !window.AnneeManager.appartientAnneeActive(data)
+                                        ) {
+                                            return;
+                                        }
+
                                         const nouvelle = {
 
                                             id: change.doc.id,
@@ -1740,6 +1861,14 @@
 
                                 const data =
                                     doc.data();
+
+                                // ⭐ FILTRE ANNÉE ACADÉMIQUE ACTIVE
+                                if (
+                                    typeof window.AnneeManager !== 'undefined' &&
+                                    !window.AnneeManager.appartientAnneeActive(data)
+                                ) {
+                                    return;
+                                }
 
                                 cotationsTemp.push({
 
@@ -1771,6 +1900,12 @@
 
                                     dateCreation:
                                         data.dateCreation,
+
+                                    anneeAcademiqueId:
+                                        data.anneeAcademiqueId,
+
+                                    anneeAcademiqueNom:
+                                        data.anneeAcademiqueNom,
 
                                     createur:
                                         data.createur ||
@@ -1810,12 +1945,6 @@
                             /*
                              * Les notifications push sont désormais
                              * gérées par notification-utils.js + sw.js.
-                             *
-                             * On NE fait donc plus :
-                             *
-                             * envoyerNotificationPush(...)
-                             *
-                             * depuis cette page.
                              */
 
                             if (
@@ -1841,9 +1970,6 @@
                                          * Notification visuelle
                                          * uniquement lorsque l'application
                                          * est actuellement ouverte.
-                                         *
-                                         * Le vrai Push en arrière-plan
-                                         * est géré côté serveur + sw.js.
                                          */
 
                                         showToast(
@@ -1903,7 +2029,7 @@
         }
 
         // ================================================================
-        // 18. PROFIL
+        // 19. PROFIL
         // ================================================================
 
         async function loadProfileData() {
@@ -1952,7 +2078,7 @@
         }
 
         // ================================================================
-        // 19. OUVERTURE PROFIL
+        // 20. OUVERTURE PROFIL
         // ================================================================
 
         document
@@ -1993,7 +2119,7 @@
             );
 
         // ================================================================
-        // 20. FERMER PROFIL
+        // 21. FERMER PROFIL
         // ================================================================
 
         window.closeProfileModal =
@@ -2030,7 +2156,7 @@
             };
 
         // ================================================================
-        // 21. FERMER EN CLIQUANT À L'EXTÉRIEUR
+        // 22. FERMER EN CLIQUANT À L'EXTÉRIEUR
         // ================================================================
 
         document
@@ -2048,7 +2174,7 @@
             );
 
         // ================================================================
-        // 22. CHANGER MOT DE PASSE
+        // 23. CHANGER MOT DE PASSE
         // ================================================================
 
         document
@@ -2161,7 +2287,7 @@
             );
 
         // ================================================================
-        // 23. DÉCONNEXION
+        // 24. DÉCONNEXION
         // ================================================================
 
         document
@@ -2177,6 +2303,14 @@
                     ) {
 
                         return;
+                    }
+
+                    // ⭐ Nettoyer l'écoute année
+                    if (window.AnneeManager) {
+
+                        try {
+                            window.AnneeManager.reset();
+                        } catch (e) {}
                     }
 
                     localStorage.removeItem(
@@ -2202,7 +2336,7 @@
             );
 
         // ================================================================
-        // 24. SERVICE WORKER CENTRALISÉ
+        // 25. SERVICE WORKER CENTRALISÉ
         // ================================================================
 
         async function registerServiceWorker() {
@@ -2283,7 +2417,7 @@
         }
 
         // ================================================================
-        // 25. MODE HORS LIGNE
+        // 26. MODE HORS LIGNE
         // ================================================================
 
         function setupOfflineDetection() {
@@ -2346,7 +2480,49 @@
         }
 
         // ================================================================
-        // 26. INITIALISATION
+        // 27. ⭐ INITIALISATION DE L'ANNÉE ACADÉMIQUE
+        // ================================================================
+
+        function setupRealtimeAnneeActive() {
+
+            if (typeof window.AnneeManager === 'undefined') {
+
+                console.warn(
+                    '[ANNÉE] AnneeManager non disponible. ' +
+                    'Assurez-vous que annee-utils.js est chargé.'
+                );
+
+                // Fallback : mettre un badge manuel
+                const badgeText =
+                    document.getElementById('anneeBadgeText');
+
+                const badgeNav =
+                    document.getElementById('anneeBadgeNav');
+
+                if (badgeText) {
+                    badgeText.textContent = 'N/A';
+                }
+
+                if (badgeNav) {
+                    badgeNav.classList.remove('chargement');
+                    badgeNav.classList.add('erreur');
+                }
+
+                return;
+            }
+
+            window.AnneeManager.init(
+                db,
+                onAnneeChange
+            );
+
+            console.log(
+                '[ANNÉE] ✅ Écoute initialisée'
+            );
+        }
+
+        // ================================================================
+        // 28. INITIALISATION
         // ================================================================
 
         async function init() {
@@ -2369,45 +2545,25 @@
                 currentStudent.id
             );
 
-            /*
-             * Enregistrer le Service Worker central.
-             */
+            // ⭐ 1. Initialiser l'année académique EN PREMIER
+            setupRealtimeAnneeActive();
 
+            // 2. Enregistrer le Service Worker central
             await registerServiceWorker();
 
-            /*
-             * Initialiser le système de notifications.
-             *
-             * IMPORTANT :
-             * Cette fonction ne force pas la demande
-             * de permission. L'étudiant doit cliquer
-             * sur "Activer" lorsque nécessaire.
-             */
-
+            // 3. Initialiser le système de notifications
             await initialiserNotifications();
 
-            /*
-             * Charger les promotions.
-             */
-
+            // 4. Charger les promotions
             await chargerPromotions();
 
-            /*
-             * Écouter les notes en temps réel.
-             */
-
+            // 5. Écouter les notes en temps réel
             setupRealtimeListener();
 
-            /*
-             * Gestion hors ligne.
-             */
-
+            // 6. Gestion hors ligne
             setupOfflineDetection();
 
-            /*
-             * Afficher l'état de permission.
-             */
-
+            // 7. Afficher l'état de permission
             mettreAJourEtatNotification();
 
             console.log(
@@ -2416,7 +2572,7 @@
         }
 
         // ================================================================
-        // 27. NETTOYAGE
+        // 29. NETTOYAGE
         // ================================================================
 
         window.addEventListener(
@@ -2431,11 +2587,18 @@
 
                     unsubscribe = null;
                 }
+
+                if (window.AnneeManager) {
+
+                    try {
+                        window.AnneeManager.destroy();
+                    } catch (e) {}
+                }
             }
         );
 
         // ================================================================
-        // 28. LANCEMENT
+        // 30. LANCEMENT
         // ================================================================
 
         init();
