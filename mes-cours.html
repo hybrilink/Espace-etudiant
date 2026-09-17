@@ -17,6 +17,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <!-- ================================================================
+         SYSTÈME CENTRALISÉ DE L'ANNÉE ACTIVE
+    ================================================================ -->
+    <script src="annee-active-utils.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -261,6 +266,9 @@
                 <i class="bi bi-tree-fill"></i> FACULTÉ AGRONOMIQUE - UNILU
             </a>
             <div class="navbar-right">
+                <!-- ✅ ZONE INJECTÉE AUTOMATIQUEMENT PAR annee-active-utils.js -->
+                <span id="navbar-annee-zone"></span>
+
                 <div class="profile-photo" id="profileBtn">
                     <i class="bi bi-person-circle"></i>
                 </div>
@@ -434,7 +442,8 @@
             }
             
             if (cachedCours) {
-                allCours = cachedCours;
+                // ✅ Filtrer par année active
+                allCours = window.AnneeActive.filterArray(cachedCours);
                 afficherCours();
                 mettreAJourStats();
                 console.log('📦 Cours chargés depuis le cache');
@@ -443,11 +452,42 @@
         
         // ========== INITIALISATION ==========
         async function init() {
+            // Attendre que l'année active soit chargée
+            await window.AnneeActive.attendreChargement();
+            
             // Charger les promotions
             chargerPromotionsRealtime();
             
             // Charger les cours en temps réel
             chargerCoursRealtime();
+            
+            // Écouter les changements d'année
+            setupAnneeListener();
+        }
+        
+        // ========== ÉCOUTE DU CHANGEMENT D'ANNÉE ==========
+        function setupAnneeListener() {
+            window.AnneeActive.onChange(async (anneeInfo) => {
+                if (!anneeInfo.estChangement) return;
+                
+                console.log('[ANNÉE] 🔔 Rechargement des cours suite au changement');
+                
+                // Vider le cache local
+                try {
+                    localStorage.removeItem(CACHE_KEY);
+                    localStorage.removeItem(CACHE_KEY_PROMOS);
+                } catch(e) {}
+                
+                // Recharger les cours avec le nouveau filtre
+                if (unsubscribeCours) {
+                    try { unsubscribeCours(); } catch(e) {}
+                    unsubscribeCours = null;
+                }
+                chargerCoursRealtime();
+                
+                // Afficher un toast
+                showToast(`📅 Année académique : ${anneeInfo.nom}`, 'info');
+            });
         }
         
         function chargerPromotionsRealtime() {
@@ -465,15 +505,19 @@
         }
         
         function chargerCoursRealtime() {
-            // Écouter tous les cours et filtrer par promotion
+            // Écouter tous les cours et filtrer par promotion + année active
             unsubscribeCours = db.collection('cours').onSnapshot(snap => {
                 allCours = [];
                 snap.forEach(doc => {
                     const data = doc.data();
-                    // Filtrer : ne garder que les cours de la promotion de l'étudiant
-                    if (data.promotionId === currentStudent.promotion) {
-                        allCours.push({ id: doc.id, ...data });
-                    }
+                    
+                    // ✅ Filtrer : ne garder que les cours de la promotion de l'étudiant
+                    if (data.promotionId !== currentStudent.promotion) return;
+                    
+                    // ✅ Filtrer par année active
+                    if (!window.AnneeActive.filter(data)) return;
+                    
+                    allCours.push({ id: doc.id, ...data });
                 });
                 
                 // Trier par nom de cours
@@ -490,7 +534,7 @@
                 // Fallback au cache
                 const cached = LocalCache.get(CACHE_KEY);
                 if (cached) {
-                    allCours = cached;
+                    allCours = window.AnneeActive.filterArray(cached);
                     afficherCours();
                     mettreAJourStats();
                 }
@@ -518,11 +562,12 @@
                 allCours.length > 0 ? `${coursFiltres.length} cours affiché(s) sur ${allCours.length}` : '';
             
             if (allCours.length === 0) {
+                const anneeNom = window.AnneeActive.getNom() || 'année active';
                 container.innerHTML = `
                     <div class="empty-state">
                         <i class="bi bi-inbox"></i>
                         <h5>Aucun cours disponible</h5>
-                        <p>Les cours de votre promotion apparaîtront ici dès qu'ils seront publiés.</p>
+                        <p>Les cours de votre promotion pour <strong>${anneeNom}</strong> apparaîtront ici dès qu'ils seront publiés.</p>
                     </div>`;
                 return;
             }
@@ -609,6 +654,36 @@
             const d = document.createElement('div'); 
             d.textContent = t; 
             return d.innerHTML; 
+        }
+        
+        // ========== TOAST ==========
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            
+            const bgColor = type === 'success' ? '#28a745' : 
+                           type === 'warning' ? '#ffc107' : 
+                           type === 'info' ? '#17a2b8' : '#dc3545';
+            const textColor = type === 'warning' ? '#333' : 'white';
+            const icon = type === 'success' ? 'check-circle-fill' : 
+                        type === 'warning' ? 'exclamation-triangle-fill' : 
+                        type === 'info' ? 'info-circle-fill' : 'x-circle-fill';
+            
+            const toastHtml = `
+                <div class="toast" style="background:${bgColor};color:${textColor};">
+                    <div class="toast-body">
+                        <i class="bi bi-${icon} me-2"></i>
+                        ${escapeHtml(message)}
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('afterbegin', toastHtml);
+            
+            setTimeout(() => {
+                if (container.firstElementChild) {
+                    container.firstElementChild.remove();
+                }
+            }, 4000);
         }
         
         // ========== RECHERCHE ==========
