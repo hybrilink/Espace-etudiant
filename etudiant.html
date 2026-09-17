@@ -46,6 +46,11 @@
     <script src="notification-utils.js"></script>
 
     <!-- ================================================================
+         ⭐ MODULE ANNÉE ACADÉMIQUE CENTRALISÉ
+    ================================================================ -->
+    <script src="annee-utils.js"></script>
+
+    <!-- ================================================================
          PDF.JS
     ================================================================ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -118,6 +123,40 @@
             align-items: center;
             gap: 15px;
             flex-wrap: wrap;
+        }
+
+        /* ============================================================
+           ⭐ BADGE ANNÉE ACADÉMIQUE NAVBAR
+        ============================================================ */
+
+        .annee-badge-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,179,71,0.25);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(255,179,71,0.5);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .annee-badge-nav i {
+            color: var(--accent-yellow);
+            font-size: 12px;
+        }
+
+        .annee-badge-nav.chargement {
+            opacity: 0.6;
+            font-style: italic;
+        }
+
+        .annee-badge-nav.erreur {
+            background: rgba(220,53,69,0.25);
+            border-color: rgba(220,53,69,0.5);
         }
 
         /* ============================================================
@@ -543,7 +582,7 @@
         }
 
         /* ============================================================
-           BANDEAU ANNÉE (nouveau)
+           ⭐ BANDEAU ANNÉE (nouveau)
         ============================================================ */
 
         @keyframes slideDown {
@@ -819,6 +858,11 @@
                 font-size: 0.8rem;
             }
 
+            .annee-badge-nav {
+                font-size: 10px;
+                padding: 4px 10px;
+            }
+
             .menu-grid {
                 grid-template-columns: repeat(
                     auto-fill,
@@ -899,6 +943,11 @@
                 max-width: 190px;
             }
 
+            .annee-badge-nav {
+                font-size: 9px;
+                padding: 3px 8px;
+            }
+
             .conduite-page-info {
                 min-width: 65px;
             }
@@ -936,6 +985,16 @@
         </a>
 
         <div class="navbar-right">
+
+            <!-- ⭐ BADGE ANNÉE ACADÉMIQUE ACTIVE (navbar) -->
+            <span
+                class="annee-badge-nav chargement"
+                id="anneeBadgeNav"
+                title="Année académique active"
+            >
+                <i class="bi bi-calendar-check-fill"></i>
+                <span id="anneeBadgeText">Chargement...</span>
+            </span>
 
             <div
                 class="profile-photo"
@@ -1858,15 +1917,6 @@ let communiquesRealtimeInitialized = false;
 
 
 /* ================================================================
-   ANNÉE ACADÉMIQUE ACTIVE (NOUVEAU)
-================================================================ */
-
-let anneeActiveActuelle = null;
-
-let anneeActiveUnsubscribe = null;
-
-
-/* ================================================================
    CONFIGURATION PROJET - PROMOTIONS CONCERNÉES
 ================================================================ */
 
@@ -2049,122 +2099,60 @@ function escapeHtml(text) {
 
 
 /* ================================================================
-   BANDEAU ANNÉE ACADÉMIQUE (NOUVEAU)
-================================================================ */
-
-function afficherBandeauAnnee(nomAnnee) {
-
-    // Supprimer un éventuel bandeau existant
-    const existing =
-        document.getElementById('bandeauAnneeAcademique');
-
-    if (existing) {
-        existing.remove();
-    }
-
-    const bandeau =
-        document.createElement('div');
-
-    bandeau.id =
-        'bandeauAnneeAcademique';
-
-    bandeau.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(135deg, #17a2b8, #138496);
-        color: white;
-        padding: 14px 20px;
-        text-align: center;
-        font-weight: bold;
-        z-index: 10001;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        animation: slideDown 0.4s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        font-size: 14px;
-    `;
-
-    bandeau.innerHTML = `
-        <i class="bi bi-calendar-check-fill" style="font-size:20px;"></i>
-        <span>Nouvelle année académique active : <strong>${escapeHtml(nomAnnee)}</strong></span>
-    `;
-
-    document.body.appendChild(bandeau);
-
-    setTimeout(() => {
-
-        bandeau.style.transition = 'opacity 0.5s';
-        bandeau.style.opacity = '0';
-
-        setTimeout(() => bandeau.remove(), 500);
-
-    }, 10000);
-}
-
-
-/* ================================================================
-   GESTION DE L'ANNÉE ACADÉMIQUE ACTIVE (NOUVEAU)
+   ⭐ ANNÉE ACADÉMIQUE ACTIVE — via module centralisé
+   ⭐ Toute la logique est maintenant dans annee-utils.js
 ================================================================ */
 
 /**
- * Vide tout le cache local lié aux données filtrées par année
- * (communiqués, paiements, cartes, notes, etc.)
+ * Callback appelé par AnneeManager à chaque snapshot Firestore.
+ *
+ * @param {Object} annee - { id, anneeNom }
+ * @param {boolean} estChangement - true si un VRAI changement est détecté
  */
-function viderCacheAnnee() {
+function onAnneeChange(annee, estChangement) {
 
-    try {
+    console.log(
+        '[ANNÉE] Callback reçu:',
+        annee,
+        '| changement:',
+        estChangement
+    );
 
-        const keysToRemove = [];
-
-        for (let i = 0; i < localStorage.length; i++) {
-
-            const key =
-                localStorage.key(i);
-
-            if (key && (
-                key.startsWith('fsa_cache_communiques_') ||
-                key.startsWith('fsa_cache_notes_') ||
-                key.startsWith('fsa_cache_paiements_') ||
-                key.startsWith('fsa_cache_cartes_')
-            )) {
-                keysToRemove.push(key);
-            }
-        }
-
-        keysToRemove.forEach(k => localStorage.removeItem(k));
-
-        // ✅ Réinitialiser aussi les communiqués lus
-        localStorage.removeItem('communiques_lus');
-
-        console.log(
-            `[ANNÉE] 🧹 Cache vidé (${keysToRemove.length} entrées)`
-        );
-
-    } catch (e) {
-
-        console.warn('[ANNÉE] Erreur vidage cache:', e);
+    if (!annee || !annee.anneeNom) {
+        return;
     }
-}
 
+    // Mettre à jour le badge principal de la carte étudiant
+    const badge =
+        document.getElementById('anneeActiveBadge');
 
-/**
- * Recharge toutes les données de l'étudiant pour l'année active
- */
-async function rechargerDonneesAnnee(anneeInfo) {
+    const badgeText =
+        document.getElementById('anneeActiveText');
 
-    console.log('[ANNÉE] 🔄 Rechargement pour:', anneeInfo);
+    if (badge && badgeText) {
 
-    // 1. Vider le cache
-    viderCacheAnnee();
+        badgeText.textContent =
+            annee.anneeNom;
 
-    // 2. Réinitialiser les badges
+        badge.style.display =
+            'inline-block';
+    }
+
+    // Première détection : pas de rechargement
+    if (!estChangement) {
+        return;
+    }
+
+    // ============================================================
+    // VRAI CHANGEMENT D'ANNÉE → RECHARGER LES DONNÉES
+    // ============================================================
+
+    console.log('[ANNÉE] 🔄 Rechargement pour:', annee.anneeNom);
+
+    // 1. Réinitialiser les badges de notification
     updateNotificationBadges(0);
 
-    // 3. Réinitialiser le realtime communiqués
+    // 2. Réinitialiser le realtime des communiqués
     if (snapshotUnsubscribe) {
 
         try {
@@ -2178,161 +2166,43 @@ async function rechargerDonneesAnnee(anneeInfo) {
 
     setupRealtimeCommuniques();
 
-    // 4. Recharger les infos étudiant
-    await chargerEtudiant(true);
+    // 3. Recharger les infos étudiant
+    chargerEtudiant(true).then(() => {
+        updateWelcomeMessage();
+    });
 
-    await updateWelcomeMessage();
-
-    // 5. Mettre à jour le badge d'année
-    const badge =
-        document.getElementById('anneeActiveBadge');
-
-    const badgeText =
-        document.getElementById('anneeActiveText');
-
-    if (badge && badgeText && anneeInfo && anneeInfo.anneeNom) {
-
-        badgeText.textContent =
-            anneeInfo.anneeNom;
-
-        badge.style.display =
-            'inline-block';
-    }
-
-    // 6. Toast de notification
+    // 4. Toast de notification
     showToast(
-        `📅 Nouvelle année académique : ${anneeInfo.anneeNom}`,
+        `📅 Nouvelle année académique : ${annee.anneeNom}`,
         'info'
     );
-
-    // 7. Bandeau
-    afficherBandeauAnnee(anneeInfo.anneeNom);
 }
 
 
 /**
- * Écoute en temps réel le document configurations/anneeActive
- * Se déclenche dès que l'admin active une nouvelle année
+ * Initialise l'écoute de l'année académique active
+ * via le module centralisé AnneeManager.
  */
 function setupRealtimeAnneeActive() {
 
-    // Nettoyer l'ancien listener
-    if (anneeActiveUnsubscribe) {
+    if (typeof window.AnneeManager === 'undefined') {
 
-        try {
-            anneeActiveUnsubscribe();
-        } catch (e) {}
+        console.warn(
+            '[ANNÉE] ⚠️ AnneeManager non disponible. ' +
+            'Assurez-vous que annee-utils.js est chargé.'
+        );
 
-        anneeActiveUnsubscribe = null;
+        return;
     }
 
-    anneeActiveUnsubscribe =
-        db.collection('configurations')
-            .doc('anneeActive')
-            .onSnapshot(
-                (doc) => {
+    window.AnneeManager.init(
+        db,
+        onAnneeChange
+    );
 
-                    if (!doc.exists) {
-
-                        console.log(
-                            '[ANNÉE] ⚠️ Aucune année active configurée'
-                        );
-
-                        return;
-                    }
-
-                    const data =
-                        doc.data() || {};
-
-                    const nouvelAnneeId =
-                        data.anneeId;
-
-                    const nouvelAnneeNom =
-                        data.anneeNom;
-
-                    if (!nouvelAnneeId) {
-                        return;
-                    }
-
-                    // Première détection → mémoriser sans recharger
-                    if (!anneeActiveActuelle) {
-
-                        anneeActiveActuelle = {
-                            id: nouvelAnneeId,
-                            anneeNom: nouvelAnneeNom
-                        };
-
-                        console.log(
-                            '[ANNÉE] ✅ Année active initiale:',
-                            anneeActiveActuelle
-                        );
-
-                        // Mettre à jour le badge
-                        const badge =
-                            document.getElementById(
-                                'anneeActiveBadge'
-                            );
-
-                        const badgeText =
-                            document.getElementById(
-                                'anneeActiveText'
-                            );
-
-                        if (
-                            badge &&
-                            badgeText &&
-                            nouvelAnneeNom
-                        ) {
-
-                            badgeText.textContent =
-                                nouvelAnneeNom;
-
-                            badge.style.display =
-                                'inline-block';
-                        }
-
-                        return;
-                    }
-
-                    // Changement détecté → recharger
-                    if (
-                        anneeActiveActuelle.id !==
-                        nouvelAnneeId
-                    ) {
-
-                        console.log(
-                            '[ANNÉE] 🔔 Changement détecté !'
-                        );
-
-                        console.log(
-                            '   Ancienne:',
-                            anneeActiveActuelle
-                        );
-
-                        console.log(
-                            '   Nouvelle:',
-                            nouvelAnneeId,
-                            nouvelAnneeNom
-                        );
-
-                        anneeActiveActuelle = {
-                            id: nouvelAnneeId,
-                            anneeNom: nouvelAnneeNom
-                        };
-
-                        rechargerDonneesAnnee(
-                            anneeActiveActuelle
-                        );
-                    }
-                },
-                (error) => {
-
-                    console.error(
-                        '[ANNÉE] Erreur écoute année active:',
-                        error
-                    );
-                }
-            );
+    console.log(
+        '[ANNÉE] ✅ Écoute temps réel initialisée'
+    );
 }
 
 
@@ -2879,11 +2749,10 @@ function setupRealtimeCommuniques() {
                         const data =
                             doc.data() || {};
 
-                        // ✅ FILTRE PAR ANNÉE ACADÉMIQUE ACTIVE
+                        // ✅ FILTRE ANNÉE ACADÉMIQUE ACTIVE
                         if (
-                            anneeActiveActuelle &&
-                            data.anneeId &&
-                            data.anneeId !== anneeActiveActuelle.id
+                            typeof window.AnneeManager !== 'undefined' &&
+                            !window.AnneeManager.appartientAnneeActive(data)
                         ) {
                             return;
                         }
@@ -3940,15 +3809,12 @@ document
                     null;
             }
 
-            // ✅ Nettoyer l'écoute de l'année active
-            if (anneeActiveUnsubscribe) {
+            // ✅ Nettoyer l'écoute de l'année active via AnneeManager
+            if (window.AnneeManager) {
 
                 try {
-                    anneeActiveUnsubscribe();
+                    window.AnneeManager.destroy();
                 } catch (e) {}
-
-                anneeActiveUnsubscribe =
-                    null;
             }
 
             window.location.href =
@@ -4587,6 +4453,16 @@ async function init() {
 
     CacheManager.cleanExpired();
 
+    // ============================================================
+    // ⭐ INITIALISER L'ANNÉE ACADÉMIQUE EN PREMIER
+    // ============================================================
+
+    setupRealtimeAnneeActive();
+
+    // ============================================================
+    // SUITE DE L'INITIALISATION
+    // ============================================================
+
     await chargerPromotions();
 
     await verifierPromotionProjet();
@@ -4600,9 +4476,6 @@ async function init() {
     setupOfflineDetection();
 
     setupRealtimeCommuniques();
-
-    // ✅ NOUVEAU : Écoute du changement d'année académique active
-    setupRealtimeAnneeActive();
 
     await updateWelcomeMessage();
 
@@ -4717,7 +4590,14 @@ if (document.readyState === 'loading') {
 window.addEventListener(
     'beforeunload',
     function () {
-        /* Rien à nettoyer */
+
+        // Nettoyer l'écoute de l'année via AnneeManager
+        if (window.AnneeManager) {
+
+            try {
+                window.AnneeManager.destroy();
+            } catch (e) {}
+        }
     }
 );
 
@@ -4756,11 +4636,7 @@ window.afficherPhotoModal = afficherPhotoModal;
 
 window.setupRealtimeAnneeActive = setupRealtimeAnneeActive;
 
-window.rechargerDonneesAnnee = rechargerDonneesAnnee;
-
-window.viderCacheAnnee = viderCacheAnnee;
-
-window.afficherBandeauAnnee = afficherBandeauAnnee;
+window.onAnneeChange = onAnneeChange;
 
 </script>
 
