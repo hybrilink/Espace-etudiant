@@ -16,6 +16,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+    <!-- ⭐ MODULE ANNÉE ACADÉMIQUE CENTRALISÉ -->
+    <script src="annee-utils.js"></script>
+
     <style>
         :root {
             --primary-blue: #003366;
@@ -67,6 +70,37 @@
             background: rgba(255,255,255,0.25);
             transform: translateX(-3px);
             color: white;
+        }
+
+        /* ⭐ BADGE ANNÉE ACADÉMIQUE */
+        .annee-badge-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,179,71,0.25);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(255,179,71,0.5);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .annee-badge-nav i {
+            color: var(--accent-yellow);
+            font-size: 12px;
+        }
+
+        .annee-badge-nav.chargement {
+            opacity: 0.6;
+            font-style: italic;
+        }
+
+        .annee-badge-nav.erreur {
+            background: rgba(220,53,69,0.25);
+            border-color: rgba(220,53,69,0.5);
         }
 
         .container-custom {
@@ -130,6 +164,25 @@
             font-weight: 700;
             display: inline-block;
             margin-top: 8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ⭐ BADGE ANNÉE SUR BANNIÈRE */
+        .annee-badge-banner {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.18);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-top: 8px;
+            margin-left: 6px;
+            border: 1px solid rgba(255,255,255,0.3);
             position: relative;
             z-index: 2;
         }
@@ -300,6 +353,19 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* ⭐ BADGE ANNÉE SUR LE SUJET */
+        .badge-annee {
+            background: linear-gradient(135deg, #ffb347, #ff9800);
+            color: var(--dark-blue);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
             display: inline-flex;
             align-items: center;
             gap: 5px;
@@ -543,6 +609,7 @@
             .etudiant-banner h4 { font-size: 1rem; }
             .sujet-card .sujet-footer { flex-direction: column; align-items: stretch; }
             .btn-choisir { width: 100%; justify-content: center; }
+            .annee-badge-nav { font-size: 10px; padding: 4px 10px; }
         }
     </style>
 </head>
@@ -552,14 +619,30 @@
     <!-- ==================== NAVBAR ==================== -->
     <nav class="navbar navbar-custom">
         <div class="container">
+
             <a class="navbar-brand" href="#">
                 <i class="bi bi-journal-check"></i>
                 SUJETS DISPONIBLES
             </a>
-            <a href="etudiant.html" class="btn-back">
-                <i class="bi bi-arrow-left"></i>
-                Retour
-            </a>
+
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+
+                <!-- ⭐ BADGE ANNÉE ACADÉMIQUE ACTIVE -->
+                <span
+                    class="annee-badge-nav chargement"
+                    id="anneeBadgeNav"
+                    title="Année académique active"
+                >
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span id="anneeBadgeText">Chargement...</span>
+                </span>
+
+                <a href="etudiant.html" class="btn-back">
+                    <i class="bi bi-arrow-left"></i>
+                    Retour
+                </a>
+
+            </div>
         </div>
     </nav>
 
@@ -738,16 +821,75 @@
         // ÉTAT GLOBAL
         // ================================================================
 
-        let allSujets = [];       // Sujets validés disponibles
-        let allPromotions = [];   // Pour afficher le nom de la promotion
-        let myProject = null;     // Projet actuel de l'étudiant
-        let selectedSujet = null; // Sujet en cours de confirmation
+        let allSujets = [];
+        let allPromotions = [];
+        let myProject = null;
+        let selectedSujet = null;
 
         let sujetsUnsubscribe = null;
         let projectUnsubscribe = null;
 
         let searchTerm = '';
         let filterDepartement = '';
+
+        // ================================================================
+        // ⭐ ANNÉE ACADÉMIQUE — CALLBACK
+        // ================================================================
+
+        function onAnneeChange(annee, estChangement) {
+            console.log(
+                '[PROJET] Callback année:',
+                annee,
+                '| changement:',
+                estChangement
+            );
+
+            // Premier chargement : rien à faire
+            if (!estChangement) {
+                return;
+            }
+
+            console.log(
+                '[PROJET] 🔄 Rechargement pour:',
+                annee?.anneeNom
+            );
+
+            // Vider les données locales
+            allSujets = [];
+            myProject = null;
+
+            // Relancer les listeners
+            listenSujetsValides();
+            listenMyProject();
+
+            // Toast informatif
+            showToast(
+                `📅 Année active : ${annee?.anneeNom || 'nouvelle'}`,
+                'info'
+            );
+        }
+
+        function setupRealtimeAnneeActive() {
+            if (typeof window.AnneeManager === 'undefined') {
+                console.warn(
+                    '[ANNÉE] AnneeManager non disponible. ' +
+                    'Assurez-vous que annee-utils.js est chargé.'
+                );
+
+                const badgeText = document.getElementById('anneeBadgeText');
+                const badgeNav = document.getElementById('anneeBadgeNav');
+
+                if (badgeText) badgeText.textContent = 'N/A';
+                if (badgeNav) {
+                    badgeNav.classList.remove('chargement');
+                    badgeNav.classList.add('erreur');
+                }
+                return;
+            }
+
+            window.AnneeManager.init(db, onAnneeChange);
+            console.log('[ANNÉE] ✅ Écoute initialisée');
+        }
 
         // ================================================================
         // CHARGEMENT DES PROMOTIONS
@@ -775,7 +917,7 @@
         }
 
         // ================================================================
-        // ÉCOUTE DU PROJET DE L'ÉTUDIANT (pour savoir s'il a déjà un projet)
+        // ⭐ ÉCOUTE DU PROJET DE L'ÉTUDIANT (filtre année)
         // ================================================================
 
         function listenMyProject() {
@@ -789,14 +931,25 @@
             projectUnsubscribe = db.collection('projets')
                 .where('etudiantId', '==', currentStudent.id)
                 .onSnapshot((snapshot) => {
-                    if (!snapshot.empty) {
+                    myProject = null;
+
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+
+                        // ⭐ FILTRE ANNÉE
+                        if (
+                            typeof window.AnneeManager !== 'undefined' &&
+                            !window.AnneeManager.appartientAnneeActive(data)
+                        ) {
+                            return;
+                        }
+
                         myProject = {
-                            id: snapshot.docs[0].id,
-                            ...snapshot.docs[0].data()
+                            id: doc.id,
+                            ...data
                         };
-                    } else {
-                        myProject = null;
-                    }
+                    });
+
                     renderPage();
                 }, (error) => {
                     console.error('Erreur écoute projet:', error);
@@ -806,7 +959,7 @@
         }
 
         // ================================================================
-        // ÉCOUTE DES SUJETS VALIDÉS
+        // ⭐ ÉCOUTE DES SUJETS VALIDÉS (filtre année)
         // ================================================================
 
         function listenSujetsValides() {
@@ -819,8 +972,19 @@
                 .where('statut', '==', 'valide')
                 .onSnapshot((snapshot) => {
                     allSujets = [];
+
                     snapshot.forEach(doc => {
-                        allSujets.push({ id: doc.id, ...doc.data() });
+                        const data = doc.data();
+
+                        // ⭐ FILTRE ANNÉE ACADÉMIQUE ACTIVE
+                        if (
+                            typeof window.AnneeManager !== 'undefined' &&
+                            !window.AnneeManager.appartientAnneeActive(data)
+                        ) {
+                            return;
+                        }
+
+                        allSujets.push({ id: doc.id, ...data });
                     });
 
                     // Tri client par date décroissante
@@ -849,12 +1013,10 @@
         function getFilteredSujets() {
             let filtered = [...allSujets];
 
-            // Filtre par département
             if (filterDepartement) {
                 filtered = filtered.filter(s => s.departement === filterDepartement);
             }
 
-            // Filtre par recherche
             if (searchTerm) {
                 const term = searchTerm.toLowerCase();
                 filtered = filtered.filter(s =>
@@ -885,6 +1047,19 @@
             const matricule = currentStudent?.matricule || 'N/A';
             const promo = getPromotionNom(currentStudent?.promotion);
 
+            // ⭐ Année académique active
+            const anneeNom =
+                typeof window.AnneeManager !== 'undefined'
+                    ? window.AnneeManager.getAnneeNom()
+                    : null;
+
+            const anneeBadge = anneeNom
+                ? `<span class="annee-badge-banner">
+                       <i class="bi bi-calendar-check-fill"></i>
+                       ${escapeHtml(anneeNom)}
+                   </span>`
+                : '';
+
             return `
                 <div class="etudiant-banner">
                     <h4>
@@ -899,6 +1074,7 @@
                         <i class="bi bi-trophy-fill"></i>
                         ${escapeHtml(promo)}
                     </span>
+                    ${anneeBadge}
                 </div>
             `;
         }
@@ -930,6 +1106,22 @@
         function renderSujetCard(sujet) {
             const dateValidation = formatDate(sujet.dateValidation);
 
+            // ⭐ Année académique du sujet
+            const anneeNom =
+                sujet.anneeAcademiqueNom ||
+                (
+                    typeof window.AnneeManager !== 'undefined'
+                        ? window.AnneeManager.getAnneeNom()
+                        : null
+                );
+
+            const anneeBadge = anneeNom
+                ? `<span class="badge-annee">
+                       <i class="bi bi-calendar-check-fill"></i>
+                       ${escapeHtml(anneeNom)}
+                   </span>`
+                : '';
+
             return `
                 <div class="sujet-card">
                     <div class="sujet-titre">
@@ -958,15 +1150,16 @@
                     ` : ''}
 
                     <div class="sujet-footer">
-                        <div>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
                             <span class="badge-departement">
                                 <i class="bi bi-building"></i>
                                 ${escapeHtml(sujet.departement || 'N/A')}
                             </span>
-                            <span class="badge-professeur ms-2">
+                            <span class="badge-professeur">
                                 <i class="bi bi-person-badge"></i>
                                 ${escapeHtml(sujet.professeurNom || 'N/A')}
                             </span>
+                            ${anneeBadge}
                         </div>
 
                         <button class="btn-choisir" onclick="ouvrirModalConfirmation('${sujet.id}')">
@@ -982,6 +1175,17 @@
             const filtered = getFilteredSujets();
 
             if (allSujets.length === 0) {
+                const anneeNom =
+                    typeof window.AnneeManager !== 'undefined'
+                        ? window.AnneeManager.getAnneeNom()
+                        : null;
+
+                const anneeInfo = anneeNom
+                    ? `<br><small style="color:#17a2b8;font-weight:600;">
+                          📅 Année : ${escapeHtml(anneeNom)}
+                       </small>`
+                    : '';
+
                 return `
                     <div class="empty-state">
                         <i class="bi bi-journal-x"></i>
@@ -989,6 +1193,7 @@
                         <p class="text-muted">
                             Les sujets validés par le Vice-Doyen apparaîtront ici.
                         </p>
+                        ${anneeInfo}
                     </div>
                 `;
             }
@@ -1035,6 +1240,24 @@
                 const directeurNom = myProject.directeurNom || 'Directeur assigné';
                 const dateSoumission = formatDate(myProject.dateSoumission);
 
+                // ⭐ Année académique du projet
+                const anneeProjet =
+                    myProject.anneeAcademiqueNom ||
+                    (
+                        typeof window.AnneeManager !== 'undefined'
+                            ? window.AnneeManager.getAnneeNom()
+                            : null
+                    );
+
+                const anneeInfo = anneeProjet
+                    ? `<p style="margin-top:10px;margin-bottom:0;">
+                           <strong><i class="bi bi-calendar-check-fill me-2" style="color:var(--primary-blue);"></i>Année :</strong>
+                           <span style="background:#17a2b8;color:white;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;">
+                               ${escapeHtml(anneeProjet)}
+                           </span>
+                       </p>`
+                    : '';
+
                 container.innerHTML = `
                     ${renderBanner()}
 
@@ -1067,6 +1290,8 @@
                                 <strong><i class="bi bi-calendar-check me-2" style="color:var(--primary-blue);"></i>Soumis le :</strong>
                                 ${dateSoumission}
                             </p>
+
+                            ${anneeInfo}
                         </div>
 
                         <a href="tp.html"
@@ -1092,7 +1317,7 @@
                 <div class="section-card">
                     <h3><i class="bi bi-journal-check me-2"></i>Choisissez votre sujet de projet</h3>
                     <p class="subtitle">
-                        Sélectionnez un sujet parmi ceux proposés par les professeurs. 
+                        Sélectionnez un sujet parmi ceux proposés par les professeurs.
                         Le professeur propriétaire du sujet deviendra automatiquement votre directeur de projet.
                     </p>
 
@@ -1147,6 +1372,15 @@
 
             const info = document.getElementById('confirmModalInfo');
             if (info) {
+                const anneeNom =
+                    sujet.anneeAcademiqueNom ||
+                    (
+                        typeof window.AnneeManager !== 'undefined'
+                            ? window.AnneeManager.getAnneeNom()
+                            : null
+                    ) ||
+                    '—';
+
                 info.innerHTML = `
                     <p style="margin-bottom:10px;">
                         <strong><i class="bi bi-journal-text me-2" style="color:var(--primary-blue);"></i>Sujet :</strong>
@@ -1160,9 +1394,16 @@
                         ${escapeHtml(sujet.departement || 'N/A')}
                     </p>
 
-                    <p style="margin-bottom:0;">
+                    <p style="margin-bottom:10px;">
                         <strong><i class="bi bi-person-badge me-2" style="color:var(--primary-blue);"></i>Directeur :</strong>
                         ${escapeHtml(sujet.professeurNom || 'N/A')}
+                    </p>
+
+                    <p style="margin-bottom:0;">
+                        <strong><i class="bi bi-calendar-check-fill me-2" style="color:var(--primary-blue);"></i>Année :</strong>
+                        <span style="background:#ffb347;color:#002244;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;">
+                            ${escapeHtml(anneeNom)}
+                        </span>
                     </p>
                 `;
             }
@@ -1189,12 +1430,23 @@
         };
 
         // ================================================================
-        // CONFIRMATION DU CHOIX
+        // ⭐ CONFIRMATION DU CHOIX (avec anneeAcademiqueId)
         // ================================================================
 
         async function confirmerChoixSujet() {
             if (!selectedSujet) {
                 showToast('Aucun sujet sélectionné', 'warning');
+                return;
+            }
+
+            // ⭐ Récupérer l'année active
+            const anneeActive =
+                typeof window.AnneeManager !== 'undefined'
+                    ? window.AnneeManager.getAnnee()
+                    : null;
+
+            if (!anneeActive || !anneeActive.id) {
+                showToast('Aucune année académique active', 'danger');
                 return;
             }
 
@@ -1221,30 +1473,34 @@
                     return;
                 }
 
-                // Création du projet avec le sujet choisi
+                // ⭐ Création du projet avec anneeAcademiqueId
                 const projetData = {
                     etudiantId: currentStudent.id,
                     etudiantNom: currentStudent.nom || currentStudent.nomComplet || '',
                     etudiantMatricule: currentStudent.matricule || '',
                     promotion: currentStudent.promotion || '',
-                    
+
                     // Sujet choisi
                     sujet: selectedSujet.titre,
                     sujetId: selectedSujet.id,
                     sujetDescription: selectedSujet.description || '',
-                    
+
                     // Département
                     departementId: selectedSujet.departement || '',
-                    
+
                     // Directeur = professeur propriétaire du sujet
                     directeurId: selectedSujet.professeurId,
                     directeurNom: selectedSujet.professeurNom,
                     directeurEmail: selectedSujet.professeurEmail || '',
-                    
+
+                    // ⭐ ANNÉE ACADÉMIQUE
+                    anneeAcademiqueId: anneeActive.id,
+                    anneeAcademiqueNom: anneeActive.anneeNom,
+
                     // Métadonnées
                     dateSoumission: firebase.firestore.FieldValue.serverTimestamp(),
-                    sourceChoix: 'sujet_publie', // Pour distinguer de la soumission libre
-                    
+                    sourceChoix: 'sujet_publie',
+
                     // Feu vert
                     etape: 0,
                     statut: 'soumis'
@@ -1268,6 +1524,8 @@
                         type: 'assignation_projet',
                         projetId: docRef.id,
                         etudiantId: currentStudent.id,
+                        anneeAcademiqueId: anneeActive.id,
+                        anneeAcademiqueNom: anneeActive.anneeNom,
                         dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
                         lu: false
                     });
@@ -1346,15 +1604,41 @@
             console.log('🚀 Page Choix de Sujet - Étudiant');
             console.log('👤 Étudiant:', currentStudent.nom || currentStudent.nomComplet);
 
+            // ⭐ 1. Initialiser l'année académique EN PREMIER
+            setupRealtimeAnneeActive();
+
+            // 2. Charger les promotions
             await loadPromotions();
+
+            // 3. Enregistrer le SW
             await registerServiceWorker();
 
-            // Écouter les sujets validés et le projet de l'étudiant
+            // 4. Écouter les sujets validés et le projet de l'étudiant
             listenSujetsValides();
             listenMyProject();
 
             console.log('✅ Page prête');
         }
+
+        // ================================================================
+        // NETTOYAGE
+        // ================================================================
+
+        window.addEventListener('beforeunload', () => {
+            if (sujetsUnsubscribe) {
+                try { sujetsUnsubscribe(); } catch(e) {}
+            }
+            if (projectUnsubscribe) {
+                try { projectUnsubscribe(); } catch(e) {}
+            }
+            if (window.AnneeManager) {
+                try { window.AnneeManager.destroy(); } catch(e) {}
+            }
+        });
+
+        // ================================================================
+        // LANCEMENT
+        // ================================================================
 
         document.addEventListener('DOMContentLoaded', init);
 
