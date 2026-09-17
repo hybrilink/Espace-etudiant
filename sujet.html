@@ -15,6 +15,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- ⭐ MODULE ANNÉE ACADÉMIQUE CENTRALISÉ -->
+    <script src="annee-utils.js"></script>
     
     <style>
         :root { 
@@ -67,6 +70,37 @@
             background: rgba(255,255,255,0.25);
             transform: translateX(-3px);
             color: white;
+        }
+
+        /* ⭐ BADGE ANNÉE ACADÉMIQUE */
+        .annee-badge-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,179,71,0.25);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(255,179,71,0.5);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .annee-badge-nav i {
+            color: var(--accent-yellow);
+            font-size: 12px;
+        }
+
+        .annee-badge-nav.chargement {
+            opacity: 0.6;
+            font-style: italic;
+        }
+
+        .annee-badge-nav.erreur {
+            background: rgba(220,53,69,0.25);
+            border-color: rgba(220,53,69,0.5);
         }
         
         .container-custom {
@@ -274,6 +308,21 @@
             color: var(--primary-blue);
             font-weight: 700;
         }
+
+        /* ⭐ BADGE ANNÉE PROJET */
+        .badge-annee-projet {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #ffb347, #ff9800);
+            color: var(--dark-blue);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
         
         .alert-info-custom {
             background: #e3f2fd;
@@ -331,6 +380,10 @@
             .submission-card h3 {
                 font-size: 1.2rem;
             }
+            .annee-badge-nav {
+                font-size: 10px;
+                padding: 4px 10px;
+            }
         }
     </style>
 </head>
@@ -340,9 +393,22 @@
             <a class="navbar-brand" href="#">
                 <i class="bi bi-laptop-fill"></i> MON PROJET DE FIN D'ÉTUDES
             </a>
-            <a href="etudiant.html" class="btn-back">
-                <i class="bi bi-arrow-left"></i> Retour
-            </a>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+
+                <!-- ⭐ BADGE ANNÉE ACADÉMIQUE ACTIVE -->
+                <span
+                    class="annee-badge-nav chargement"
+                    id="anneeBadgeNav"
+                    title="Année académique active"
+                >
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span id="anneeBadgeText">Chargement...</span>
+                </span>
+
+                <a href="etudiant.html" class="btn-back">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </a>
+            </div>
         </div>
     </nav>
     
@@ -450,22 +516,93 @@
             if (DEPARTEMENTS.includes(deptValue)) return deptValue;
             return deptValue || 'Non défini';
         }
+
+        // ==================== ⭐ ANNÉE ACADÉMIQUE — CALLBACK ====================
+        function onAnneeChange(annee, estChangement) {
+            console.log(
+                '[SUJET] Callback année:',
+                annee,
+                '| changement:',
+                estChangement
+            );
+
+            // Premier chargement : rien à faire
+            if (!estChangement) {
+                return;
+            }
+
+            console.log(
+                '[SUJET] 🔄 Rechargement pour:',
+                annee?.anneeNom
+            );
+
+            // Vider les données locales
+            studentProject = null;
+            directorInfo = null;
+
+            // Recharger la page
+            renderPage().then(() => {
+                setupProjectRealtimeListener();
+            });
+
+            // Toast informatif
+            showToast(
+                `📅 Année active : ${annee?.anneeNom || 'nouvelle'}`,
+                'info'
+            );
+        }
+
+        function setupRealtimeAnneeActive() {
+            if (typeof window.AnneeManager === 'undefined') {
+                console.warn(
+                    '[ANNÉE] AnneeManager non disponible. ' +
+                    'Assurez-vous que annee-utils.js est chargé.'
+                );
+
+                const badgeText = document.getElementById('anneeBadgeText');
+                const badgeNav = document.getElementById('anneeBadgeNav');
+
+                if (badgeText) badgeText.textContent = 'N/A';
+                if (badgeNav) {
+                    badgeNav.classList.remove('chargement');
+                    badgeNav.classList.add('erreur');
+                }
+                return;
+            }
+
+            window.AnneeManager.init(db, onAnneeChange);
+            console.log('[ANNÉE] ✅ Écoute initialisée');
+        }
         
         // ==================== DONNÉES ====================
         let studentProject = null;
         let directorInfo = null;
         let allPromotions = [];
+        let projectRealtimeUnsubscribe = null;
         
         async function loadStudentProject() {
             try {
                 const snapshot = await db.collection('projets')
                     .where('etudiantId', '==', currentStudent.id)
-                    .limit(1)
+                    .limit(10)
                     .get();
-                
-                if (!snapshot.empty) {
-                    studentProject = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
-                }
+
+                studentProject = null;
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+
+                    // ⭐ FILTRE ANNÉE ACADÉMIQUE ACTIVE
+                    if (
+                        typeof window.AnneeManager !== 'undefined' &&
+                        !window.AnneeManager.appartientAnneeActive(data)
+                    ) {
+                        return;
+                    }
+
+                    studentProject = { id: doc.id, ...data };
+                });
+
                 return studentProject;
             } catch (error) {
                 console.error('Erreur chargement projet:', error);
@@ -514,11 +651,26 @@
             DEPARTEMENTS.forEach(dept => {
                 options += `<option value="${dept}">${dept}</option>`;
             });
+
+            // ⭐ Année académique active
+            const anneeNom =
+                typeof window.AnneeManager !== 'undefined'
+                    ? window.AnneeManager.getAnneeNom()
+                    : null;
+
+            const anneeInfo = anneeNom
+                ? `<div style="background:#e8f4fd;border-left:4px solid #17a2b8;border-radius:10px;padding:10px 15px;margin-bottom:20px;font-size:13px;color:#1565c0;">
+                       <i class="bi bi-calendar-check-fill me-2"></i>
+                       <strong>Année académique :</strong> ${escapeHtml(anneeNom)}
+                   </div>`
+                : '';
             
             return `
                 <div class="submission-card">
                     <h3><i class="bi bi-pencil-square me-2"></i>Soumission du Sujet de Projet</h3>
                     <p class="subtitle">Veuillez remplir ce formulaire pour soumettre votre sujet de projet de fin d'études. <strong>Cette action est irréversible.</strong></p>
+
+                    ${anneeInfo}
                     
                     <div class="alert-info-custom mb-3">
                         <i class="bi bi-info-circle-fill me-2"></i>
@@ -558,11 +710,28 @@
         function renderSubmittedProject() {
             const deptName = getDepartementName(studentProject.departementId);
             const promotionName = getPromotionName(studentProject.promotion || currentStudent.promotion);
+
+            // ⭐ Année académique du projet
+            const anneeNom =
+                studentProject.anneeAcademiqueNom ||
+                (
+                    typeof window.AnneeManager !== 'undefined'
+                        ? window.AnneeManager.getAnneeNom()
+                        : null
+                ) ||
+                '—';
+
+            const anneeBadge = `
+                <span class="badge-annee-projet">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    ${escapeHtml(anneeNom)}
+                </span>
+            `;
             
             let html = `
                 <div class="already-submitted-card">
                     <i class="bi bi-check-circle-fill"></i>
-                    <h5>Votre sujet a été soumis avec succès</h5>
+                    <h5>Votre sujet a été soumis avec succès ${anneeBadge}</h5>
                     <p class="text-muted mb-0">Soumis le : ${studentProject.dateSoumission ? new Date(studentProject.dateSoumission.toDate ? studentProject.dateSoumission.toDate() : studentProject.dateSoumission).toLocaleDateString('fr-FR') : 'Date inconnue'}</p>
                 </div>
                 
@@ -571,6 +740,13 @@
                     <hr>
                     <p><strong><i class="bi bi-building me-2"></i>Département :</strong> ${escapeHtml(deptName)}</p>
                     <p><strong><i class="bi bi-mortarboard-fill me-2"></i>Promotion :</strong> ${escapeHtml(promotionName)}</p>
+
+                    <p><strong><i class="bi bi-calendar-check-fill me-2"></i>Année académique :</strong>
+                        <span style="background:#ffb347;color:#002244;padding:3px 12px;border-radius:12px;font-size:12px;font-weight:700;">
+                            ${escapeHtml(anneeNom)}
+                        </span>
+                    </p>
+
                     <p><strong><i class="bi bi-journal-text me-2"></i>Sujet :</strong></p>
                     <div style="background:#f8f9fa;padding:15px;border-radius:10px;border-left:4px solid var(--primary-blue);margin-bottom:15px;">
                         ${escapeHtml(studentProject.sujet)}
@@ -619,7 +795,7 @@
                 `;
             }
             
-            // Section Progression Feu Vert (SANS les indicateurs d'étapes en dessous)
+            // Section Progression Feu Vert
             const etape = studentProject.etape || 0;
             const pourcentage = etape * 25;
             let stageClass = '';
@@ -685,6 +861,7 @@
             }
         }
         
+        // ==================== SOUMISSION (avec année) ====================
         function setupFormListener() {
             const form = document.getElementById('projectForm');
             if (!form) return;
@@ -704,6 +881,17 @@
                     showToast('Le sujet doit contenir au moins 20 caractères', 'warning');
                     return;
                 }
+
+                // ⭐ Récupérer l'année active
+                const anneeActive =
+                    typeof window.AnneeManager !== 'undefined'
+                        ? window.AnneeManager.getAnnee()
+                        : null;
+
+                if (!anneeActive || !anneeActive.id) {
+                    showToast('Aucune année académique active', 'danger');
+                    return;
+                }
                 
                 // Confirmation
                 if (!confirm('⚠️ ATTENTION : Cette action est IRRÉVERSIBLE.\n\nUne fois soumis, vous ne pourrez plus modifier votre sujet.\n\nÊtes-vous sûr de vouloir continuer ?')) {
@@ -720,6 +908,11 @@
                         promotion: currentStudent.promotion || '',
                         departementId: departement,
                         sujet: sujet,
+
+                        // ⭐ ANNÉE ACADÉMIQUE
+                        anneeAcademiqueId: anneeActive.id,
+                        anneeAcademiqueNom: anneeActive.anneeNom,
+
                         dateSoumission: firebase.firestore.FieldValue.serverTimestamp(),
                         directeurId: null,
                         etape: 0,
@@ -732,9 +925,9 @@
                     showToast('✅ Votre sujet a été soumis avec succès !', 'success');
                     
                     // Recharger la page après 1.5s
-                    setTimeout(() => {
-                        studentProject = { id: docRef.id, ...projectData };
-                        renderPage();
+                    setTimeout(async () => {
+                        await renderPage();
+                        setupProjectRealtimeListener();
                     }, 1500);
                     
                 } catch (error) {
@@ -743,6 +936,76 @@
                     showToast('❌ Erreur lors de la soumission : ' + error.message, 'danger');
                 }
             });
+        }
+        
+        // ==================== ⭐ ÉCOUTE TEMPS RÉEL DU PROJET ====================
+        function setupProjectRealtimeListener() {
+            if (projectRealtimeUnsubscribe) {
+                try { projectRealtimeUnsubscribe(); } catch(e) {}
+                projectRealtimeUnsubscribe = null;
+            }
+
+            if (!currentStudent || !currentStudent.id) return;
+
+            console.log('🔄 Écoute temps réel du projet...');
+
+            projectRealtimeUnsubscribe = db.collection('projets')
+                .where('etudiantId', '==', currentStudent.id)
+                .onSnapshot(async (snapshot) => {
+
+                    let nouveauProjet = null;
+
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+
+                        // ⭐ FILTRE ANNÉE
+                        if (
+                            typeof window.AnneeManager !== 'undefined' &&
+                            !window.AnneeManager.appartientAnneeActive(data)
+                        ) {
+                            return;
+                        }
+
+                        nouveauProjet = { id: doc.id, ...data };
+                    });
+
+                    const oldEtape = studentProject ? Number(studentProject.etape || 0) : 0;
+                    const oldDirecteurId = studentProject ? studentProject.directeurId : null;
+                    const oldSujetReformule = studentProject ? (studentProject.sujetReformule || '') : '';
+
+                    studentProject = nouveauProjet;
+
+                    if (!studentProject) {
+                        // Pas de projet pour cette année → afficher le formulaire
+                        await renderPage();
+                        return;
+                    }
+
+                    const newEtape = Number(studentProject.etape || 0);
+
+                    // Étape modifiée
+                    if (newEtape !== oldEtape) {
+                        const newPourcentage = newEtape * 25;
+                        showToast(`🎉 Progression mise à jour : ${newPourcentage}% - ${newEtape >= 4 ? 'Feu Vert obtenu !' : 'Étape ' + newEtape + ' validée'}`, 'info');
+                        await renderPage();
+                    }
+
+                    // Directeur modifié
+                    if (studentProject.directeurId !== oldDirecteurId && studentProject.directeurId) {
+                        await loadDirectorInfo(studentProject.directeurId);
+                        showToast('👨‍🏫 Un directeur de projet vous a été assigné !', 'info');
+                        await renderPage();
+                    }
+
+                    // Sujet reformulé
+                    const newSujetReformule = studentProject.sujetReformule || '';
+                    if (newSujetReformule && newSujetReformule !== oldSujetReformule) {
+                        showToast('✏️ Votre sujet a été reformulé par votre directeur.', 'info');
+                        await renderPage();
+                    }
+                }, (error) => {
+                    console.error('Erreur écoute projet:', error);
+                });
         }
         
         // ==================== TÉLÉCHARGEMENT FEU VERT ====================
@@ -760,12 +1023,10 @@
             const logoRight = await loadImageAsBase64('th.png');
             
             // En-tête avec logos
-            // Logo gauche
             if (logoLeft) {
                 doc.addImage(logoLeft, 'PNG', 10, 5, 25, 25);
             }
             
-            // Logo droit
             if (logoRight) {
                 doc.addImage(logoRight, 'PNG', 175, 5, 25, 25);
             }
@@ -803,7 +1064,18 @@
             doc.text(`Matricule : ${currentStudent.matricule || 'N/A'}`, 25, y); y += lineHeight;
             
             const promotionName = getPromotionName(studentProject.promotion || currentStudent.promotion);
-            doc.text(`Promotion : ${promotionName}`, 25, y); y += lineHeight + 5;
+            doc.text(`Promotion : ${promotionName}`, 25, y); y += lineHeight;
+
+            // ⭐ Année académique
+            const anneeNom =
+                studentProject.anneeAcademiqueNom ||
+                (
+                    typeof window.AnneeManager !== 'undefined'
+                        ? window.AnneeManager.getAnneeNom()
+                        : null
+                ) ||
+                'N/A';
+            doc.text(`Année académique : ${anneeNom}`, 25, y); y += lineHeight + 5;
             
             // Informations projet
             doc.setFillColor(240, 242, 245);
@@ -909,45 +1181,27 @@
                 }
             `;
             document.head.appendChild(style);
+
+            // ⭐ 1. Initialiser l'année académique EN PREMIER
+            setupRealtimeAnneeActive();
             
             await renderPage();
-            
-            // Écouter les changements en temps réel sur le projet
-            const snapshot = await db.collection('projets')
-                .where('etudiantId', '==', currentStudent.id)
-                .limit(1)
-                .get();
-            
-            if (!snapshot.empty) {
-                const projectId = snapshot.docs[0].id;
-                db.collection('projets').doc(projectId).onSnapshot(async (doc) => {
-                    if (doc.exists) {
-                        const oldEtape = studentProject ? studentProject.etape : 0;
-                        const oldDirecteurId = studentProject ? studentProject.directeurId : null;
-                        
-                        studentProject = { id: doc.id, ...doc.data() };
-                        
-                        // Si l'étape a changé
-                        if (studentProject.etape !== oldEtape) {
-                            const newPourcentage = studentProject.etape * 25;
-                            showToast(`🎉 Progression mise à jour : ${newPourcentage}% - ${studentProject.etape >= 4 ? 'Feu Vert obtenu !' : 'Étape ' + studentProject.etape + ' validée'}`, 'info');
-                            renderPage();
-                        }
-                        
-                        // Si le directeur a changé
-                        if (studentProject.directeurId !== oldDirecteurId && studentProject.directeurId) {
-                            await loadDirectorInfo(studentProject.directeurId);
-                            showToast('👨‍🏫 Un directeur de projet vous a été assigné !', 'info');
-                            renderPage();
-                        }
-                    }
-                }, (error) => {
-                    console.error('Erreur écoute projet:', error);
-                });
-            }
+
+            // 2. Écoute temps réel du projet
+            setupProjectRealtimeListener();
             
             console.log('✅ Page Projet Étudiant prête');
         }
+
+        // ==================== NETTOYAGE ====================
+        window.addEventListener('beforeunload', () => {
+            if (projectRealtimeUnsubscribe) {
+                try { projectRealtimeUnsubscribe(); } catch(e) {}
+            }
+            if (window.AnneeManager) {
+                try { window.AnneeManager.destroy(); } catch(e) {}
+            }
+        });
         
         init();
     </script>
