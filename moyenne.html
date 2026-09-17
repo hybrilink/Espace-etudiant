@@ -1029,13 +1029,10 @@
                 estChangement
             );
 
-            // Premier chargement : rien à faire de spécial
-            // (le listener Firestore va naturellement charger les données filtrées)
             if (!estChangement) {
                 return;
             }
 
-            // Changement détecté → vider les données locales
             console.log(
                 '[MOYENNE] 🔄 Rechargement des notes pour:',
                 annee?.anneeNom
@@ -1045,17 +1042,12 @@
 
             afficherNotes(false);
 
-            // Réinitialiser le statut
             updateCacheStatus('live', '🔄 Synchronisation...');
 
-            // Afficher un toast informatif
             showToast(
                 `📅 Année active : ${annee?.anneeNom || 'nouvelle'}`,
                 'info'
             );
-
-            // Le listener Firestore temps réel va automatiquement
-            // republier les notes filtrées par la nouvelle année.
         }
 
         // ================================================================
@@ -1136,12 +1128,6 @@
 
                 return;
             }
-
-            /*
-             * Permission "default".
-             * La carte peut être affichée pour permettre
-             * à l'étudiant d'activer explicitement les notifications.
-             */
 
             card.classList.add('show');
         }
@@ -1400,7 +1386,8 @@
         }
 
         // ================================================================
-        // 16. AFFICHAGE DES NOTES
+        // 16. ⭐ AFFICHAGE DES NOTES — NOUVELLE FORMULE
+        //     TD/2.5 + TP/2.5 + Interro/5 → Moyenne/10
         // ================================================================
 
         function afficherNotes(
@@ -1507,22 +1494,18 @@
                                 </th>
 
                                 <th style="width:80px;">
-                                    Présence /2
-                                </th>
-
-                                <th style="width:60px;">
-                                    TD /2
-                                </th>
-
-                                <th style="width:60px;">
-                                    TP /2
+                                    TD /2.5
                                 </th>
 
                                 <th style="width:80px;">
-                                    Interro /4
+                                    TP /2.5
                                 </th>
 
-                                <th style="width:80px;">
+                                <th style="width:90px;">
+                                    Interro /5
+                                </th>
+
+                                <th style="width:90px;">
                                     Moyenne /10
                                 </th>
 
@@ -1538,9 +1521,6 @@
 
                     const moyenne =
                         Number(c.moyenne) || 0;
-
-                    const presence =
-                        Number(c.presence) || 0;
 
                     const td =
                         Number(c.td) || 0;
@@ -1574,12 +1554,6 @@
                                     'Cours'
                                 )}
 
-                            </td>
-
-                            <td>
-                                ${getNoteSimple(
-                                    presence
-                                )}
                             </td>
 
                             <td>
@@ -1625,7 +1599,7 @@
                             <tr>
 
                                 <td
-                                    colspan="6"
+                                    colspan="5"
                                     style="
                                         text-align:right;
                                         font-weight:bold;
@@ -1812,14 +1786,6 @@
                             snapshot.docChanges()
                                 .forEach(change => {
 
-                                    /*
-                                     * IMPORTANT :
-                                     * Une modification d'une note
-                                     * ne doit pas déclencher une
-                                     * notification comme une nouvelle
-                                     * note.
-                                     */
-
                                     if (
                                         change.type === 'added'
                                     ) {
@@ -1878,10 +1844,6 @@
                                         data.coursNom ||
                                         'Sans titre',
 
-                                    presence:
-                                        data.presence ??
-                                        0,
-
                                     td:
                                         data.td ??
                                         0,
@@ -1936,16 +1898,7 @@
                             allCotations =
                                 cotationsTemp;
 
-                            /*
-                             * Afficher immédiatement les notes.
-                             */
-
                             afficherNotes(false);
-
-                            /*
-                             * Les notifications push sont désormais
-                             * gérées par notification-utils.js + sw.js.
-                             */
 
                             if (
                                 nouvellesNotes.length > 0
@@ -1966,20 +1919,10 @@
                                         const noteAffichee =
                                             moyenne.toFixed(1);
 
-                                        /*
-                                         * Notification visuelle
-                                         * uniquement lorsque l'application
-                                         * est actuellement ouverte.
-                                         */
-
                                         showToast(
                                             `📝 ${coursNom} : ${noteAffichee}/10`,
                                             'info'
                                         );
-
-                                        /*
-                                         * Petit signal visuel.
-                                         */
 
                                         const dot =
                                             document.getElementById(
@@ -2019,11 +1962,6 @@
                                 'offline',
                                 '⚠️ Hors ligne'
                             );
-
-                            /*
-                             * Firestore peut encore fournir des
-                             * données en cache selon la configuration.
-                             */
                         }
                     );
         }
@@ -2305,7 +2243,6 @@
                         return;
                     }
 
-                    // ⭐ Nettoyer l'écoute année
                     if (window.AnneeManager) {
 
                         try {
@@ -2369,11 +2306,6 @@
                     return null;
                 }
             }
-
-            /*
-             * Fallback si notification-utils.js
-             * n'est momentanément pas chargé.
-             */
 
             if (
                 !('serviceWorker' in navigator)
@@ -2449,11 +2381,6 @@
                         'show'
                     );
 
-                    /*
-                     * Ne pas écraser "Temps réel"
-                     * si Firestore est déjà connecté.
-                     */
-
                     if (
                         allCotations.length === 0
                     ) {
@@ -2492,7 +2419,6 @@
                     'Assurez-vous que annee-utils.js est chargé.'
                 );
 
-                // Fallback : mettre un badge manuel
                 const badgeText =
                     document.getElementById('anneeBadgeText');
 
@@ -2543,6 +2469,10 @@
             console.log(
                 '🆔 ID:',
                 currentStudent.id
+            );
+
+            console.log(
+                '📐 Formule : TD/2.5 + TP/2.5 + Interro/5 → Moyenne/10'
             );
 
             // ⭐ 1. Initialiser l'année académique EN PREMIER
