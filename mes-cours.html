@@ -18,7 +18,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-    <!-- ⭐ MODULE ANNÉE ACADÉMIQUE CENTRALISÉ -->
     <script src="annee-utils.js"></script>
 
     <style>
@@ -67,7 +66,6 @@
 
         .navbar-right { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
 
-        /* ⭐ BADGE ANNÉE ACADÉMIQUE */
         .annee-badge-nav {
             display: inline-flex;
             align-items: center;
@@ -98,27 +96,6 @@
         }
         .profile-photo i { font-size: 28px; color: var(--primary-blue); }
 
-        /* Stats cards */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            transition: all 0.3s;
-        }
-        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
-        .stat-icon { font-size: 35px; color: var(--primary-blue); margin-bottom: 10px; }
-        .stat-number { font-size: 28px; font-weight: bold; color: var(--primary-blue); }
-        .stat-label { font-size: 12px; color: #888; margin-top: 5px; }
-
         /* Info promo */
         .info-promo {
             background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
@@ -137,7 +114,7 @@
         .content-card {
             background: white;
             border-radius: 20px;
-            padding: 30px;
+            padding: 20px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
             animation: fadeIn 0.5s ease;
             margin-bottom: 30px;
@@ -198,22 +175,28 @@
             overflow: hidden;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
+        
+        /* ⭐ MODIFICATION: En-têtes légèrement plus grands */
         .cours-table thead th {
             background: var(--primary-blue);
             color: white;
             padding: 14px 15px;
             text-align: left;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 15px; /* Augmenté de 14px à 15px */
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             white-space: nowrap;
         }
         .cours-table thead th.text-center { text-align: center; }
         .cours-table thead th.text-right { text-align: right; }
+        
         .cours-table tbody td {
-            padding: 14px 15px;
+            padding: 16px 15px; 
             border-bottom: 1px solid #e0e0e0;
             vertical-align: middle;
             font-size: 14px;
+            color: #333;
         }
         .cours-table tbody tr:hover { background: #f8f9fa; }
         .cours-table tbody tr:last-child td { border-bottom: none; }
@@ -225,27 +208,34 @@
             font-size: 15px;
         }
 
+        /* ⭐ MODIFICATION: Largeur de la colonne # ajustée */
         .num-cell {
             text-align: center;
             font-weight: bold;
             color: #888;
-            width: 50px;
+            width: 45px;
+            font-size: 14px; /* Augmenté de 13px à 14px */
         }
 
+        /* ⭐ MODIFICATION: Police du nom du cours légèrement agrandie */
         .cours-nom-cell {
             font-weight: 600;
             color: var(--primary-blue);
+            font-size: 15px; /* Augmenté de 14px à 15px */
+            white-space: normal;
         }
         .cours-nom-cell i { color: var(--primary-blue); margin-right: 8px; }
 
         .badge-credit {
-            background: var(--primary-blue);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            white-space: nowrap;
+            background: #e9ecef;
+            color: var(--primary-blue);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-block;
+            min-width: 50px;
+            text-align: center;
         }
 
         .badge-prof {
@@ -255,9 +245,10 @@
             border-radius: 15px;
             font-size: 12px;
             font-weight: 500;
+            white-space: normal;
+            display: inline-block;
         }
 
-        /* ⭐ BADGE ANNÉE DANS LE TABLEAU */
         .badge-annee {
             background: linear-gradient(135deg, #ffb347, #ff9800);
             color: var(--dark-blue);
@@ -284,12 +275,36 @@
         .footer-info { text-align: center; margin-top: auto; padding: 20px 0; border-top: 1px solid #e0e0e0; font-size: 11px; color: #888; }
         .footer-info img { border-radius: 20px; vertical-align: middle; }
 
-        .table-responsive { border-radius: 15px; overflow-x: auto; }
-
-        @media (max-width: 768px) {
-            .stats-row { grid-template-columns: repeat(2, 1fr); }
-            .cours-table thead th, .cours-table tbody td, .cours-table tfoot td { padding: 10px 8px; font-size: 12px; }
-            .annee-badge-nav { font-size: 10px; padding: 4px 10px; }
+        /* ⭐ AJUSTEMENTS POUR MOBILE */
+        @media (max-width: 576px) {
+            .content-card { padding: 10px; }
+            
+            /* En-têtes légèrement plus grands mais adaptés au mobile */
+            .cours-table thead th { 
+                padding: 10px 6px; 
+                font-size: 11px; /* Augmenté de 10px à 11px */
+                letter-spacing: 0; 
+            }
+            
+            .cours-table tbody td { padding: 10px 6px; font-size: 12px; }
+            
+            /* Numéros de ligne plus grands */
+            .num-cell { width: 35px; font-size: 13px; } /* Augmenté de 11px à 13px */
+            
+            /* Nom du cours plus grand */
+            .cours-nom-cell { font-size: 13px; } /* Augmenté de 12px à 13px */
+            
+            .cours-nom-cell i { display: none; }
+            .badge-credit { padding: 4px 8px; font-size: 12px; min-width: 45px; }
+            .badge-prof { padding: 3px 6px; font-size: 11px; }
+            .badge-annee { font-size: 10px; padding: 3px 6px; }
+            .cours-table tfoot td { font-size: 12px; padding: 10px 6px; }
+            
+            /* Masquer la colonne "Année" sur très petits écrans */
+            .cours-table th:nth-child(5),
+            .cours-table td:nth-child(5) {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -301,17 +316,10 @@
                 <i class="bi bi-tree-fill"></i> FACULTÉ AGRONOMIQUE - UNILU
             </a>
             <div class="navbar-right">
-
-                <!-- ⭐ BADGE ANNÉE ACADÉMIQUE ACTIVE -->
-                <span
-                    class="annee-badge-nav chargement"
-                    id="anneeBadgeNav"
-                    title="Année académique active"
-                >
+                <span class="annee-badge-nav chargement" id="anneeBadgeNav" title="Année académique active">
                     <i class="bi bi-calendar-check-fill"></i>
                     <span id="anneeBadgeText">Chargement...</span>
                 </span>
-
                 <div class="profile-photo" id="profileBtn">
                     <i class="bi bi-person-circle"></i>
                 </div>
@@ -331,25 +339,6 @@
             <div style="flex:1;">
                 <strong id="promoName">Chargement...</strong>
                 <br><small id="studentInfo" style="opacity:0.9;"></small>
-            </div>
-        </div>
-
-        <!-- Statistiques -->
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="stat-icon"><i class="bi bi-book-fill"></i></div>
-                <div class="stat-number" id="totalCours">0</div>
-                <div class="stat-label">Total Cours</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="bi bi-star-fill"></i></div>
-                <div class="stat-number" id="totalCredits">0</div>
-                <div class="stat-label">Total Crédits</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="bi bi-person-workspace"></i></div>
-                <div class="stat-number" id="totalProfesseurs">0</div>
-                <div class="stat-label">Professeurs</div>
             </div>
         </div>
 
@@ -411,9 +400,8 @@
         };
 
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        const            db = firebase.firestore();
 
-        // Activer la persistance pour le mode hors-ligne
         db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
 
         // ========== VARIABLES ==========
@@ -423,10 +411,9 @@
         let searchTerm = '';
         let unsubscribeCours = null;
 
-        // Cache local
         const CACHE_KEY = 'cache_cours_etudiant';
         const CACHE_KEY_PROMOS = 'cache_promotions_etudiant';
-        const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+        const CACHE_DURATION = 30 * 60 * 1000;
 
         // ========== SYSTÈME DE CACHE ==========
         class LocalCache {
@@ -459,14 +446,10 @@
                 }
                 currentStudent = sessionData;
 
-                // Afficher infos étudiant
                 document.getElementById('studentInfo').textContent =
                     `Matricule: ${currentStudent.matricule || 'N/A'} | ${currentStudent.nom || 'Étudiant'}`;
 
-                // Charger depuis le cache d'abord
                 chargerDepuisCache();
-
-                // Puis initialiser le temps réel
                 init();
             } catch(e) {
                 localStorage.removeItem('session_etudiant');
@@ -497,7 +480,7 @@
                     </div>
                 </div>
             `;
-            container.insertAdjacentHTML('afterbegin', toastHtml);
+ container.insertAdjacentHTML('afterbegin', toastHtml);
 
             setTimeout(() => {
                 if (container.firstElementChild) container.firstElementChild.remove();
@@ -512,62 +495,25 @@
             return d.innerHTML;
         }
 
-        // ========== ⭐ ANNÉE ACADÉMIQUE — CALLBACK ==========
+        // ========== ⭐ ANNÉE ACADÉMIQUE ==========
         function onAnneeChange(annee, estChangement) {
-            console.log(
-                '[MES-COURS] Callback année:',
-                annee,
-                '| changement:',
-                estChangement
-            );
+            if (!estChangement) return;
 
-            // Premier chargement : rien à faire
-            if (!estChangement) {
-                return;
-            }
-
-            console.log(
-                '[MES-COURS] 🔄 Rechargement des cours pour:',
-                annee?.anneeNom
-            );
-
-            // Vider les données locales
             allCours = [];
             afficherCours();
-            mettreAJourStats();
 
-            // Toast informatif
-            showToast(
-                `📅 Année active : ${annee?.anneeNom || 'nouvelle'}`,
-                'info'
-            );
-
-            // Le listener Firestore va automatiquement
-            // republier les cours filtrés par la nouvelle année.
+            showToast(`📅 Année active : ${annee?.anneeNom || 'nouvelle'}`, 'info');
         }
 
-        // ========== ⭐ INITIALISER L'ANNÉE ACADÉMIQUE ==========
         function setupRealtimeAnneeActive() {
             if (typeof window.AnneeManager === 'undefined') {
-                console.warn(
-                    '[ANNÉE] AnneeManager non disponible. ' +
-                    'Assurez-vous que annee-utils.js est chargé.'
-                );
-
                 const badgeText = document.getElementById('anneeBadgeText');
                 const badgeNav = document.getElementById('anneeBadgeNav');
-
                 if (badgeText) badgeText.textContent = 'N/A';
-                if (badgeNav) {
-                    badgeNav.classList.remove('chargement');
-                    badgeNav.classList.add('erreur');
-                }
+                if (badgeNav) { badgeNav.classList.remove('chargement'); badgeNav.classList.add('erreur'); }
                 return;
             }
-
             window.AnneeManager.init(db, onAnneeChange);
-
-            console.log('[ANNÉE] ✅ Écoute initialisée');
         }
 
         // ========== CHARGEMENT DEPUIS LE CACHE ==========
@@ -581,28 +527,19 @@
             }
 
             if (cachedCours) {
-                // ⭐ Filtrer le cache par année active
                 const coursFiltres = cachedCours.filter(c => {
                     if (typeof window.AnneeManager === 'undefined') return true;
                     return window.AnneeManager.appartientAnneeActive(c);
                 });
-
                 allCours = coursFiltres;
                 afficherCours();
-                mettreAJourStats();
-                console.log('📦 Cours chargés depuis le cache:', allCours.length);
             }
         }
 
         // ========== INITIALISATION ==========
         async function init() {
-            // ⭐ 1. Initialiser l'année académique EN PREMIER
             setupRealtimeAnneeActive();
-
-            // 2. Charger les promotions
             chargerPromotionsRealtime();
-
-            // 3. Charger les cours en temps réel
             chargerCoursRealtime();
         }
 
@@ -621,39 +558,23 @@
         }
 
         function chargerCoursRealtime() {
-            // Écouter tous les cours et filtrer par promotion + année
             unsubscribeCours = db.collection('cours').onSnapshot(snap => {
                 allCours = [];
                 snap.forEach(doc => {
                     const data = doc.data();
-
-                    // ⭐ FILTRE ANNÉE ACADÉMIQUE ACTIVE
-                    if (
-                        typeof window.AnneeManager !== 'undefined' &&
-                        !window.AnneeManager.appartientAnneeActive(data)
-                    ) {
+                    if (typeof window.AnneeManager !== 'undefined' && !window.AnneeManager.appartientAnneeActive(data)) {
                         return;
                     }
-
-                    // Filtrer : ne garder que les cours de la promotion de l'étudiant
                     if (data.promotionId === currentStudent.promotion) {
                         allCours.push({ id: doc.id, ...data });
                     }
                 });
 
-                // Trier par nom de cours
                 allCours.sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
-
-                // Mettre en cache
                 LocalCache.set(CACHE_KEY, allCours);
-
-                // Afficher
                 afficherCours();
-                mettreAJourStats();
             }, err => {
                 console.error('Erreur écoute cours:', err);
-
-                // Fallback au cache
                 const cached = LocalCache.get(CACHE_KEY);
                 if (cached) {
                     allCours = cached.filter(c => {
@@ -661,7 +582,6 @@
                         return window.AnneeManager.appartientAnneeActive(c);
                     });
                     afficherCours();
-                    mettreAJourStats();
                 }
             });
         }
@@ -682,21 +602,12 @@
 
             const coursFiltres = getCoursFiltres();
 
-            // Mettre à jour le compteur
             document.getElementById('resultCount').textContent =
                 allCours.length > 0 ? `${coursFiltres.length} cours affiché(s) sur ${allCours.length}` : '';
 
             if (allCours.length === 0) {
-                const anneeNom =
-                    typeof window.AnneeManager !== 'undefined'
-                        ? window.AnneeManager.getAnneeNom()
-                        : null;
-
-                const anneeInfo = anneeNom
-                    ? `<br><small style="color:#17a2b8;font-weight:600;">
-                          📅 Année : ${escapeHtml(anneeNom)}
-                       </small>`
-                    : '';
+                const anneeNom = typeof window.AnneeManager !== 'undefined' ? window.AnneeManager.getAnneeNom() : null;
+                const anneeInfo = anneeNom ? `<br><small style="color:#17a2b8;font-weight:600;">📅 Année : ${escapeHtml(anneeNom)}</small>` : '';
 
                 container.innerHTML = `
                     <div class="empty-state">
@@ -718,7 +629,6 @@
                 return;
             }
 
-            // Calculer le total des crédits
             const totalCredits = coursFiltres.reduce((sum, c) => sum + (c.credits || 0), 0);
 
             let html = `
@@ -726,44 +636,37 @@
                     <table class="cours-table">
                         <thead>
                             <tr>
-                                <th class="text-center" style="width:50px;">#</th>
-                                <th>Nom du cours</th>
-                                <th>Nom du professeur</th>
-                                <th class="text-center" style="width:100px;">Crédits</th>
-                                <th class="text-center" style="width:130px;">Année</th>
+                                <th class="text-center" style="width:45px;">#</th>
+                                <th> COURS</th>
+                                <th>PROFESSEUR</th>
+                                <th class="text-center" style="width:70px;">CR.</th>
+                                <th class="text-center annee-col" style="width:90px;">ANNÉE</th>
                             </tr>
                         </thead>
                         <tbody>`;
 
             coursFiltres.forEach((cours, index) => {
-                const anneeNom =
-                    cours.anneeAcademiqueNom ||
-                    (
-                        typeof window.AnneeManager !== 'undefined'
-                            ? window.AnneeManager.getAnneeNom()
-                            : null
-                    ) ||
-                    '—';
+                const anneeNom = cours.anneeAcademiqueNom || (typeof window.AnneeManager !== 'undefined' ? window.AnneeManager.getAnneeNom() : null) || '—';
 
                 html += `
                     <tr>
-                        <td class="num-cell">${index + 1}</td>
+                        <td class="num-cell">0${index + 1}</td>
                         <td class="cours-nom-cell">
-                            <i class="bi bi-book-fill"></i> ${escapeHtml(cours.nom)}
+                            ${escapeHtml(cours.nom)}
                         </td>
                         <td>
                             <span class="badge-prof">
-                                <i class="bi bi-person-fill"></i> ${escapeHtml(cours.professeurNom || 'Non assigné')}
+                                ${escapeHtml(cours.professeurNom || 'Non assigné')}
                             </span>
                         </td>
                         <td style="text-align:center;">
                             <span class="badge-credit">
-                                <i class="bi bi-star-fill"></i> ${cours.credits || 0}
+                                ${cours.credits || 0}.00
                             </span>
                         </td>
-                        <td style="text-align:center;">
+                        <td style="text-align:center;" class="annee-col">
                             <span class="badge-annee">
-                                <i class="bi bi-calendar-check-fill"></i> ${escapeHtml(anneeNom)}
+                                ${escapeHtml(anneeNom)}
                             </span>
                         </td>
                     </tr>`;
@@ -773,32 +676,19 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="3" style="text-align:right;">
-                                    <strong><i class="bi bi-calculator-fill"></i> Total des crédits :</strong>
+                                <td colspan="3" style="text-align:right; font-size: 13px; font-weight: bold; color: white; background: var(--primary-blue);">
+                                    TOTAL 
                                 </td>
-                                <td style="text-align:center;">
-                                    <span class="total-cell">
-                                        <i class="bi bi-star-fill"></i> <strong>${totalCredits}</strong>
-                                    </span>
+                                <td style="text-align:center; font-size: 13px; font-weight: bold; color: white; background: var(--primary-blue);">
+                                    ${totalCredits}.00
                                 </td>
-                                <td></td>
+                                <td style="background: var(--primary-blue);" class="annee-col"></td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>`;
 
             container.innerHTML = html;
-        }
-
-        function mettreAJourStats() {
-            document.getElementById('totalCours').textContent = allCours.length;
-
-            const totalCredits = allCours.reduce((sum, c) => sum + (c.credits || 0), 0);
-            document.getElementById('totalCredits').textContent = totalCredits;
-
-            // Nombre de professeurs uniques
-            const profsUniques = new Set(allCours.map(c => c.professeurId).filter(Boolean));
-            document.getElementById('totalProfesseurs').textContent = profsUniques.size;
         }
 
         // ========== RECHERCHE ==========
@@ -818,11 +708,8 @@
         // ========== NETTOYAGE ==========
         window.addEventListener('beforeunload', () => {
             if (unsubscribeCours) unsubscribeCours();
-
             if (window.AnneeManager) {
-                try {
-                    window.AnneeManager.destroy();
-                } catch (e) {}
+                try { window.AnneeManager.destroy(); } catch (e) {}
             }
         });
 
