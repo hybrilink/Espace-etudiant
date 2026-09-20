@@ -235,7 +235,6 @@
             border-radius: 3px 3px 0 0;
         }
         
-        /* ✅ Onglet Recours (violet) */
         .tab-btn.jury-tab {
             color: var(--jury-purple);
         }
@@ -406,7 +405,6 @@
             border-bottom: none;
         }
         
-        /* Lignes de catégories */
         .bulletin-table .categorie-row {
             background: #f7fafd;
         }
@@ -430,7 +428,6 @@
             line-height: 1.3;
         }
         
-        /* ✅ Badge session source */
         .bulletin-table .session-source-badge {
             display: inline-block;
             background: #e0f7fa;
@@ -445,7 +442,6 @@
             letter-spacing: 0.3px;
         }
         
-        /* ✅ Badge recours */
         .bulletin-table .recours-badge {
             display: inline-block;
             background: var(--jury-purple);
@@ -536,7 +532,6 @@
             color: var(--danger-red);
         }
         
-        /* Décision du jury */
         .decision-jury {
             background: linear-gradient(135deg, #f8fafc, #eef3f9);
             border-left: 5px solid var(--primary-blue);
@@ -784,173 +779,261 @@
             position: fixed;
             left: -9999px;
             top: 0;
-            width: 900px;
+            width: 210mm;
             background: white;
-            padding: 40px;
-            font-family: 'Segoe UI', sans-serif;
+            padding: 20mm 15mm;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #2c3e50;
         }
         
-        .pdf-export-zone .pdf-header {
-            text-align: center;
-            padding-bottom: 20px;
+        /* ✅ EN-TÊTE OFFICIEL AVEC LOGO */
+        .pdf-header-officiel {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 15px;
             border-bottom: 3px solid #003366;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         
-        .pdf-export-zone .pdf-header h1 {
-            color: #003366;
-            font-size: 22px;
-            margin-bottom: 5px;
+        .pdf-logo-fsa {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            flex-shrink: 0;
         }
         
-        .pdf-export-zone .pdf-header h2 {
+        .pdf-entete-texte {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .pdf-entete-texte .pdf-universite {
             color: #003366;
             font-size: 18px;
-            margin-bottom: 8px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin: 0 0 3px 0;
+            text-transform: uppercase;
         }
         
-        .pdf-export-zone .pdf-header .pdf-sub {
-            color: #666;
-            font-size: 13px;
+        .pdf-entete-texte .pdf-faculte {
+            color: #003366;
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            text-transform: uppercase;
         }
         
-        .pdf-export-zone .pdf-student {
-            background: #f8fafc;
-            border-left: 4px solid #ffb347;
-            padding: 15px 20px;
+        .pdf-entete-texte .pdf-titre-doc {
+            color: #003366;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin: 0;
+            padding: 6px 0;
+            border-top: 1.5px solid #003366;
+            border-bottom: 1.5px solid #003366;
+            text-transform: uppercase;
+        }
+        
+        /* ✅ BLOC INFO ÉTUDIANT */
+        .pdf-info-etudiant {
+            background: white;
+            border: 1.5px solid #003366;
+            border-radius: 4px;
+            padding: 12px 18px;
             margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
         }
         
-        .pdf-export-zone .pdf-student .p-nom {
-            font-weight: 800;
-            color: #002244;
-            font-size: 16px;
-        }
-        
-        .pdf-export-zone .pdf-student .p-detail {
-            font-size: 13px;
-            color: #666;
-            margin-top: 4px;
-        }
-        
-        .pdf-export-zone .pdf-student .p-annee {
-            background: #ffb347;
-            color: #002244;
-            padding: 5px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 800;
-        }
-        
-        .pdf-export-zone table {
+        .pdf-info-etudiant table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
-            margin-bottom: 20px;
+            margin: 0;
         }
         
-        .pdf-export-zone table thead th {
-            background: #003366;
-            color: white;
-            padding: 12px 10px;
+        .pdf-info-etudiant table td {
+            padding: 4px 0;
+            font-size: 12px;
+            color: #2c3e50;
+            vertical-align: top;
+            border: none;
+        }
+        
+        .pdf-info-etudiant table td.label {
+            font-weight: 700;
+            color: #003366;
+            width: 90px;
+        }
+        
+        .pdf-info-etudiant table td.value {
+            font-weight: 500;
+        }
+        
+        /* ✅ TABLEAU NOTES */
+        .pdf-table-notes {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 11.5px;
+        }
+        
+        .pdf-table-notes thead th {
+            background: #e8f0f8;
+            color: #003366;
+            padding: 10px 8px;
             text-align: right;
+            font-weight: 800;
             font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-top: 2px solid #003366;
+            border-bottom: 2px solid #003366;
+        }
+        
+        .pdf-table-notes thead th:first-child {
+            text-align: left;
+            padding-left: 12px;
+        }
+        
+        .pdf-table-notes thead th:last-child {
+            padding-right: 12px;
+        }
+        
+        .pdf-table-notes tbody td {
+            padding: 8px 8px;
+            border-bottom: 1px solid #eef2f6;
+            text-align: right;
+            color: #2c3e50;
+            vertical-align: middle;
+        }
+        
+        .pdf-table-notes tbody td:first-child {
+            text-align: left;
+            padding-left: 12px;
+            font-weight: 500;
+        }
+        
+        .pdf-table-notes tbody td:last-child {
+            padding-right: 12px;
+        }
+        
+        .pdf-table-notes tbody tr.cat-row {
+            background: #f7fafd;
+        }
+        
+        .pdf-table-notes tbody tr.cat-row td {
+            padding: 8px 12px;
+            font-weight: 800;
+            color: #003366;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-left: 3px solid #003366;
+            text-align: left;
+        }
+        
+        /* ✅ RÉSUMÉ FINAL */
+        .pdf-summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            border: 1.5px solid #003366;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .pdf-summary-table th {
+            background: #e8f0f8;
+            color: #003366;
+            padding: 8px;
+            font-size: 10.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            text-align: center;
+            border-right: 1px solid #c9d9e8;
+            letter-spacing: 0.3px;
+        }
+        
+        .pdf-summary-table th:last-child {
+            border-right: none;
+        }
+        
+        .pdf-summary-table td {
+            padding: 10px 8px;
+            font-size: 15px;
+            font-weight: 800;
+            color: #003366;
+            text-align: center;
+            border-right: 1px solid #c9d9e8;
+            border-top: 1px solid #c9d9e8;
+        }
+        
+        .pdf-summary-table td:last-child {
+            border-right: none;
+        }
+        
+        /* ✅ DÉCISION DU JURY */
+        .pdf-decision-officielle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 10px 0;
+        }
+        
+        .pdf-decision-officielle .pdf-d-label {
+            font-size: 14px;
+            font-weight: 800;
+            color: #003366;
+        }
+        
+        .pdf-decision-badge {
+            padding: 8px 24px;
+            border-radius: 4px;
+            font-weight: 800;
+            font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         
-        .pdf-export-zone table thead th:first-child {
-            text-align: left;
+        .pdf-decision-badge.admis {
+            background: #d4edda;
+            color: #155724;
         }
         
-        .pdf-export-zone table tbody td {
-            padding: 10px;
-            border-bottom: 1px solid #eef2f6;
+        .pdf-decision-badge.ajourne {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .pdf-decision-badge.rattrapage {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .pdf-decision-badge.reserve {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        /* ✅ PIED DE PAGE */
+        .pdf-pied-page {
+            margin-top: 40px;
             text-align: right;
-        }
-        
-        .pdf-export-zone table tbody td:first-child {
-            text-align: left;
-        }
-        
-        .pdf-export-zone table .pdf-cat {
-            background: #f7fafd;
-        }
-        
-        .pdf-export-zone table .pdf-cat td {
-            padding: 10px;
-            font-weight: 800;
-            color: #002244;
             font-size: 12px;
-            text-transform: uppercase;
-            border-left: 4px solid #003366;
-            text-align: left;
+            font-style: italic;
+            color: #003366;
+            font-weight: 600;
         }
         
-        .pdf-export-zone .pdf-summary {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        
-        .pdf-export-zone .pdf-summary-box {
-            background: #f8fafc;
-            border: 1px solid #e5eaf0;
-            border-radius: 10px;
-            padding: 12px;
+        .pdf-footer {
             text-align: center;
-        }
-        
-        .pdf-export-zone .pdf-summary-box .lbl {
-            font-size: 10px;
-            color: #7d8a99;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-        
-        .pdf-export-zone .pdf-summary-box .val {
-            font-size: 20px;
-            font-weight: 800;
-            color: #002244;
-        }
-        
-        .pdf-export-zone .pdf-decision {
-            background: #f8fafc;
-            border-left: 5px solid #003366;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .pdf-export-zone .pdf-decision .d-lbl {
-            font-size: 11px;
-            color: #002244;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-        
-        .pdf-export-zone .pdf-decision .d-badge {
-            padding: 8px 24px;
-            border-radius: 25px;
-            font-weight: 800;
-            font-size: 14px;
-            text-transform: uppercase;
-        }
-        
-        .pdf-export-zone .pdf-footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 15px;
+            margin-top: 20px;
+            padding-top: 10px;
             border-top: 1px solid #e0e0e0;
-            font-size: 11px;
-            color: #888;
+            font-size: 9px;
+            color: #999;
         }
         
         /* ===== RESPONSIVE ===== */
@@ -1078,7 +1161,7 @@
         </div>
     </div>
 
-    <!-- Zone cachée pour génération PDF -->
+    <!-- ✅ Zone cachée pour génération PDF -->
     <div id="pdfExportZone" class="pdf-export-zone"></div>
 
     <!-- JavaScript -->
@@ -1115,14 +1198,6 @@
             { key: 'RATTRAPAGE_2',  ref: 'RATTRAPAGE_2',  label: 'Rattrapage 2',         icon: 'arrow-counterclockwise', tabId: 'rattrapage-2',  isRecours: false },
             { key: 'RECOURS_RATT',  ref: 'RECOURS_RATT',  label: 'Recours Rattrapage',   icon: 'shield-fill-check',      tabId: 'recours-ratt',  isRecours: true }
         ];
-        
-        // ✅ Cumul des sessions (pour affichage)
-        const SESSIONS_CUMUL = {
-            'MI_SESSION':   ['MI_SESSION'],
-            'RATTRAPAGE_1': ['RATTRAPAGE_1'],
-            'SESSION_1':    ['RATTRAPAGE_1', 'SESSION_1'],
-            'RATTRAPAGE_2': ['RATTRAPAGE_1', 'SESSION_1', 'RATTRAPAGE_2']
-        };
         
         // ==================== SESSION ====================
         function checkSession() {
@@ -1191,7 +1266,6 @@
             if (!currentStudent || !currentAnneeId) return;
             
             try {
-                // 1. Documents de publication (par promotion/session/année)
                 const snapshot = await db.collection('resultatsPublies')
                     .where('promotionId', '==', currentStudent.promotion)
                     .where('anneeAcademiqueId', '==', currentAnneeId)
@@ -1202,7 +1276,6 @@
                     allResultatsPublies.push({ id: doc.id, ...doc.data() });
                 });
                 
-                // 2. Tous mes bulletins
                 const bulletinsSnap = await db.collection('bulletins')
                     .where('etudiantId', '==', currentStudent.id || currentStudent.uid)
                     .where('anneeAcademiqueId', '==', currentAnneeId)
@@ -1213,7 +1286,6 @@
                     allBulletins.push({ id: doc.id, ...doc.data() });
                 });
                 
-                // 3. Mes recours (pour badges compteurs uniquement)
                 const recoursSnap = await db.collection('recoursJury')
                     .where('promotionId', '==', currentStudent.promotion)
                     .where('anneeAcademiqueId', '==', currentAnneeId)
@@ -1260,11 +1332,9 @@
             const matricule = bulletin.etudiantMatricule || currentStudent.matricule || 'N/A';
             const promoNom = getPromotionNom(currentStudent.promotion);
             
-            // ✅ Récupérer les sessions cumulées du bulletin
             const sessionsCumulees = bulletin.sessionsCumulees || [];
             const estCumul = sessionsCumulees.length > 1;
             
-            // Grouper les cours par catégorie
             const groupes = {};
             bulletin.lignes.forEach(l => {
                 const cat = l.categorie || 'NON UE';
@@ -1272,7 +1342,6 @@
                 groupes[cat].push(l);
             });
             
-            // ===== BANDEAU CUMUL (si applicable) =====
             let cumulBannerHTML = '';
             if (estCumul) {
                 const sessionsLabels = sessionsCumulees.map(s => {
@@ -1295,7 +1364,6 @@
                 `;
             }
             
-            // ===== EN-TÊTE ÉTUDIANT =====
             let html = `
                 ${cumulBannerHTML}
                 <div class="bulletin-info-etudiant">
@@ -1307,7 +1375,6 @@
                 </div>
             `;
             
-            // ===== TABLE BULLETIN =====
             html += `
                 <div class="bulletin-container">
                     <div class="bulletin-header">
@@ -1338,13 +1405,11 @@
                 groupes[cat].forEach(l => {
                     const coteClass = l.coteFinale < 10 ? 'fail' : '';
                     
-                    // ✅ Badge session source si cumul
                     let sessionSourceBadge = '';
                     if (estCumul && l.sessionSourceLabel) {
                         sessionSourceBadge = `<span class="session-source-badge">${escapeHtml(l.sessionSourceLabel)}</span>`;
                     }
                     
-                    // ✅ Badge recours si cote modifiée par le jury
                     let recoursBadge = '';
                     if (l.estRecours) {
                         recoursBadge = `<span class="recours-badge">JURY</span>`;
@@ -1371,7 +1436,6 @@
                 </div>
             `;
             
-            // ===== RÉSUMÉ FINAL =====
             const decisionClass = 
                 bulletin.decisionJury === 'ADMIS' ? 'admis' :
                 bulletin.decisionJury === 'RATTRAPAGE' ? 'rattrapage' :
@@ -1420,7 +1484,6 @@
                 </div>
             `;
             
-            // ===== BOUTON TÉLÉCHARGER =====
             html += `
                 <button class="btn-download-bulletin" onclick="telechargerBulletin('${sessionKey}', this)">
                     <i class="bi bi-file-earmark-pdf-fill"></i> Télécharger le bulletin (PDF)
@@ -1430,7 +1493,7 @@
             return html;
         }
         
-        // ==================== TÉLÉCHARGER LE BULLETIN (PDF) ====================
+        // ==================== TÉLÉCHARGER LE BULLETIN (PDF OFFICIEL) ====================
         window.telechargerBulletin = async function(sessionKey, btnElement) {
             const session = SESSIONS_TABS.find(s => s.key === sessionKey || s.tabId === sessionKey);
             if (!session) {
@@ -1463,13 +1526,14 @@
                 const exportZone = document.getElementById('pdfExportZone');
                 exportZone.innerHTML = genererHTMLPourPDF(bulletin, session.label);
                 
-                await new Promise(r => setTimeout(r, 150));
+                await new Promise(r => setTimeout(r, 300));
                 
                 const canvas = await html2canvas(exportZone, {
                     scale: 2,
                     backgroundColor: '#ffffff',
                     logging: false,
-                    useCORS: true
+                    useCORS: true,
+                    allowTaint: true
                 });
                 
                 const { jsPDF } = window.jspdf;
@@ -1523,13 +1587,11 @@
             }
         };
         
-        // ==================== HTML POUR EXPORT PDF ====================
+        // ==================== HTML POUR EXPORT PDF (DESIGN OFFICIEL) ====================
         function genererHTMLPourPDF(bulletin, sessionLabel) {
             const nom = bulletin.etudiantNom || currentStudent.nom || 'Étudiant';
             const matricule = bulletin.etudiantMatricule || currentStudent.matricule || 'N/A';
             const promoNom = getPromotionNom(currentStudent.promotion);
-            const sessionsCumulees = bulletin.sessionsCumulees || [];
-            const estCumul = sessionsCumulees.length > 1;
             
             const groupes = {};
             bulletin.lignes.forEach(l => {
@@ -1544,31 +1606,43 @@
                 bulletin.decisionJury && bulletin.decisionJury.includes('RÉSERVE') ? 'reserve' :
                 'ajourne';
             
-            const decisionColors = {
-                admis: { bg: '#d4edda', color: '#155724' },
-                ajourne: { bg: '#f8d7da', color: '#721c24' },
-                rattrapage: { bg: '#fff3cd', color: '#856404' },
-                reserve: { bg: '#cce5ff', color: '#004085' }
-            };
+            const maintenant = new Date();
+            const jour = String(maintenant.getDate()).padStart(2, '0');
+            const mois = String(maintenant.getMonth() + 1).padStart(2, '0');
+            const annee = maintenant.getFullYear();
+            const dateFormatee = `${jour}/${mois}/${annee}`;
             
             let html = `
-                <div class="pdf-header">
-                    <h1>UNIVERSITÉ DE LUBUMBASHI</h1>
-                    <h2>FACULTÉ DES SCIENCES AGRONOMIQUES</h2>
-                    <div class="pdf-sub">BULLETIN OFFICIEL — Session : ${escapeHtml(sessionLabel)}</div>
-                    <div class="pdf-sub" style="margin-top:6px;font-size:12px;">Année académique : ${escapeHtml(currentAnneeNom || '-')}</div>
-                    ${estCumul ? `<div class="pdf-sub" style="margin-top:4px;font-size:11px;color:#e65100;">Bulletin cumulé - ${sessionsCumulees.length} sessions</div>` : ''}
-                </div>
-                
-                <div class="pdf-student">
-                    <div>
-                        <div class="p-nom">${escapeHtml(nom)}</div>
-                        <div class="p-detail">Matricule : <strong>${escapeHtml(matricule)}</strong> | Promotion : <strong>${escapeHtml(promoNom)}</strong></div>
+                <!-- ✅ EN-TÊTE OFFICIEL AVEC LOGO FSA -->
+                <div class="pdf-header-officiel">
+                    <img src="t.png" alt="Logo FSA" class="pdf-logo-fsa" onerror="this.style.display='none'">
+                    <div class="pdf-entete-texte">
+                        <div class="pdf-universite">UNIVERSITÉ DE LUBUMBASHI</div>
+                        <div class="pdf-faculte">FACULTÉ DES SCIENCES AGRONOMIQUES</div>
+                        <div class="pdf-titre-doc">BULLETIN DE NOTES — ${escapeHtml(sessionLabel).toUpperCase()}</div>
                     </div>
-                    <div class="p-annee">${escapeHtml(currentAnneeNom || '-')}</div>
                 </div>
                 
-                <table>
+                <!-- ✅ INFO ÉTUDIANT -->
+                <div class="pdf-info-etudiant">
+                    <table>
+                        <tr>
+                            <td class="label">Étudiant :</td>
+                            <td class="value"><strong>${escapeHtml(nom)}</strong></td>
+                            <td class="label" style="text-align:right;">Promotion :</td>
+                            <td class="value" style="text-align:right;"><strong>${escapeHtml(promoNom)}</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="label">Matricule :</td>
+                            <td class="value"><strong>${escapeHtml(matricule)}</strong></td>
+                            <td class="label" style="text-align:right;">Année Académique :</td>
+                            <td class="value" style="text-align:right;"><strong>${escapeHtml(currentAnneeNom || '-')}</strong></td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <!-- ✅ TABLEAU DES NOTES -->
+                <table class="pdf-table-notes">
                     <thead>
                         <tr>
                             <th>COURS</th>
@@ -1582,27 +1656,18 @@
             
             Object.keys(groupes).forEach(cat => {
                 html += `
-                    <tr class="pdf-cat">
+                    <tr class="cat-row">
                         <td colspan="4">${escapeHtml(cat)}</td>
                     </tr>
                 `;
                 groupes[cat].forEach(l => {
                     const coteColor = l.coteFinale < 10 ? '#dc3545' : '#2e7d32';
-                    
-                    let badges = '';
-                    if (estCumul && l.sessionSourceLabel) {
-                        badges += ` <span style="font-size:10px;background:#e0f7fa;color:#00695c;padding:2px 6px;border-radius:6px;">${escapeHtml(l.sessionSourceLabel)}</span>`;
-                    }
-                    if (l.estRecours) {
-                        badges += ` <span style="font-size:10px;background:#6a1b9a;color:white;padding:2px 6px;border-radius:6px;">JURY</span>`;
-                    }
-                    
                     html += `
                         <tr>
-                            <td>${escapeHtml(l.coursNom)}${badges}</td>
-                            <td style="font-weight:700;color:#002244;">${l.credits || 0}</td>
+                            <td>${escapeHtml(l.coursNom)}</td>
+                            <td style="font-weight:700;color:#003366;">${l.credits || 0}</td>
                             <td style="font-weight:800;color:${coteColor};">${(l.coteFinale || 0).toFixed(1)}</td>
-                            <td style="font-weight:800;color:#1a4d80;">${(l.pondere || 0).toFixed(1)}</td>
+                            <td style="font-weight:800;color:#003366;">${(l.pondere || 0).toFixed(1)}</td>
                         </tr>
                     `;
                 });
@@ -1612,49 +1677,41 @@
                     </tbody>
                 </table>
                 
-                <div class="pdf-summary">
-                    <div class="pdf-summary-box">
-                        <div class="lbl">Crédits totaux</div>
-                        <div class="val">${bulletin.creditsTotal || 0}</div>
-                    </div>
-                    <div class="pdf-summary-box">
-                        <div class="lbl">Crédits validés</div>
-                        <div class="val">${bulletin.creditsValides || 0}</div>
-                    </div>
-                    <div class="pdf-summary-box">
-                        <div class="lbl">Total pondéré</div>
-                        <div class="val">${(bulletin.totalPondere || 0).toFixed(1)}</div>
-                    </div>
+                <!-- ✅ RÉSUMÉ FINAL -->
+                <table class="pdf-summary-table">
+                    <thead>
+                        <tr>
+                            <th>CRÉDITS<br>TOTAL</th>
+                            <th>CRÉDITS<br>VALIDÉS</th>
+                            <th>TOTAL<br>POINTS</th>
+                            <th>MOYENNE</th>
+                            <th>POURCENTAGE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${bulletin.creditsTotal || 0}</td>
+                            <td>${bulletin.creditsValides || 0}</td>
+                            <td>${(bulletin.totalPondere || 0).toFixed(1)}</td>
+                            <td>${(bulletin.moyenne || 0).toFixed(2)}</td>
+                            <td>${(bulletin.pourcentage || 0).toFixed(2)}%</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <!-- ✅ DÉCISION DU JURY -->
+                <div class="pdf-decision-officielle">
+                    <span class="pdf-d-label">Décision du Jury :</span>
+                    <span class="pdf-decision-badge ${decisionClass}">${escapeHtml(bulletin.decisionJury || 'EN ATTENTE')}</span>
                 </div>
                 
-                <div class="pdf-summary">
-                    <div class="pdf-summary-box">
-                        <div class="lbl">Moyenne /20</div>
-                        <div class="val">${(bulletin.moyenne || 0).toFixed(2)}</div>
-                    </div>
-                    <div class="pdf-summary-box">
-                        <div class="lbl">Pourcentage</div>
-                        <div class="val">${(bulletin.pourcentage || 0).toFixed(2)} %</div>
-                    </div>
-                    <div class="pdf-summary-box">
-                        <div class="lbl">Échecs</div>
-                        <div class="val" style="color:${bulletin.echecs > 0 ? '#dc3545' : '#28a745'};">${bulletin.echecs || 0}</div>
-                    </div>
-                </div>
-                
-                <div class="pdf-decision">
-                    <div>
-                        <div class="d-lbl">Décision du jury</div>
-                        <div style="font-size:12px;color:#7d8a99;margin-top:3px;">Session ${escapeHtml(sessionLabel)}</div>
-                    </div>
-                    <span class="d-badge" style="background:${decisionColors[decisionClass].bg};color:${decisionColors[decisionClass].color};">
-                        ${escapeHtml(bulletin.decisionJury || 'EN ATTENTE')}
-                    </span>
+                <!-- ✅ PIED DE PAGE -->
+                <div class="pdf-pied-page">
+                    Fait à Lubumbashi, le ${dateFormatee}
                 </div>
                 
                 <div class="pdf-footer">
-                    Document généré le ${new Date().toLocaleString('fr-FR')}<br>
-                    HYBRILINK-TECH — Votre partenaire digital de A à Z
+                    Document généré automatiquement — HYBRILINK-TECH © ${annee}
                 </div>
             `;
             
@@ -1672,7 +1729,6 @@
                 return;
             }
             
-            // ✅ Correspondance STRICTE par session
             const publication = allResultatsPublies.find(r => 
                 r.session === session.key && r.published === true
             );
@@ -1682,7 +1738,6 @@
                 return;
             }
             
-            // ✅ Chercher le bulletin lié à cette publication précise
             const bulletin = allBulletins.find(b => 
                 b.publicationId === publication.id ||
                 (b.session === session.key && b.publicationId === publication.id)
@@ -1701,7 +1756,6 @@
             }
         }
         
-        // ✅ Afficher "Non disponible"
         function afficherNonDisponible(container, session) {
             const dateMaj = new Date().toLocaleDateString('fr-FR');
             const isRecours = session.isRecours;
