@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Bulletin - Faculté Agronomique</title>
+    <title>Bulletin Officiel - Faculté Agronomique</title>
     <meta name="theme-color" content="#003366">
     
     <link rel="manifest" href="manifest.json">
@@ -27,14 +27,19 @@
             --light-gray: #f0f2f5;
             --success-green: #28a745;
             --danger-red: #dc3545;
+            --text-blue: #1a4d80;
+            --pondere-blue: #1a4d80;
+            --cote-green: #2e7d32;
         }
         
         body { 
             background: var(--light-gray); 
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
             padding-bottom: 20px;
+            -webkit-font-smoothing: antialiased;
         }
         
+        /* ===== NAVBAR ===== */
         .navbar-custom { 
             background: var(--primary-blue); 
             box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
@@ -60,11 +65,13 @@
             cursor: pointer; 
             transition: all 0.3s;
             position: relative;
+            overflow: hidden;
         }
         
-        .profile-photo i { 
-            font-size: 28px; 
-            color: var(--primary-blue); 
+        .profile-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         .navbar-right { 
@@ -74,11 +81,12 @@
             flex-wrap: wrap; 
         }
         
+        /* ===== HEADER ===== */
         .page-header {
             background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
             border-radius: 20px;
             padding: 20px 25px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             color: white;
             display: flex;
             align-items: center;
@@ -107,13 +115,63 @@
             transform: translateX(-3px);
         }
         
-        /* Onglets styles */
+        /* ===== INFO ÉTUDIANT ===== */
+        .student-badge {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .student-badge .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-yellow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--primary-blue);
+            font-size: 1.1rem;
+        }
+        
+        .student-badge .info {
+            flex: 1;
+        }
+        
+        .student-badge .info .name {
+            font-weight: 700;
+            color: var(--dark-blue);
+            font-size: 0.95rem;
+        }
+        
+        .student-badge .info .details {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .student-badge .session-info {
+            background: var(--primary-blue);
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        /* ===== ONGLETS (TABS) ===== */
         .tabs-container {
             background: white;
             border-radius: 20px;
             padding: 15px 15px 0 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            margin-bottom: 25px;
+            margin-bottom: 0;
             overflow-x: auto;
         }
         
@@ -177,20 +235,11 @@
             font-size: 0.9rem;
         }
         
-        .tab-btn .badge-tab {
-            background: var(--danger-red);
-            color: white;
-            font-size: 0.6rem;
-            padding: 2px 8px;
-            border-radius: 12px;
-            margin-left: 5px;
-        }
-        
-        /* Contenu des onglets */
+        /* ===== CONTENU DES ONGLETS ===== */
         .tab-content {
-            background: white;
+            background: #e8ecf1;
             border-radius: 0 0 20px 20px;
-            padding: 25px;
+            padding: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             margin-bottom: 25px;
             min-height: 350px;
@@ -210,10 +259,253 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* Carte "Résultats non disponibles" */
+        /* ===== BULLETIN ===== */
+        .bulletin-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+            margin-bottom: 15px;
+        }
+        
+        .bulletin-header {
+            background: white;
+            padding: 18px 20px 12px 20px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        
+        .bulletin-header h3 {
+            color: var(--dark-blue);
+            font-size: 1rem;
+            font-weight: 800;
+            text-align: center;
+            margin: 0;
+            letter-spacing: 0.5px;
+        }
+        
+        .bulletin-header .subtitle {
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.75rem;
+            margin-top: 4px;
+        }
+        
+        /* ===== TABLE BULLETIN ===== */
+        .bulletin-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            font-size: 0.82rem;
+        }
+        
+        .bulletin-table thead th {
+            background: #e8f0f8;
+            color: var(--dark-blue);
+            padding: 12px 8px;
+            text-align: right;
+            font-weight: 800;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #c9d9e8;
+        }
+        
+        .bulletin-table thead th:first-child {
+            text-align: left;
+            padding-left: 20px;
+        }
+        
+        .bulletin-table thead th:last-child {
+            padding-right: 20px;
+        }
+        
+        .bulletin-table tbody td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #eef2f6;
+            vertical-align: middle;
+            text-align: right;
+            color: #2c3e50;
+        }
+        
+        .bulletin-table tbody td:first-child {
+            text-align: left;
+            padding-left: 20px;
+            font-weight: 500;
+        }
+        
+        .bulletin-table tbody td:last-child {
+            padding-right: 20px;
+        }
+        
+        .bulletin-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Lignes de catégories */
+        .bulletin-table .categorie-row {
+            background: #f7fafd;
+        }
+        
+        .bulletin-table .categorie-row td {
+            padding: 10px 20px;
+            font-weight: 800;
+            color: var(--dark-blue);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border-left: 4px solid var(--primary-blue);
+            border-bottom: 1px solid #e0e8f0;
+            text-align: left;
+        }
+        
+        .bulletin-table .cours-nom {
+            font-weight: 500;
+            color: #2c3e50;
+            text-align: left;
+            line-height: 1.3;
+        }
+        
+        .bulletin-table .credit-cell {
+            font-weight: 700;
+            color: var(--dark-blue);
+            font-size: 0.9rem;
+        }
+        
+        .bulletin-table .cote-cell {
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: var(--cote-green);
+        }
+        
+        .bulletin-table .pondere-cell {
+            font-weight: 800;
+            color: var(--pondere-blue);
+            font-size: 0.9rem;
+        }
+        
+        /* Cotes rouges si < 10 */
+        .bulletin-table .cote-cell.fail {
+            color: var(--danger-red);
+        }
+        
+        /* ===== RÉSUMÉ FINAL ===== */
+        .bulletin-summary {
+            background: white;
+            border-radius: 15px;
+            padding: 18px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+            margin-bottom: 15px;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .summary-box {
+            background: #f8fafc;
+            border: 1px solid #e5eaf0;
+            border-radius: 12px;
+            padding: 14px 10px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .summary-box:hover {
+            background: #eef3f9;
+            border-color: #c9d9e8;
+        }
+        
+        .summary-box .s-label {
+            font-size: 0.65rem;
+            color: #7d8a99;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            line-height: 1.2;
+        }
+        
+        .summary-box .s-value {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--dark-blue);
+            line-height: 1.1;
+        }
+        
+        .summary-box .s-value.green {
+            color: var(--success-green);
+        }
+        
+        .summary-box .s-value.red {
+            color: var(--danger-red);
+        }
+        
+        /* Décision du jury */
+        .decision-jury {
+            background: linear-gradient(135deg, #f8fafc, #eef3f9);
+            border-left: 5px solid var(--primary-blue);
+            border-radius: 12px;
+            padding: 16px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .decision-jury .d-label {
+            font-size: 0.72rem;
+            color: var(--dark-blue);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        
+        .decision-jury .d-session {
+            font-size: 0.75rem;
+            color: #7d8a99;
+            margin-top: 3px;
+        }
+        
+        .decision-badge {
+            padding: 8px 24px;
+            border-radius: 25px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .decision-badge.admis {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .decision-badge.ajourne {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .decision-badge.rattrapage {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .decision-badge.reserve {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        /* ===== CARTE "NON PUBLIÉ" ===== */
         .result-card {
             text-align: center;
-            padding: 40px 20px;
+            padding: 50px 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
         }
         
         .result-card .icon-big {
@@ -248,17 +540,7 @@
             color: #6c757d;
             font-size: 0.95rem;
             max-width: 400px;
-            margin: 0 auto 10px;
-        }
-        
-        .result-card .code-ref {
-            font-size: 0.8rem;
-            color: #adb5bd;
-            background: #f8f9fa;
-            padding: 4px 12px;
-            border-radius: 10px;
-            display: inline-block;
-            font-family: monospace;
+            margin: 0 auto 15px;
         }
         
         .result-card .deliberation-badge {
@@ -298,57 +580,41 @@
             color: var(--primary-blue);
         }
         
-        /* Info étudiant dans la page */
-        .student-badge {
+        /* ===== EN-TÊTE BULLETIN (ÉTUDIANT) ===== */
+        .bulletin-info-etudiant {
+            background: linear-gradient(135deg, #f8fafc, #eef3f9);
+            border-left: 4px solid var(--accent-yellow);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 15px;
-            background: white;
-            padding: 12px 20px;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
             flex-wrap: wrap;
+            gap: 10px;
         }
         
-        .student-badge .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--accent-yellow);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: var(--primary-blue);
-            font-size: 1.1rem;
-        }
-        
-        .student-badge .info {
-            flex: 1;
-        }
-        
-        .student-badge .info .name {
-            font-weight: 700;
+        .bulletin-info-etudiant .b-nom {
+            font-weight: 800;
             color: var(--dark-blue);
             font-size: 0.95rem;
         }
         
-        .student-badge .info .details {
-            font-size: 0.8rem;
+        .bulletin-info-etudiant .b-detail {
+            font-size: 0.75rem;
             color: #6c757d;
         }
         
-        .student-badge .session-info {
-            background: var(--primary-blue);
-            color: white;
+        .bulletin-info-etudiant .b-annee {
+            background: var(--accent-yellow);
+            color: var(--dark-blue);
             padding: 4px 14px;
             border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
+            font-size: 0.72rem;
+            font-weight: 800;
         }
         
-        /* Footer */
+        /* ===== FOOTER ===== */
         .footer-info {
             text-align: center;
             margin-top: 30px;
@@ -362,22 +628,54 @@
             border-radius: 50%;
         }
         
-        /* Responsive */
+        /* ===== LOADING ===== */
+        .loading-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #e0e0e0;
+            border-top-color: var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .page-header h1 { font-size: 1rem; }
             .page-header .back-btn { padding: 6px 12px; font-size: 0.8rem; }
             .tab-btn { padding: 10px 12px; font-size: 0.7rem; }
-            .tab-content { padding: 15px; }
-            .result-card .icon-big { font-size: 60px; }
-            .result-card h3 { font-size: 1rem; }
+            .tab-content { padding: 10px; }
+            .bulletin-table { font-size: 0.72rem; }
+            .bulletin-table thead th { padding: 10px 5px; font-size: 0.62rem; }
+            .bulletin-table tbody td { padding: 10px 5px; }
+            .bulletin-table thead th:first-child { padding-left: 12px; }
+            .bulletin-table tbody td:first-child { padding-left: 12px; }
+            .bulletin-table thead th:last-child { padding-right: 12px; }
+            .bulletin-table tbody td:last-child { padding-right: 12px; }
+            .summary-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .summary-box { padding: 10px 6px; }
+            .summary-box .s-value { font-size: 1.1rem; }
+            .summary-box .s-label { font-size: 0.55rem; }
+            .decision-jury { padding: 12px 14px; }
+            .decision-badge { padding: 6px 18px; font-size: 0.75rem; }
             .student-badge { padding: 10px 15px; }
             .student-badge .session-info { font-size: 0.65rem; padding: 3px 10px; }
-            .result-card .info-line { gap: 15px; flex-direction: column; align-items: center; }
         }
         
         @media (max-width: 480px) {
             .tabs-nav { gap: 3px; }
             .tab-btn { padding: 8px 10px; font-size: 0.65rem; }
+            .tab-btn .tab-icon { display: none; }
+            .bulletin-table { font-size: 0.68rem; }
+            .bulletin-table thead th { padding: 8px 4px; font-size: 0.58rem; }
+            .bulletin-table tbody td { padding: 8px 4px; }
+            .bulletin-table .cours-nom { font-size: 0.7rem; }
+            .bulletin-table .credit-cell,
+            .bulletin-table .cote-cell,
+            .bulletin-table .pondere-cell { font-size: 0.75rem; }
+            .summary-grid { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -390,7 +688,7 @@
             </a>
             <div class="navbar-right">
                 <div class="profile-photo" id="profileBtn">
-                    <img src="t.png" width="60px" style="border-radius:60px;" alt="Photo">
+                    <img src="t.png" alt="Photo" onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'bi bi-person-fill\' style=\'color:#003366;font-size:24px;\'></i>'">
                 </div>
                 <button class="btn btn-outline-light btn-sm" onclick="window.location.href='etudiant.html'">
                     <i class="bi bi-house-fill"></i>
@@ -403,7 +701,7 @@
         <!-- Header -->
         <div class="page-header">
             <div>
-                <h1><i class="bi bi-journal-bookmark-fill me-2"></i>Mon Bulletin</h1>
+                <h1><i class="bi bi-journal-bookmark-fill me-2"></i>Bulletin Officiel</h1>
                 <small style="opacity:0.7;">Consultez vos résultats académiques</small>
             </div>
             <button class="back-btn" onclick="window.location.href='etudiant.html'">
@@ -418,7 +716,9 @@
                 <div class="name" id="studentName">Chargement...</div>
                 <div class="details" id="studentDetails">Matricule: ... | Promotion: ...</div>
             </div>
-            <span class="session-info"><i class="bi bi-calendar3 me-1"></i>Année 2025-2026</span>
+            <span class="session-info" id="sessionInfoTop">
+                <i class="bi bi-calendar3 me-1"></i><span id="anneeTop">Année -</span>
+            </span>
         </div>
         
         <!-- Tabs -->
@@ -450,115 +750,11 @@
         
         <!-- Tab Content -->
         <div class="tab-content">
-            <!-- Mi-Session -->
-            <div class="tab-pane active" id="tab-mi-session">
+            <!-- Contenu dynamique injecté ici -->
+            <div id="tabContentContainer">
                 <div class="result-card">
-                    <div class="icon-big"><i class="bi bi-clock-history"></i></div>
-                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
-                    <h3>Résultats non disponibles</h3>
-                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(MI_RECOURS)</strong>.</p>
-                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
-                    <div class="info-line">
-                        <span><i class="bi bi-tag"></i> Session: Mi-Session</span>
-                        <span><i class="bi bi-clock"></i> Mise à jour: 22/06/2026</span>
-                        <span><i class="bi bi-file-text"></i> Réf: MI_RECOURS</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Recours Mi-Session -->
-            <div class="tab-pane" id="tab-recours-ms">
-                <div class="result-card">
-                    <div class="icon-big"><i class="bi bi-arrow-repeat"></i></div>
-                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
-                    <h3>Résultats non disponibles</h3>
-                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(RECOURS_MS)</strong>.</p>
-                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
-                    <div class="info-line">
-                        <span><i class="bi bi-tag"></i> Session: Recours Mi-Session</span>
-                        <span><i class="bi bi-clock"></i> Mise à jour: 22/06/2026</span>
-                        <span><i class="bi bi-file-text"></i> Réf: RECOURS_MS</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Rattrapage 1 -->
-            <div class="tab-pane" id="tab-rattrapage-1">
-                <div class="result-card">
-                    <div class="icon-big"><i class="bi bi-arrow-counterclockwise"></i></div>
-                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
-                    <h3>Résultats non disponibles</h3>
-                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(RATTRAPAGE_1)</strong>.</p>
-                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
-                    <div class="info-line">
-                        <span><i class="bi bi-tag"></i> Session: Rattrapage 1</span>
-                        <span><i class="bi bi-clock"></i> Mise à jour: 22/06/2026</span>
-                        <span><i class="bi bi-file-text"></i> Réf: RATTRAPAGE_1</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Session 1 -->
-            <div class="tab-pane" id="tab-session-1">
-                <div class="result-card">
-                    <div class="icon-big"><i class="bi bi-calendar-check"></i></div>
-                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
-                    <h3>Résultats non disponibles</h3>
-                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(SESSION_1)</strong>.</p>
-                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
-                    <div class="info-line">
-                        <span><i class="bi bi-tag"></i> Session: Session 1</span>
-                        <span><i class="bi bi-clock"></i> Mise à jour: 22/06/2026</span>
-                        <span><i class="bi bi-file-text"></i> Réf: SESSION_1</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Recours Session 1 -->
-            <div class="tab-pane" id="tab-recours-s1">
-                <div class="result-card">
-                    <div class="icon-big"><i class="bi bi-arrow-repeat"></i></div>
-                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
-                    <h3>Résultats non disponibles</h3>
-                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(RECOURS_S1)</strong>.</p>
-                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
-                    <div class="info-line">
-                        <span><i class="bi bi-tag"></i> Session: Recours Session 1</span>
-                        <span><i class="bi bi-clock"></i> Mise à jour: 22/06/2026</span>
-                        <span><i class="bi bi-file-text"></i> Réf: RECOURS_S1</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Rattrapage 2 -->
-            <div class="tab-pane" id="tab-rattrapage-2">
-                <div class="result-card">
-                    <div class="icon-big"><i class="bi bi-arrow-counterclockwise"></i></div>
-                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
-                    <h3>Résultats non disponibles</h3>
-                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(RATTRAPAGE_2)</strong>.</p>
-                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
-                    <div class="info-line">
-                        <span><i class="bi bi-tag"></i> Session: Rattrapage 2</span>
-                        <span><i class="bi bi-clock"></i> Mise à jour: 22/06/2026</span>
-                        <span><i class="bi bi-file-text"></i> Réf: RATTRAPAGE_2</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Recours Rattrapage -->
-            <div class="tab-pane" id="tab-recours-ratt">
-                <div class="result-card">
-                    <div class="icon-big"><i class="bi bi-arrow-repeat"></i></div>
-                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
-                    <h3>Résultats non disponibles</h3>
-                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(RECOURS_RATT)</strong>.</p>
-                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
-                    <div class="info-line">
-                        <span><i class="bi bi-tag"></i> Session: Recours Rattrapage</span>
-                        <span><i class="bi bi-clock"></i> Mise à jour: 22/06/2026</span>
-                        <span><i class="bi bi-file-text"></i> Réf: RECOURS_RATT</span>
-                    </div>
+                    <div class="loading-spinner"></div>
+                    <p class="mt-3 text-muted">Chargement de vos résultats...</p>
                 </div>
             </div>
         </div>
@@ -588,6 +784,21 @@
         // ==================== VARIABLES ====================
         let currentStudent = null;
         let allPromotions = [];
+        let allResultatsPublies = []; // Résultats publiés par l'académique
+        let allBulletins = [];         // Bulletins individuels
+        let currentAnneeId = null;
+        let currentAnneeNom = null;
+        
+        // Sessions disponibles (7 onglets)
+        const SESSIONS_TABS = [
+            { key: 'MI_SESSION',    ref: 'MI_RECOURS',    label: 'Mi-Session',         icon: 'clock-history',          tabId: 'mi-session' },
+            { key: 'RECOURS_MS',    ref: 'RECOURS_MS',    label: 'Recours Mi-Session', icon: 'arrow-repeat',           tabId: 'recours-ms' },
+            { key: 'RATTRAPAGE_1',  ref: 'RATTRAPAGE_1',  label: 'Rattrapage 1',       icon: 'arrow-counterclockwise', tabId: 'rattrapage-1' },
+            { key: 'SESSION_1',     ref: 'SESSION_1',     label: 'Session 1',          icon: 'calendar-check',         tabId: 'session-1' },
+            { key: 'RECOURS_S1',    ref: 'RECOURS_S1',    label: 'Recours Session 1',  icon: 'arrow-repeat',           tabId: 'recours-s1' },
+            { key: 'RATTRAPAGE_2',  ref: 'RATTRAPAGE_2',  label: 'Rattrapage 2',       icon: 'arrow-counterclockwise', tabId: 'rattrapage-2' },
+            { key: 'RECOURS_RATT',  ref: 'RECOURS_RATT',  label: 'Recours Rattrapage', icon: 'arrow-repeat',           tabId: 'recours-ratt' }
+        ];
         
         // ==================== SESSION ====================
         function checkSession() {
@@ -618,6 +829,22 @@
             return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
         }
         
+        // ==================== CHARGEMENT ANNÉE ACTIVE ====================
+        async function chargerAnneeActive() {
+            try {
+                const doc = await db.collection('configurations').doc('anneeActive').get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    currentAnneeId = data.anneeId;
+                    currentAnneeNom = data.anneeNom;
+                    const anneeEl = document.getElementById('anneeTop');
+                    if (anneeEl) anneeEl.textContent = currentAnneeNom || 'Année -';
+                }
+            } catch(e) {
+                console.error('Erreur année active:', e);
+            }
+        }
+        
         // ==================== PROMOTIONS ====================
         async function chargerPromotions() {
             try {
@@ -635,60 +862,265 @@
             return promo ? promo.nom : promotionId;
         }
         
-        // ==================== AFFICHAGE ETUDIANT ====================
+        // ==================== CHARGEMENT DES RÉSULTATS ====================
+        async function chargerResultatsPublies() {
+            if (!currentStudent || !currentAnneeId) return;
+            
+            try {
+                // Charger les documents de publication (par promotion/session/année)
+                const snapshot = await db.collection('resultatsPublies')
+                    .where('promotionId', '==', currentStudent.promotion)
+                    .where('anneeAcademiqueId', '==', currentAnneeId)
+                    .get();
+                
+                allResultatsPublies = [];
+                snapshot.forEach(doc => {
+                    allResultatsPublies.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Charger tous les bulletins de cet étudiant
+                const bulletinsSnap = await db.collection('bulletins')
+                    .where('etudiantId', '==', currentStudent.id || currentStudent.uid)
+                    .where('anneeAcademiqueId', '==', currentAnneeId)
+                    .get();
+                
+                allBulletins = [];
+                bulletinsSnap.forEach(doc => {
+                    allBulletins.push({ id: doc.id, ...doc.data() });
+                });
+                
+                console.log(`✅ ${allResultatsPublies.length} session(s) publiée(s), ${allBulletins.length} bulletin(s)`);
+            } catch(e) {
+                console.error('Erreur chargement résultats:', e);
+            }
+        }
+        
+        // ==================== AFFICHAGE ÉTUDIANT ====================
         async function loadStudentInfo() {
-            await chargerPromotions();
+            await Promise.all([chargerPromotions(), chargerAnneeActive()]);
             
             const nameEl = document.getElementById('studentName');
             const detailsEl = document.getElementById('studentDetails');
             const avatarEl = document.getElementById('studentAvatar');
             
             if (currentStudent) {
-                nameEl.textContent = currentStudent.nom || 'Étudiant';
+                const nom = currentStudent.nom || currentStudent.nomComplet || 'Étudiant';
+                nameEl.textContent = nom;
                 detailsEl.textContent = `Matricule: ${currentStudent.matricule || 'N/A'} | Promotion: ${getPromotionNom(currentStudent.promotion)}`;
-                avatarEl.textContent = getInitials(currentStudent.nom);
+                avatarEl.textContent = getInitials(nom);
             }
+        }
+        
+        // ==================== GÉNÉRATION DU BULLETIN ====================
+        function genererBulletinHTML(bulletin, sessionLabel) {
+            if (!bulletin || !bulletin.lignes || bulletin.lignes.length === 0) {
+                return null;
+            }
+            
+            const nom = bulletin.etudiantNom || currentStudent.nom || 'Étudiant';
+            const matricule = bulletin.etudiantMatricule || currentStudent.matricule || 'N/A';
+            const promoNom = getPromotionNom(currentStudent.promotion);
+            
+            // Grouper les cours par catégorie
+            const groupes = {};
+            bulletin.lignes.forEach(l => {
+                const cat = l.categorie || 'NON UE';
+                if (!groupes[cat]) groupes[cat] = [];
+                groupes[cat].push(l);
+            });
+            
+            // ===== EN-TÊTE ÉTUDIANT =====
+            let html = `
+                <div class="bulletin-info-etudiant">
+                    <div>
+                        <div class="b-nom"><i class="bi bi-person-badge-fill me-1"></i> ${escapeHtml(nom)}</div>
+                        <div class="b-detail">Matricule: <strong>${escapeHtml(matricule)}</strong> | Promotion: <strong>${escapeHtml(promoNom)}</strong></div>
+                    </div>
+                    <span class="b-annee"><i class="bi bi-calendar-check-fill me-1"></i>${escapeHtml(currentAnneeNom || '-')}</span>
+                </div>
+            `;
+            
+            // ===== TABLE BULLETIN =====
+            html += `
+                <div class="bulletin-container">
+                    <div class="bulletin-header">
+                        <h3>BULLETIN OFFICIEL</h3>
+                        <div class="subtitle">Session : ${escapeHtml(sessionLabel)}</div>
+                    </div>
+                    <table class="bulletin-table">
+                        <thead>
+                            <tr>
+                                <th>COURS</th>
+                                <th>CRÉD.</th>
+                                <th>/20</th>
+                                <th>POND.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            // Trier les catégories : mettre "NON UE" ou "Cours généraux" en premier ?
+            // On garde l'ordre d'apparition mais on peut trier alphabétiquement
+            const categories = Object.keys(groupes);
+            
+            categories.forEach(cat => {
+                html += `
+                    <tr class="categorie-row">
+                        <td colspan="4">${escapeHtml(cat)}</td>
+                    </tr>
+                `;
+                
+                groupes[cat].forEach(l => {
+                    const coteClass = l.coteFinale < 10 ? 'fail' : '';
+                    html += `
+                        <tr>
+                            <td class="cours-nom">${escapeHtml(l.coursNom)}</td>
+                            <td class="credit-cell">${l.credits || 0}</td>
+                            <td class="cote-cell ${coteClass}">${(l.coteFinale || 0).toFixed(1)}</td>
+                            <td class="pondere-cell">${(l.pondere || 0).toFixed(1)}</td>
+                        </tr>
+                    `;
+                });
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            // ===== RÉSUMÉ FINAL =====
+            const decisionClass = 
+                bulletin.decisionJury === 'ADMIS' ? 'admis' :
+                bulletin.decisionJury === 'RATTRAPAGE' ? 'rattrapage' :
+                bulletin.decisionJury && bulletin.decisionJury.includes('RÉSERVE') ? 'reserve' :
+                'ajourne';
+            
+            const echecsClass = bulletin.echecs > 0 ? 'red' : 'green';
+            const creditsClass = bulletin.creditsValides === bulletin.creditsTotal ? 'green' : '';
+            
+            html += `
+                <div class="bulletin-summary">
+                    <div class="summary-grid">
+                        <div class="summary-box">
+                            <div class="s-label">CRÉDITS<br>TOTAUX</div>
+                            <div class="s-value">${bulletin.creditsTotal || 0}</div>
+                        </div>
+                        <div class="summary-box">
+                            <div class="s-label">CRÉDITS<br>VALIDÉS</div>
+                            <div class="s-value ${creditsClass}">${bulletin.creditsValides || 0}</div>
+                        </div>
+                        <div class="summary-box">
+                            <div class="s-label">TOTAL<br>PONDÉRÉ</div>
+                            <div class="s-value">${(bulletin.totalPondere || 0).toFixed(1)}</div>
+                        </div>
+                        <div class="summary-box">
+                            <div class="s-label">MOYENNE</div>
+                            <div class="s-value">${(bulletin.moyenne || 0).toFixed(2)} / 20</div>
+                        </div>
+                        <div class="summary-box">
+                            <div class="s-label">POURCENTAGE</div>
+                            <div class="s-value">${(bulletin.pourcentage || 0).toFixed(2)} %</div>
+                        </div>
+                        <div class="summary-box">
+                            <div class="s-label">ÉCHECS</div>
+                            <div class="s-value ${echecsClass}">${bulletin.echecs || 0}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="decision-jury">
+                        <div>
+                            <div class="d-label">DÉCISION DU JURY</div>
+                            <div class="d-session">Session ${escapeHtml(sessionLabel)}</div>
+                        </div>
+                        <span class="decision-badge ${decisionClass}">${escapeHtml(bulletin.decisionJury || 'EN ATTENTE')}</span>
+                    </div>
+                </div>
+            `;
+            
+            return html;
+        }
+        
+        // ==================== RENDU DES ONGLETS ====================
+        function renderTabContent(tabKey) {
+            const container = document.getElementById('tabContentContainer');
+            if (!container) return;
+            
+            // Trouver la config de la session
+            const session = SESSIONS_TABS.find(s => s.tabId === tabKey);
+            if (!session) {
+                container.innerHTML = '<div class="result-card"><p>Aucune session trouvée.</p></div>';
+                return;
+            }
+            
+            // Vérifier si la session a été publiée
+            const publication = allResultatsPublies.find(r => 
+                (r.session === session.key || r.session === session.ref) &&
+                r.published === true
+            );
+            
+            // Trouver le bulletin correspondant
+            const bulletin = allBulletins.find(b => 
+                b.session === session.key ||
+                b.session === session.ref ||
+                b.publicationId === publication?.id
+            );
+            
+            // CAS 1 : Résultats publiés et bulletin disponible
+            if (publication && bulletin && bulletin.lignes && bulletin.lignes.length > 0) {
+                const html = genererBulletinHTML(bulletin, session.label);
+                if (html) {
+                    container.innerHTML = html;
+                    return;
+                }
+            }
+            
+            // CAS 2 : Résultats non disponibles
+            const anneeLabel = currentAnneeNom || '2025-2026';
+            const dateMaj = new Date().toLocaleDateString('fr-FR');
+            
+            container.innerHTML = `
+                <div class="result-card">
+                    <div class="icon-big"><i class="bi bi-${session.icon}"></i></div>
+                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
+                    <h3>Résultats non disponibles</h3>
+                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(${session.ref})</strong>.</p>
+                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
+                    <div class="info-line">
+                        <span><i class="bi bi-tag"></i> Session: ${session.label}</span>
+                        <span><i class="bi bi-clock"></i> Mise à jour: ${dateMaj}</span>
+                        <span><i class="bi bi-file-text"></i> Réf: ${session.ref}</span>
+                    </div>
+                </div>
+            `;
         }
         
         // ==================== ONGLETS ====================
         function setupTabs() {
             const tabs = document.querySelectorAll('.tab-btn');
-            const panes = {
-                'mi-session': document.getElementById('tab-mi-session'),
-                'recours-ms': document.getElementById('tab-recours-ms'),
-                'rattrapage-1': document.getElementById('tab-rattrapage-1'),
-                'session-1': document.getElementById('tab-session-1'),
-                'recours-s1': document.getElementById('tab-recours-s1'),
-                'rattrapage-2': document.getElementById('tab-rattrapage-2'),
-                'recours-ratt': document.getElementById('tab-recours-ratt')
-            };
             
             tabs.forEach(tab => {
                 tab.addEventListener('click', function() {
-                    // Retirer active de tous les onglets
                     tabs.forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
                     
-                    // Cacher tous les panes
-                    Object.values(panes).forEach(pane => {
-                        if (pane) pane.classList.remove('active');
-                    });
-                    
-                    // Afficher le pane correspondant
                     const tabId = this.dataset.tab;
-                    if (panes[tabId]) {
-                        panes[tabId].classList.add('active');
-                    }
+                    renderTabContent(tabId);
+                    
+                    // Scroll vers l'onglet actif sur mobile
+                    setTimeout(() => {
+                        this.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                    }, 100);
                 });
             });
-            
-            // Sur mobile, scroll vers l'onglet actif
-            const activeTab = document.querySelector('.tab-btn.active');
-            if (activeTab) {
-                setTimeout(() => {
-                    activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-                }, 300);
-            }
+        }
+        
+        // ==================== UTILITAIRE ====================
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
         }
         
         // ==================== INIT ====================
@@ -696,10 +1128,19 @@
             if (!checkSession()) return;
             
             await loadStudentInfo();
+            await chargerResultatsPublies();
+            
             setupTabs();
+            
+            // Afficher l'onglet actif (Mi-Session par défaut)
+            const activeTab = document.querySelector('.tab-btn.active');
+            if (activeTab) {
+                renderTabContent(activeTab.dataset.tab);
+            }
             
             console.log('📄 Bulletin - Page chargée');
             console.log('👤 Étudiant:', currentStudent?.nom);
+            console.log('📅 Année active:', currentAnneeNom);
         }
         
         init();
