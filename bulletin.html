@@ -17,7 +17,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,9 +30,7 @@
             --text-blue: #1a4d80;
             --pondere-blue: #1a4d80;
             --cote-green: #2e7d32;
-            --jury-orange: #e65100;
-            --jury-orange-dark: #bf360c;
-            --jury-orange-light: #fff3e0;
+            --jury-purple: #6a1b9a;
         }
         
         body { 
@@ -96,8 +93,6 @@
             align-items: center;
             justify-content: space-between;
             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-            flex-wrap: wrap;
-            gap: 15px;
         }
         
         .page-header h1 {
@@ -105,49 +100,20 @@
             margin: 0;
         }
         
-        .page-header .header-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .page-header .back-btn,
-        .page-header .pdf-btn {
+        .page-header .back-btn {
+            background: rgba(255,255,255,0.2);
             border: none;
             color: white;
-            padding: 10px 18px;
+            padding: 8px 16px;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .page-header .back-btn {
-            background: rgba(255,255,255,0.2);
+            font-size: 0.9rem;
         }
         
         .page-header .back-btn:hover {
             background: rgba(255,255,255,0.3);
             transform: translateX(-3px);
-        }
-        
-        .page-header .pdf-btn {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            box-shadow: 0 4px 12px rgba(231,76,60,0.4);
-        }
-        
-        .page-header .pdf-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(231,76,60,0.5);
-        }
-        
-        .page-header .pdf-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
         }
         
         /* ===== INFO ÉTUDIANT ===== */
@@ -265,9 +231,38 @@
             border-radius: 3px 3px 0 0;
         }
         
+        /* ✅ Onglet Recours (violet) */
+        .tab-btn.jury-tab {
+            color: var(--jury-purple);
+        }
+        .tab-btn.jury-tab:hover {
+            color: var(--jury-purple);
+            background: rgba(106,27,154,0.05);
+        }
+        .tab-btn.jury-tab.active {
+            color: var(--jury-purple);
+            background: rgba(106,27,154,0.08);
+        }
+        .tab-btn.jury-tab.active::after {
+            background: var(--jury-purple);
+        }
+        
         .tab-btn .tab-icon {
             margin-right: 6px;
             font-size: 0.9rem;
+        }
+        
+        .tab-btn .badge-tab {
+            background: var(--danger-red);
+            color: white;
+            font-size: 0.6rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 5px;
+        }
+        
+        .tab-btn.jury-tab .badge-tab {
+            background: var(--jury-purple);
         }
         
         /* ===== CONTENU DES ONGLETS ===== */
@@ -376,6 +371,7 @@
             border-bottom: none;
         }
         
+        /* Lignes de catégories */
         .bulletin-table .categorie-row {
             background: #f7fafd;
         }
@@ -421,19 +417,16 @@
             color: var(--danger-red);
         }
         
-        /* ===== RECOURS BADGE (sur la ligne du cours concerné) ===== */
-        .recours-badge-inline {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: var(--jury-orange-light);
-            color: var(--jury-orange);
-            padding: 2px 8px;
-            border-radius: 10px;
+        /* ✅ Indicateur recours appliqué */
+        .bulletin-table .recours-badge {
+            display: inline-block;
+            background: var(--jury-purple);
+            color: white;
             font-size: 9px;
             font-weight: 700;
-            margin-left: 6px;
-            border: 1px solid rgba(230,81,0,0.3);
+            padding: 2px 6px;
+            border-radius: 8px;
+            margin-left: 5px;
             vertical-align: middle;
         }
         
@@ -548,104 +541,6 @@
             color: #004085;
         }
         
-        /* ===== EN-TÊTE BULLETIN (ÉTUDIANT) ===== */
-        .bulletin-info-etudiant {
-            background: linear-gradient(135deg, #f8fafc, #eef3f9);
-            border-left: 4px solid var(--accent-yellow);
-            border-radius: 12px;
-            padding: 14px 18px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .bulletin-info-etudiant .b-nom {
-            font-weight: 800;
-            color: var(--dark-blue);
-            font-size: 0.95rem;
-        }
-        
-        .bulletin-info-etudiant .b-detail {
-            font-size: 0.75rem;
-            color: #6c757d;
-        }
-        
-        .bulletin-info-etudiant .b-annee {
-            background: var(--accent-yellow);
-            color: var(--dark-blue);
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 0.72rem;
-            font-weight: 800;
-        }
-        
-        /* ===== BANDEAU RECOURS APPLIQUÉ ===== */
-        .recours-banner {
-            background: linear-gradient(135deg, var(--jury-orange-light), #ffe0b2);
-            border-left: 5px solid var(--jury-orange);
-            border-radius: 12px;
-            padding: 14px 18px;
-            margin-bottom: 15px;
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-            box-shadow: 0 3px 12px rgba(230,81,0,0.15);
-        }
-        
-        .recours-banner .rb-icon {
-            font-size: 26px;
-            color: var(--jury-orange);
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-        
-        .recours-banner .rb-content {
-            flex: 1;
-            font-size: 13px;
-            color: #6d4c41;
-        }
-        
-        .recours-banner .rb-title {
-            font-weight: 800;
-            color: var(--jury-orange);
-            font-size: 14px;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .recours-banner .rb-detail {
-            margin-top: 4px;
-            padding-top: 4px;
-            border-top: 1px dashed rgba(230,81,0,0.3);
-            font-size: 12px;
-        }
-        
-        .recours-banner .rb-cote-change {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: white;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-weight: 700;
-            margin: 0 4px;
-        }
-        
-        .recours-banner .old-cote {
-            text-decoration: line-through;
-            color: var(--danger-red);
-        }
-        
-        .recours-banner .new-cote {
-            color: var(--success-green);
-            font-weight: 800;
-        }
-        
         /* ===== CARTE "NON PUBLIÉ" ===== */
         .result-card {
             text-align: center;
@@ -727,18 +622,69 @@
             color: var(--primary-blue);
         }
         
-        /* ===== LOADING ===== */
-        .loading-spinner {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 3px solid #e0e0e0;
-            border-top-color: var(--primary-blue);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+        /* ===== EN-TÊTE BULLETIN (ÉTUDIANT) ===== */
+        .bulletin-info-etudiant {
+            background: linear-gradient(135deg, #f8fafc, #eef3f9);
+            border-left: 4px solid var(--accent-yellow);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .bulletin-info-etudiant .b-nom {
+            font-weight: 800;
+            color: var(--dark-blue);
+            font-size: 0.95rem;
+        }
+        
+        .bulletin-info-etudiant .b-detail {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        
+        .bulletin-info-etudiant .b-annee {
+            background: var(--accent-yellow);
+            color: var(--dark-blue);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+        
+        /* ✅ Bandeau recours */
+        .recours-info-banner {
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+            border-left: 4px solid var(--jury-purple);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .recours-info-banner i {
+            font-size: 24px;
+            color: var(--jury-purple);
+            flex-shrink: 0;
+        }
+        
+        .recours-info-banner .r-content {
+            flex: 1;
+            font-size: 13px;
+            color: #4a148c;
+        }
+        
+        .recours-info-banner .r-content strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
         
         /* ===== FOOTER ===== */
         .footer-info {
@@ -754,35 +700,23 @@
             border-radius: 50%;
         }
         
-        /* ===== PDF LOADING OVERLAY ===== */
-        .pdf-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            justify-content: center;
+        /* ===== LOADING ===== */
+        .loading-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #e0e0e0;
+            border-top-color: var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
-        .pdf-overlay.show { display: flex; }
-        .pdf-overlay .box {
-            background: white;
-            padding: 30px 40px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-        }
-        .pdf-overlay .box p {
-            margin: 15px 0 0 0;
-            color: var(--primary-blue);
-            font-weight: 600;
-        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
         
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .page-header h1 { font-size: 1rem; }
-            .page-header .back-btn,
-            .page-header .pdf-btn { padding: 8px 14px; font-size: 0.75rem; }
+            .page-header .back-btn { padding: 6px 12px; font-size: 0.8rem; }
             .tab-btn { padding: 10px 12px; font-size: 0.7rem; }
             .tab-content { padding: 10px; }
             .bulletin-table { font-size: 0.72rem; }
@@ -815,11 +749,6 @@
             .bulletin-table .pondere-cell { font-size: 0.75rem; }
             .summary-grid { grid-template-columns: repeat(2, 1fr); }
         }
-        
-        /* Style spécial pour PDF (évite les sauts de page) */
-        .bulletin-pdf-wrapper {
-            page-break-inside: avoid;
-        }
     </style>
 </head>
 <body>
@@ -845,16 +774,11 @@
         <div class="page-header">
             <div>
                 <h1><i class="bi bi-journal-bookmark-fill me-2"></i>Bulletin Officiel</h1>
-                <small style="opacity:0.7;">Consultez et téléchargez vos résultats</small>
+                <small style="opacity:0.7;">Consultez vos résultats académiques</small>
             </div>
-            <div class="header-buttons">
-                <button class="pdf-btn" id="pdfBtn" disabled>
-                    <i class="bi bi-file-pdf-fill"></i> Télécharger PDF
-                </button>
-                <button class="back-btn" onclick="window.location.href='etudiant.html'">
-                    <i class="bi bi-arrow-left me-1"></i> Retour
-                </button>
-            </div>
+            <button class="back-btn" onclick="window.location.href='etudiant.html'">
+                <i class="bi bi-arrow-left me-1"></i> Retour
+            </button>
         </div>
         
         <!-- Infos étudiant -->
@@ -875,8 +799,8 @@
                 <button class="tab-btn active" data-tab="mi-session">
                     <i class="bi bi-clock-history tab-icon"></i> Mi-Session
                 </button>
-                <button class="tab-btn" data-tab="recours-ms">
-                    <i class="bi bi-arrow-repeat tab-icon"></i> Recours
+                <button class="tab-btn jury-tab" data-tab="recours-ms">
+                    <i class="bi bi-shield-fill-check tab-icon"></i> Recours MS
                 </button>
                 <button class="tab-btn" data-tab="rattrapage-1">
                     <i class="bi bi-arrow-counterclockwise tab-icon"></i> Rattrapage 1
@@ -884,14 +808,14 @@
                 <button class="tab-btn" data-tab="session-1">
                     <i class="bi bi-calendar-check tab-icon"></i> Session 1
                 </button>
-                <button class="tab-btn" data-tab="recours-s1">
-                    <i class="bi bi-arrow-repeat tab-icon"></i> Recours
+                <button class="tab-btn jury-tab" data-tab="recours-s1">
+                    <i class="bi bi-shield-fill-check tab-icon"></i> Recours S1
                 </button>
                 <button class="tab-btn" data-tab="rattrapage-2">
-                    <i class="bi bi-arrow-counterclockwise tab-icon"></i> Rattrapage
+                    <i class="bi bi-arrow-counterclockwise tab-icon"></i> Rattrapage 2
                 </button>
-                <button class="tab-btn" data-tab="recours-ratt">
-                    <i class="bi bi-arrow-repeat tab-icon"></i> Recours
+                <button class="tab-btn jury-tab" data-tab="recours-ratt">
+                    <i class="bi bi-shield-fill-check tab-icon"></i> Recours Ratt.
                 </button>
             </nav>
         </div>
@@ -910,14 +834,6 @@
         <div class="footer-info">
             <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital<br>
             <img src="t.png" width="40px" alt="HYBRILINK" onerror="this.style.display='none'">
-        </div>
-    </div>
-    
-    <!-- PDF Loading Overlay -->
-    <div class="pdf-overlay" id="pdfOverlay">
-        <div class="box">
-            <div class="loading-spinner" style="width:50px;height:50px;border-width:5px;"></div>
-            <p><i class="bi bi-file-pdf-fill"></i> Génération du PDF...</p>
         </div>
     </div>
 
@@ -941,20 +857,19 @@
         let allPromotions = [];
         let allResultatsPublies = [];
         let allBulletins = [];
-        let allRecours = [];  // ✅ Recours du jury
+        let allRecours = [];       // ✅ Recours du jury
         let currentAnneeId = null;
         let currentAnneeNom = null;
-        let currentBulletinActif = null;  // Pour le PDF
         
-        // Sessions disponibles
+        // ✅ 7 sessions (4 normales + 3 recours)
         const SESSIONS_TABS = [
-            { key: 'MI_SESSION',    ref: 'MI_RECOURS',    label: 'Mi-Session',         icon: 'clock-history',          tabId: 'mi-session' },
-            { key: 'RECOURS_MS',    ref: 'RECOURS_MS',    label: 'Recours Mi-Session', icon: 'arrow-repeat',           tabId: 'recours-ms' },
-            { key: 'RATTRAPAGE_1',  ref: 'RATTRAPAGE_1',  label: 'Rattrapage 1',       icon: 'arrow-counterclockwise', tabId: 'rattrapage-1' },
-            { key: 'SESSION_1',     ref: 'SESSION_1',     label: 'Session 1',          icon: 'calendar-check',         tabId: 'session-1' },
-            { key: 'RECOURS_S1',    ref: 'RECOURS_S1',    label: 'Recours Session 1',  icon: 'arrow-repeat',           tabId: 'recours-s1' },
-            { key: 'RATTRAPAGE_2',  ref: 'RATTRAPAGE_2',  label: 'Rattrapage 2',       icon: 'arrow-counterclockwise', tabId: 'rattrapage-2' },
-            { key: 'RECOURS_RATT',  ref: 'RECOURS_RATT',  label: 'Recours Rattrapage', icon: 'arrow-repeat',           tabId: 'recours-ratt' }
+            { key: 'MI_SESSION',    ref: 'MI_SESSION',    label: 'Mi-Session',           icon: 'clock-history',          tabId: 'mi-session',    isRecours: false },
+            { key: 'RECOURS_MS',    ref: 'RECOURS_MS',    label: 'Recours Mi-Session',   icon: 'shield-fill-check',      tabId: 'recours-ms',    isRecours: true },
+            { key: 'RATTRAPAGE_1',  ref: 'RATTRAPAGE_1',  label: 'Rattrapage 1',         icon: 'arrow-counterclockwise', tabId: 'rattrapage-1',  isRecours: false },
+            { key: 'SESSION_1',     ref: 'SESSION_1',     label: 'Session 1',            icon: 'calendar-check',         tabId: 'session-1',     isRecours: false },
+            { key: 'RECOURS_S1',    ref: 'RECOURS_S1',    label: 'Recours Session 1',    icon: 'shield-fill-check',      tabId: 'recours-s1',    isRecours: true },
+            { key: 'RATTRAPAGE_2',  ref: 'RATTRAPAGE_2',  label: 'Rattrapage 2',         icon: 'arrow-counterclockwise', tabId: 'rattrapage-2',  isRecours: false },
+            { key: 'RECOURS_RATT',  ref: 'RECOURS_RATT',  label: 'Recours Rattrapage',   icon: 'shield-fill-check',      tabId: 'recours-ratt',  isRecours: true }
         ];
         
         // ==================== SESSION ====================
@@ -984,13 +899,6 @@
             const parts = name.trim().split(' ');
             if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
             return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-        }
-        
-        function escapeHtml(text) {
-            if (text === null || text === undefined) return '';
-            const div = document.createElement('div');
-            div.textContent = String(text);
-            return div.innerHTML;
         }
         
         // ==================== CHARGEMENT ANNÉE ACTIVE ====================
@@ -1031,7 +939,7 @@
             if (!currentStudent || !currentAnneeId) return;
             
             try {
-                // 1. Documents de publication
+                // 1. Documents de publication (par promotion/session/année)
                 const snapshot = await db.collection('resultatsPublies')
                     .where('promotionId', '==', currentStudent.promotion)
                     .where('anneeAcademiqueId', '==', currentAnneeId)
@@ -1042,7 +950,7 @@
                     allResultatsPublies.push({ id: doc.id, ...doc.data() });
                 });
                 
-                // 2. Bulletins individuels
+                // 2. Tous mes bulletins
                 const bulletinsSnap = await db.collection('bulletins')
                     .where('etudiantId', '==', currentStudent.id || currentStudent.uid)
                     .where('anneeAcademiqueId', '==', currentAnneeId)
@@ -1053,7 +961,7 @@
                     allBulletins.push({ id: doc.id, ...doc.data() });
                 });
                 
-                // 3. ✅ Recours du jury appliqués
+                // 3. Mes recours (cotes modifiées par le jury)
                 const recoursSnap = await db.collection('recoursJury')
                     .where('promotionId', '==', currentStudent.promotion)
                     .where('anneeAcademiqueId', '==', currentAnneeId)
@@ -1062,17 +970,14 @@
                 allRecours = [];
                 recoursSnap.forEach(doc => {
                     const data = doc.data();
-                    // Ne garder que si ce étudiant a un recours
-                    if (data.cotesModifiees && data.cotesModifiees[currentStudent.id || currentStudent.uid]) {
-                        allRecours.push({
-                            id: doc.id,
-                            ...data,
-                            maCote: data.cotesModifiees[currentStudent.id || currentStudent.uid]
-                        });
+                    // Filtrer : garder uniquement les recours qui concernent CET étudiant
+                    const maCote = data.cotesModifiees?.[currentStudent.id || currentStudent.uid];
+                    if (maCote) {
+                        allRecours.push({ id: doc.id, ...data, maCote });
                     }
                 });
                 
-                console.log(`✅ ${allResultatsPublies.length} session(s) publiée(s), ${allBulletins.length} bulletin(s), ${allRecours.length} recours`);
+                console.log(`✅ ${allResultatsPublies.length} publication(s), ${allBulletins.length} bulletin(s), ${allRecours.length} recours me concernant`);
             } catch(e) {
                 console.error('Erreur chargement résultats:', e);
             }
@@ -1095,7 +1000,7 @@
         }
         
         // ==================== GÉNÉRATION DU BULLETIN ====================
-        function genererBulletinHTML(bulletin, sessionLabel, sessionKey) {
+        function genererBulletinHTML(bulletin, sessionLabel, isRecours, recoursList) {
             if (!bulletin || !bulletin.lignes || bulletin.lignes.length === 0) {
                 return null;
             }
@@ -1103,15 +1008,7 @@
             const nom = bulletin.etudiantNom || currentStudent.nom || 'Étudiant';
             const matricule = bulletin.etudiantMatricule || currentStudent.matricule || 'N/A';
             const promoNom = getPromotionNom(currentStudent.promotion);
-            
-            // ✅ Recours pour cette session
-            const recoursSession = {
-                'MI_SESSION': 'RECOURS_MS',
-                'SESSION_1': 'RECOURS_S1',
-                'RATTRAPAGE_2': 'RECOURS_RATT'
-            }[sessionKey];
-            
-            const recoursApplicables = allRecours.filter(r => r.sessionRecours === recoursSession);
+            const estRecours = isRecours === true;
             
             // Grouper les cours par catégorie
             const groupes = {};
@@ -1121,8 +1018,38 @@
                 groupes[cat].push(l);
             });
             
+            // ===== BANDEAU RECOURS (si applicable) =====
+            let recoursBannerHTML = '';
+            if (estRecours && recoursList && recoursList.length > 0) {
+                const recoursDetails = recoursList.map(r => {
+                    const ancienne = r.maCote.ancienne || 0;
+                    const nouvelle = r.maCote.nouvelle || 0;
+                    return `
+                        <div style="background:white;border-radius:8px;padding:10px 12px;margin-top:8px;border-left:3px solid var(--jury-purple);font-size:12px;">
+                            <strong style="color:var(--jury-purple);">${escapeHtml(r.coursNom)}</strong><br>
+                            <span style="text-decoration:line-through;color:#dc3545;">${ancienne.toFixed(1)}</span>
+                            <i class="bi bi-arrow-right" style="margin:0 6px;"></i>
+                            <span style="color:#28a745;font-weight:bold;">${nouvelle.toFixed(1)}</span>
+                            ${r.maCote.motif ? `<br><small style="color:#888;">Motif : ${escapeHtml(r.maCote.motif)}</small>` : ''}
+                        </div>
+                    `;
+                }).join('');
+                
+                recoursBannerHTML = `
+                    <div class="recours-info-banner">
+                        <i class="bi bi-shield-fill-check"></i>
+                        <div class="r-content">
+                            <strong>⚖️ Recours jury appliqué</strong>
+                            Vos cotes ont été révisées par le jury pour la session <strong>${escapeHtml(sessionLabel)}</strong> :
+                            ${recoursDetails}
+                        </div>
+                    </div>
+                `;
+            }
+            
             // ===== EN-TÊTE ÉTUDIANT =====
             let html = `
+                ${recoursBannerHTML}
                 <div class="bulletin-info-etudiant">
                     <div>
                         <div class="b-nom"><i class="bi bi-person-badge-fill me-1"></i> ${escapeHtml(nom)}</div>
@@ -1132,48 +1059,15 @@
                 </div>
             `;
             
-            // ===== BANDEAU RECOURS (si applicable) =====
-            if (recoursApplicables.length > 0) {
-                html += `
-                    <div class="recours-banner">
-                        <i class="bi bi-shield-fill-check rb-icon"></i>
-                        <div class="rb-content">
-                            <div class="rb-title">
-                                <i class="bi bi-info-circle-fill"></i>
-                                Recours traité(s) par le jury
-                            </div>
-                            <div>
-                                ${recoursApplicables.map(r => {
-                                    const motif = r.maCote.motif || 'Non spécifié';
-                                    return `
-                                        <div style="margin-bottom:6px;">
-                                            <strong>${escapeHtml(r.coursNom || 'Cours')}</strong> —
-                                            <span class="rb-cote-change">
-                                                <span class="old-cote">${r.maCote.ancienne.toFixed(2)}</span>
-                                                <i class="bi bi-arrow-right"></i>
-                                                <span class="new-cote">${r.maCote.nouvelle.toFixed(2)}</span>
-                                            </span>
-                                            <span style="font-size:11px;color:#7d5a4a;">Motif : ${escapeHtml(motif)}</span>
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                            ${recoursApplicables[0]?.membresJury ? `
-                                <div class="rb-detail">
-                                    <i class="bi bi-people-fill"></i> Membres du jury : ${escapeHtml(recoursApplicables[0].membresJury)}
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
-            }
-            
             // ===== TABLE BULLETIN =====
             html += `
                 <div class="bulletin-container">
                     <div class="bulletin-header">
                         <h3>BULLETIN OFFICIEL</h3>
-                        <div class="subtitle">Session : ${escapeHtml(sessionLabel)}</div>
+                        <div class="subtitle">
+                            Session : ${escapeHtml(sessionLabel)}
+                            ${estRecours ? ' <span style="color:var(--jury-purple);font-weight:700;">— RÉVISÉ PAR LE JURY</span>' : ''}
+                        </div>
                     </div>
                     <table class="bulletin-table">
                         <thead>
@@ -1199,13 +1093,17 @@
                 groupes[cat].forEach(l => {
                     const coteClass = l.coteFinale < 10 ? 'fail' : '';
                     
-                    // ✅ Vérifier si un recours a été appliqué sur ce cours
-                    const recoursSurCours = recoursApplicables.find(r => r.coursId === l.coursId);
-                    const recoursBadge = recoursSurCours ? `<span class="recours-badge-inline"><i class="bi bi-shield-fill-check"></i> JURY</span>` : '';
+                    // Vérifier si ce cours a été révisé par le jury
+                    const estRevise = estRecours && recoursList && recoursList.some(r => 
+                        r.coursId === l.coursId || r.coursNom === l.coursNom
+                    );
                     
                     html += `
                         <tr>
-                            <td class="cours-nom">${escapeHtml(l.coursNom)}${recoursBadge}</td>
+                            <td class="cours-nom">
+                                ${escapeHtml(l.coursNom)}
+                                ${estRevise ? '<span class="recours-badge">JURY</span>' : ''}
+                            </td>
                             <td class="credit-cell">${l.credits || 0}</td>
                             <td class="cote-cell ${coteClass}">${(l.coteFinale || 0).toFixed(1)}</td>
                             <td class="pondere-cell">${(l.pondere || 0).toFixed(1)}</td>
@@ -1277,11 +1175,10 @@
             const container = document.getElementById('tabContentContainer');
             if (!container) return;
             
+            // Trouver la config de la session
             const session = SESSIONS_TABS.find(s => s.tabId === tabKey);
             if (!session) {
                 container.innerHTML = '<div class="result-card"><p>Aucune session trouvée.</p></div>';
-                document.getElementById('pdfBtn').disabled = true;
-                currentBulletinActif = null;
                 return;
             }
             
@@ -1298,165 +1195,147 @@
                 b.publicationId === publication?.id
             );
             
-            // CAS 1 : Résultats publiés
+            // Trouver les recours concernant cette session
+            const recoursSession = session.isRecours 
+                ? allRecours.filter(r => r.sessionRecours === session.key)
+                : [];
+            
+            // CAS 1 : Résultats publiés et bulletin disponible
             if (publication && bulletin && bulletin.lignes && bulletin.lignes.length > 0) {
-                const html = genererBulletinHTML(bulletin, session.label, session.key);
+                const html = genererBulletinHTML(bulletin, session.label, session.isRecours, recoursSession);
                 if (html) {
                     container.innerHTML = html;
-                    currentBulletinActif = {
-                        bulletin,
-                        sessionLabel: session.label,
-                        sessionKey: session.key
-                    };
-                    document.getElementById('pdfBtn').disabled = false;
                     return;
                 }
             }
             
-            // CAS 2 : Non publié
-            currentBulletinActif = null;
-            document.getElementById('pdfBtn').disabled = true;
+            // CAS 2 : Recours publiés mais PAS de bulletin complet (cas où recours existe sans publication complète)
+            if (session.isRecours && recoursSession.length > 0 && !bulletin) {
+                // Afficher un mini-bulletin avec seulement les cotes révisées
+                const miniBulletin = genererMiniBulletinRecours(recoursSession, session.label);
+                if (miniBulletin) {
+                    container.innerHTML = miniBulletin;
+                    return;
+                }
+            }
             
+            // CAS 3 : Résultats non disponibles
             const anneeLabel = currentAnneeNom || '2025-2026';
             const dateMaj = new Date().toLocaleDateString('fr-FR');
+            const isRecours = session.isRecours;
+            
+            // Icône et couleur selon type
+            const iconColor = isRecours ? 'var(--jury-purple)' : 'var(--primary-blue)';
+            const iconClass = isRecours ? 'shield-fill-check' : session.icon;
             
             container.innerHTML = `
                 <div class="result-card">
-                    <div class="icon-big"><i class="bi bi-${session.icon}"></i></div>
-                    <div class="status-badge"><i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS</div>
+                    <div class="icon-big" style="color:${iconColor};">
+                        <i class="bi bi-${iconClass}"></i>
+                    </div>
+                    <div class="status-badge">
+                        <i class="bi bi-hourglass-split"></i> DÉLIBÉRATION EN COURS
+                    </div>
                     <h3>Résultats non disponibles</h3>
-                    <p>Le jury n'a pas encore clôturé les résultats pour cette session <strong>(${session.ref})</strong>.</p>
-                    <div class="deliberation-badge"><i class="bi bi-hourglass-top"></i> DÉLIBÉRATION EN COURS</div>
+                    <p>
+                        ${isRecours 
+                            ? `Le jury n'a pas encore traité les recours pour cette session.`
+                            : `Le jury n'a pas encore clôturé les résultats pour cette session.`
+                        }
+                    </p>
+                    <div class="deliberation-badge" style="${isRecours ? 'background:var(--jury-purple);color:white;' : ''}">
+                        <i class="bi bi-${isRecours ? 'shield-fill-check' : 'hourglass-top'}"></i> 
+                        ${isRecours ? 'RECOURS EN ATTENTE' : 'DÉLIBÉRATION EN COURS'}
+                    </div>
                     <div class="info-line">
-                        <span><i class="bi bi-tag"></i> Session: ${session.label}</span>
+                        <span><i class="bi bi-tag"></i> Session: ${escapeHtml(session.label)}</span>
                         <span><i class="bi bi-clock"></i> Mise à jour: ${dateMaj}</span>
-                        <span><i class="bi bi-file-text"></i> Réf: ${session.ref}</span>
+                        <span><i class="bi bi-file-text"></i> Réf: ${escapeHtml(session.ref)}</span>
                     </div>
                 </div>
             `;
         }
         
-        // ==================== TÉLÉCHARGEMENT PDF ====================
-        async function telechargerPDF() {
-            if (!currentBulletinActif) {
-                alert('Aucun bulletin actif à télécharger');
-                return;
-            }
+        // ✅ Mini-bulletin pour recours quand pas de bulletin complet
+        function genererMiniBulletinRecours(recoursList, sessionLabel) {
+            if (!recoursList || recoursList.length === 0) return null;
             
-            const overlay = document.getElementById('pdfOverlay');
-            const pdfBtn = document.getElementById('pdfBtn');
+            const nom = currentStudent.nom || 'Étudiant';
+            const matricule = currentStudent.matricule || 'N/A';
+            const promoNom = getPromotionNom(currentStudent.promotion);
             
-            overlay.classList.add('show');
-            pdfBtn.disabled = true;
+            let html = `
+                <div class="recours-info-banner">
+                    <i class="bi bi-shield-fill-check"></i>
+                    <div class="r-content">
+                        <strong>⚖️ Recours traités par le jury</strong>
+                        Les cotes ci-dessous ont été révisées pour la session <strong>${escapeHtml(sessionLabel)}</strong>.
+                    </div>
+                </div>
+                
+                <div class="bulletin-info-etudiant">
+                    <div>
+                        <div class="b-nom"><i class="bi bi-person-badge-fill me-1"></i> ${escapeHtml(nom)}</div>
+                        <div class="b-detail">Matricule: <strong>${escapeHtml(matricule)}</strong> | Promotion: <strong>${escapeHtml(promoNom)}</strong></div>
+                    </div>
+                    <span class="b-annee"><i class="bi bi-calendar-check-fill me-1"></i>${escapeHtml(currentAnneeNom || '-')}</span>
+                </div>
+                
+                <div class="bulletin-container">
+                    <div class="bulletin-header">
+                        <h3>BULLETIN DES RECOURS</h3>
+                        <div class="subtitle">Session : ${escapeHtml(sessionLabel)}</div>
+                    </div>
+                    <table class="bulletin-table">
+                        <thead>
+                            <tr>
+                                <th>COURS</th>
+                                <th>CRÉD.</th>
+                                <th>ANCIENNE</th>
+                                <th>NOUVELLE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
             
-            try {
-                // Cloner le contenu du bulletin pour le mettre dans un wrapper propre
-                const container = document.getElementById('tabContentContainer');
-                const clone = container.cloneNode(true);
+            recoursList.forEach(r => {
+                const ancienne = r.maCote.ancienne || 0;
+                const nouvelle = r.maCote.nouvelle || 0;
                 
-                // Créer un wrapper propre pour le PDF
-                const pdfWrapper = document.createElement('div');
-                pdfWrapper.id = 'pdfWrapper';
-                pdfWrapper.style.cssText = `
-                    position: absolute;
-                    left: -9999px;
-                    top: 0;
-                    width: 800px;
-                    background: white;
-                    padding: 30px;
-                    font-family: 'Segoe UI', sans-serif;
+                html += `
+                    <tr>
+                        <td class="cours-nom">
+                            ${escapeHtml(r.coursNom)}
+                            <span class="recours-badge">JURY</span>
+                        </td>
+                        <td class="credit-cell">${r.coursCredits || 0}</td>
+                        <td style="color:#dc3545;text-decoration:line-through;font-weight:700;">
+                            ${ancienne.toFixed(1)}
+                        </td>
+                        <td style="color:#28a745;font-weight:800;font-size:15px;">
+                            ${nouvelle.toFixed(1)}
+                        </td>
+                    </tr>
                 `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
                 
-                // Ajouter un en-tête PDF
-                const header = document.createElement('div');
-                header.style.cssText = `
-                    text-align: center;
-                    padding-bottom: 20px;
-                    border-bottom: 3px solid #003366;
-                    margin-bottom: 25px;
-                `;
-                header.innerHTML = `
-                    <h1 style="color:#003366;font-size:22px;font-weight:800;margin:0 0 5px 0;letter-spacing:0.5px;">
-                        FACULTÉ DES SCIENCES AGRONOMIQUES
-                    </h1>
-                    <h2 style="color:#003366;font-size:16px;font-weight:700;margin:0 0 5px 0;">
-                        UNILU - BULLETIN OFFICIEL
-                    </h2>
-                    <p style="color:#6c757d;font-size:12px;margin:0;">
-                        Année académique ${escapeHtml(currentAnneeNom || '-')} — 
-                        Session ${escapeHtml(currentBulletinActif.sessionLabel)}
-                    </p>
-                `;
-                
-                // Ajouter un footer PDF
-                const footer = document.createElement('div');
-                footer.style.cssText = `
-                    text-align: center;
-                    margin-top: 30px;
-                    padding-top: 15px;
-                    border-top: 1px solid #e0e0e0;
-                    font-size: 10px;
-                    color: #888;
-                `;
-                const dateGen = new Date().toLocaleDateString('fr-FR', { 
-                    day: '2-digit', month: 'long', year: 'numeric',
-                    hour: '2-digit', minute: '2-digit'
-                });
-                footer.innerHTML = `
-                    <p style="margin:0;">Document généré le ${dateGen}</p>
-                    <p style="margin:5px 0 0 0;">HYBRILINK-TECH - Votre partenaire digital de A à Z</p>
-                `;
-                
-                // Construire le PDF
-                pdfWrapper.appendChild(header);
-                pdfWrapper.appendChild(clone);
-                pdfWrapper.appendChild(footer);
-                
-                // Ajouter au DOM temporairement
-                document.body.appendChild(pdfWrapper);
-                
-                // Nom du fichier
-                const nom = (currentStudent.nom || 'Etudiant').replace(/[^a-zA-Z0-9]/g, '_');
-                const session = currentBulletinActif.sessionLabel.replace(/[^a-zA-Z0-9]/g, '_');
-                const annee = (currentAnneeNom || 'annee').replace(/[^a-zA-Z0-9]/g, '_');
-                const filename = `Bulletin_${nom}_${session}_${annee}.pdf`;
-                
-                // Options PDF
-                const opt = {
-                    margin: [15, 15, 15, 15],
-                    filename: filename,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { 
-                        scale: 2, 
-                        useCORS: true,
-                        letterRendering: true,
-                        backgroundColor: '#ffffff'
-                    },
-                    jsPDF: { 
-                        unit: 'mm', 
-                        format: 'a4', 
-                        orientation: 'portrait' 
-                    },
-                    pagebreak: { mode: ['avoid-all', 'css'] }
-                };
-                
-                // Générer et télécharger
-                await html2pdf().set(opt).from(pdfWrapper).save();
-                
-                // Nettoyer
-                pdfWrapper.remove();
-                
-                overlay.classList.remove('show');
-                pdfBtn.disabled = false;
-                
-                console.log('✅ PDF généré avec succès');
-                
-            } catch(e) {
-                console.error('❌ Erreur génération PDF:', e);
-                alert('Erreur lors de la génération du PDF : ' + e.message);
-                overlay.classList.remove('show');
-                pdfBtn.disabled = false;
-            }
+                <div class="bulletin-summary" style="background:linear-gradient(135deg,#f3e5f5,#e1bee7);border-left:5px solid var(--jury-purple);">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <i class="bi bi-info-circle-fill" style="font-size:24px;color:var(--jury-purple);"></i>
+                        <div style="font-size:13px;color:#4a148c;">
+                            <strong style="display:block;margin-bottom:3px;">Bulletin complet en préparation</strong>
+                            Les résultats consolidés de cette session seront disponibles après validation par l'académique.
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return html;
         }
         
         // ==================== ONGLETS ====================
@@ -1471,11 +1350,36 @@
                     const tabId = this.dataset.tab;
                     renderTabContent(tabId);
                     
+                    // Scroll vers l'onglet actif sur mobile
                     setTimeout(() => {
                         this.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                     }, 100);
                 });
             });
+        }
+        
+        // ✅ Ajouter badge sur les onglets recours si des recours existent
+        function ajouterBadgesRecours() {
+            SESSIONS_TABS.filter(s => s.isRecours).forEach(session => {
+                const nbRecours = allRecours.filter(r => r.sessionRecours === session.key).length;
+                if (nbRecours > 0) {
+                    const tab = document.querySelector(`.tab-btn[data-tab="${session.tabId}"]`);
+                    if (tab && !tab.querySelector('.badge-tab')) {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge-tab';
+                        badge.textContent = nbRecours;
+                        tab.appendChild(badge);
+                    }
+                }
+            });
+        }
+        
+        // ==================== UTILITAIRE ====================
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
         }
         
         // ==================== INIT ====================
@@ -1486,6 +1390,7 @@
             await chargerResultatsPublies();
             
             setupTabs();
+            ajouterBadgesRecours();
             
             // Afficher l'onglet actif (Mi-Session par défaut)
             const activeTab = document.querySelector('.tab-btn.active');
@@ -1493,12 +1398,10 @@
                 renderTabContent(activeTab.dataset.tab);
             }
             
-            // Bouton PDF
-            document.getElementById('pdfBtn').addEventListener('click', telechargerPDF);
-            
             console.log('📄 Bulletin - Page chargée');
             console.log('👤 Étudiant:', currentStudent?.nom);
             console.log('📅 Année active:', currentAnneeNom);
+            console.log(`⚖️ ${allRecours.length} recours me concernent`);
         }
         
         init();
