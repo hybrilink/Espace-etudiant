@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -30,6 +31,9 @@
             --text-blue: #1a4d80;
             --pondere-blue: #1a4d80;
             --cote-green: #2e7d32;
+            --jury-orange: #e65100;
+            --jury-orange-dark: #bf360c;
+            --jury-orange-light: #fff3e0;
         }
         
         body { 
@@ -92,6 +96,8 @@
             align-items: center;
             justify-content: space-between;
             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
         .page-header h1 {
@@ -99,20 +105,49 @@
             margin: 0;
         }
         
-        .page-header .back-btn {
-            background: rgba(255,255,255,0.2);
+        .page-header .header-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .page-header .back-btn,
+        .page-header .pdf-btn {
             border: none;
             color: white;
-            padding: 8px 16px;
+            padding: 10px 18px;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .page-header .back-btn {
+            background: rgba(255,255,255,0.2);
         }
         
         .page-header .back-btn:hover {
             background: rgba(255,255,255,0.3);
             transform: translateX(-3px);
+        }
+        
+        .page-header .pdf-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            box-shadow: 0 4px 12px rgba(231,76,60,0.4);
+        }
+        
+        .page-header .pdf-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(231,76,60,0.5);
+        }
+        
+        .page-header .pdf-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         /* ===== INFO ÉTUDIANT ===== */
@@ -341,7 +376,6 @@
             border-bottom: none;
         }
         
-        /* Lignes de catégories */
         .bulletin-table .categorie-row {
             background: #f7fafd;
         }
@@ -383,9 +417,24 @@
             font-size: 0.9rem;
         }
         
-        /* Cotes rouges si < 10 */
         .bulletin-table .cote-cell.fail {
             color: var(--danger-red);
+        }
+        
+        /* ===== RECOURS BADGE (sur la ligne du cours concerné) ===== */
+        .recours-badge-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--jury-orange-light);
+            color: var(--jury-orange);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: 700;
+            margin-left: 6px;
+            border: 1px solid rgba(230,81,0,0.3);
+            vertical-align: middle;
         }
         
         /* ===== RÉSUMÉ FINAL ===== */
@@ -499,6 +548,104 @@
             color: #004085;
         }
         
+        /* ===== EN-TÊTE BULLETIN (ÉTUDIANT) ===== */
+        .bulletin-info-etudiant {
+            background: linear-gradient(135deg, #f8fafc, #eef3f9);
+            border-left: 4px solid var(--accent-yellow);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .bulletin-info-etudiant .b-nom {
+            font-weight: 800;
+            color: var(--dark-blue);
+            font-size: 0.95rem;
+        }
+        
+        .bulletin-info-etudiant .b-detail {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        
+        .bulletin-info-etudiant .b-annee {
+            background: var(--accent-yellow);
+            color: var(--dark-blue);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+        
+        /* ===== BANDEAU RECOURS APPLIQUÉ ===== */
+        .recours-banner {
+            background: linear-gradient(135deg, var(--jury-orange-light), #ffe0b2);
+            border-left: 5px solid var(--jury-orange);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            box-shadow: 0 3px 12px rgba(230,81,0,0.15);
+        }
+        
+        .recours-banner .rb-icon {
+            font-size: 26px;
+            color: var(--jury-orange);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .recours-banner .rb-content {
+            flex: 1;
+            font-size: 13px;
+            color: #6d4c41;
+        }
+        
+        .recours-banner .rb-title {
+            font-weight: 800;
+            color: var(--jury-orange);
+            font-size: 14px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .recours-banner .rb-detail {
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1px dashed rgba(230,81,0,0.3);
+            font-size: 12px;
+        }
+        
+        .recours-banner .rb-cote-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: 700;
+            margin: 0 4px;
+        }
+        
+        .recours-banner .old-cote {
+            text-decoration: line-through;
+            color: var(--danger-red);
+        }
+        
+        .recours-banner .new-cote {
+            color: var(--success-green);
+            font-weight: 800;
+        }
+        
         /* ===== CARTE "NON PUBLIÉ" ===== */
         .result-card {
             text-align: center;
@@ -580,39 +727,18 @@
             color: var(--primary-blue);
         }
         
-        /* ===== EN-TÊTE BULLETIN (ÉTUDIANT) ===== */
-        .bulletin-info-etudiant {
-            background: linear-gradient(135deg, #f8fafc, #eef3f9);
-            border-left: 4px solid var(--accent-yellow);
-            border-radius: 12px;
-            padding: 14px 18px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
+        /* ===== LOADING ===== */
+        .loading-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #e0e0e0;
+            border-top-color: var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
         
-        .bulletin-info-etudiant .b-nom {
-            font-weight: 800;
-            color: var(--dark-blue);
-            font-size: 0.95rem;
-        }
-        
-        .bulletin-info-etudiant .b-detail {
-            font-size: 0.75rem;
-            color: #6c757d;
-        }
-        
-        .bulletin-info-etudiant .b-annee {
-            background: var(--accent-yellow);
-            color: var(--dark-blue);
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 0.72rem;
-            font-weight: 800;
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
         /* ===== FOOTER ===== */
         .footer-info {
@@ -628,23 +754,35 @@
             border-radius: 50%;
         }
         
-        /* ===== LOADING ===== */
-        .loading-spinner {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 3px solid #e0e0e0;
-            border-top-color: var(--primary-blue);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+        /* ===== PDF LOADING OVERLAY ===== */
+        .pdf-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
         }
-        
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .pdf-overlay.show { display: flex; }
+        .pdf-overlay .box {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+        .pdf-overlay .box p {
+            margin: 15px 0 0 0;
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
         
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .page-header h1 { font-size: 1rem; }
-            .page-header .back-btn { padding: 6px 12px; font-size: 0.8rem; }
+            .page-header .back-btn,
+            .page-header .pdf-btn { padding: 8px 14px; font-size: 0.75rem; }
             .tab-btn { padding: 10px 12px; font-size: 0.7rem; }
             .tab-content { padding: 10px; }
             .bulletin-table { font-size: 0.72rem; }
@@ -677,6 +815,11 @@
             .bulletin-table .pondere-cell { font-size: 0.75rem; }
             .summary-grid { grid-template-columns: repeat(2, 1fr); }
         }
+        
+        /* Style spécial pour PDF (évite les sauts de page) */
+        .bulletin-pdf-wrapper {
+            page-break-inside: avoid;
+        }
     </style>
 </head>
 <body>
@@ -702,11 +845,16 @@
         <div class="page-header">
             <div>
                 <h1><i class="bi bi-journal-bookmark-fill me-2"></i>Bulletin Officiel</h1>
-                <small style="opacity:0.7;">Consultez vos résultats académiques</small>
+                <small style="opacity:0.7;">Consultez et téléchargez vos résultats</small>
             </div>
-            <button class="back-btn" onclick="window.location.href='etudiant.html'">
-                <i class="bi bi-arrow-left me-1"></i> Retour
-            </button>
+            <div class="header-buttons">
+                <button class="pdf-btn" id="pdfBtn" disabled>
+                    <i class="bi bi-file-pdf-fill"></i> Télécharger PDF
+                </button>
+                <button class="back-btn" onclick="window.location.href='etudiant.html'">
+                    <i class="bi bi-arrow-left me-1"></i> Retour
+                </button>
+            </div>
         </div>
         
         <!-- Infos étudiant -->
@@ -750,7 +898,6 @@
         
         <!-- Tab Content -->
         <div class="tab-content">
-            <!-- Contenu dynamique injecté ici -->
             <div id="tabContentContainer">
                 <div class="result-card">
                     <div class="loading-spinner"></div>
@@ -763,6 +910,14 @@
         <div class="footer-info">
             <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital<br>
             <img src="t.png" width="40px" alt="HYBRILINK" onerror="this.style.display='none'">
+        </div>
+    </div>
+    
+    <!-- PDF Loading Overlay -->
+    <div class="pdf-overlay" id="pdfOverlay">
+        <div class="box">
+            <div class="loading-spinner" style="width:50px;height:50px;border-width:5px;"></div>
+            <p><i class="bi bi-file-pdf-fill"></i> Génération du PDF...</p>
         </div>
     </div>
 
@@ -784,12 +939,14 @@
         // ==================== VARIABLES ====================
         let currentStudent = null;
         let allPromotions = [];
-        let allResultatsPublies = []; // Résultats publiés par l'académique
-        let allBulletins = [];         // Bulletins individuels
+        let allResultatsPublies = [];
+        let allBulletins = [];
+        let allRecours = [];  // ✅ Recours du jury
         let currentAnneeId = null;
         let currentAnneeNom = null;
+        let currentBulletinActif = null;  // Pour le PDF
         
-        // Sessions disponibles (7 onglets)
+        // Sessions disponibles
         const SESSIONS_TABS = [
             { key: 'MI_SESSION',    ref: 'MI_RECOURS',    label: 'Mi-Session',         icon: 'clock-history',          tabId: 'mi-session' },
             { key: 'RECOURS_MS',    ref: 'RECOURS_MS',    label: 'Recours Mi-Session', icon: 'arrow-repeat',           tabId: 'recours-ms' },
@@ -827,6 +984,13 @@
             const parts = name.trim().split(' ');
             if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
             return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+        }
+        
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
         }
         
         // ==================== CHARGEMENT ANNÉE ACTIVE ====================
@@ -867,7 +1031,7 @@
             if (!currentStudent || !currentAnneeId) return;
             
             try {
-                // Charger les documents de publication (par promotion/session/année)
+                // 1. Documents de publication
                 const snapshot = await db.collection('resultatsPublies')
                     .where('promotionId', '==', currentStudent.promotion)
                     .where('anneeAcademiqueId', '==', currentAnneeId)
@@ -878,7 +1042,7 @@
                     allResultatsPublies.push({ id: doc.id, ...doc.data() });
                 });
                 
-                // Charger tous les bulletins de cet étudiant
+                // 2. Bulletins individuels
                 const bulletinsSnap = await db.collection('bulletins')
                     .where('etudiantId', '==', currentStudent.id || currentStudent.uid)
                     .where('anneeAcademiqueId', '==', currentAnneeId)
@@ -889,7 +1053,26 @@
                     allBulletins.push({ id: doc.id, ...doc.data() });
                 });
                 
-                console.log(`✅ ${allResultatsPublies.length} session(s) publiée(s), ${allBulletins.length} bulletin(s)`);
+                // 3. ✅ Recours du jury appliqués
+                const recoursSnap = await db.collection('recoursJury')
+                    .where('promotionId', '==', currentStudent.promotion)
+                    .where('anneeAcademiqueId', '==', currentAnneeId)
+                    .get();
+                
+                allRecours = [];
+                recoursSnap.forEach(doc => {
+                    const data = doc.data();
+                    // Ne garder que si ce étudiant a un recours
+                    if (data.cotesModifiees && data.cotesModifiees[currentStudent.id || currentStudent.uid]) {
+                        allRecours.push({
+                            id: doc.id,
+                            ...data,
+                            maCote: data.cotesModifiees[currentStudent.id || currentStudent.uid]
+                        });
+                    }
+                });
+                
+                console.log(`✅ ${allResultatsPublies.length} session(s) publiée(s), ${allBulletins.length} bulletin(s), ${allRecours.length} recours`);
             } catch(e) {
                 console.error('Erreur chargement résultats:', e);
             }
@@ -912,7 +1095,7 @@
         }
         
         // ==================== GÉNÉRATION DU BULLETIN ====================
-        function genererBulletinHTML(bulletin, sessionLabel) {
+        function genererBulletinHTML(bulletin, sessionLabel, sessionKey) {
             if (!bulletin || !bulletin.lignes || bulletin.lignes.length === 0) {
                 return null;
             }
@@ -920,6 +1103,15 @@
             const nom = bulletin.etudiantNom || currentStudent.nom || 'Étudiant';
             const matricule = bulletin.etudiantMatricule || currentStudent.matricule || 'N/A';
             const promoNom = getPromotionNom(currentStudent.promotion);
+            
+            // ✅ Recours pour cette session
+            const recoursSession = {
+                'MI_SESSION': 'RECOURS_MS',
+                'SESSION_1': 'RECOURS_S1',
+                'RATTRAPAGE_2': 'RECOURS_RATT'
+            }[sessionKey];
+            
+            const recoursApplicables = allRecours.filter(r => r.sessionRecours === recoursSession);
             
             // Grouper les cours par catégorie
             const groupes = {};
@@ -940,6 +1132,42 @@
                 </div>
             `;
             
+            // ===== BANDEAU RECOURS (si applicable) =====
+            if (recoursApplicables.length > 0) {
+                html += `
+                    <div class="recours-banner">
+                        <i class="bi bi-shield-fill-check rb-icon"></i>
+                        <div class="rb-content">
+                            <div class="rb-title">
+                                <i class="bi bi-info-circle-fill"></i>
+                                Recours traité(s) par le jury
+                            </div>
+                            <div>
+                                ${recoursApplicables.map(r => {
+                                    const motif = r.maCote.motif || 'Non spécifié';
+                                    return `
+                                        <div style="margin-bottom:6px;">
+                                            <strong>${escapeHtml(r.coursNom || 'Cours')}</strong> —
+                                            <span class="rb-cote-change">
+                                                <span class="old-cote">${r.maCote.ancienne.toFixed(2)}</span>
+                                                <i class="bi bi-arrow-right"></i>
+                                                <span class="new-cote">${r.maCote.nouvelle.toFixed(2)}</span>
+                                            </span>
+                                            <span style="font-size:11px;color:#7d5a4a;">Motif : ${escapeHtml(motif)}</span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            ${recoursApplicables[0]?.membresJury ? `
+                                <div class="rb-detail">
+                                    <i class="bi bi-people-fill"></i> Membres du jury : ${escapeHtml(recoursApplicables[0].membresJury)}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+            
             // ===== TABLE BULLETIN =====
             html += `
                 <div class="bulletin-container">
@@ -959,8 +1187,6 @@
                         <tbody>
             `;
             
-            // Trier les catégories : mettre "NON UE" ou "Cours généraux" en premier ?
-            // On garde l'ordre d'apparition mais on peut trier alphabétiquement
             const categories = Object.keys(groupes);
             
             categories.forEach(cat => {
@@ -972,9 +1198,14 @@
                 
                 groupes[cat].forEach(l => {
                     const coteClass = l.coteFinale < 10 ? 'fail' : '';
+                    
+                    // ✅ Vérifier si un recours a été appliqué sur ce cours
+                    const recoursSurCours = recoursApplicables.find(r => r.coursId === l.coursId);
+                    const recoursBadge = recoursSurCours ? `<span class="recours-badge-inline"><i class="bi bi-shield-fill-check"></i> JURY</span>` : '';
+                    
                     html += `
                         <tr>
-                            <td class="cours-nom">${escapeHtml(l.coursNom)}</td>
+                            <td class="cours-nom">${escapeHtml(l.coursNom)}${recoursBadge}</td>
                             <td class="credit-cell">${l.credits || 0}</td>
                             <td class="cote-cell ${coteClass}">${(l.coteFinale || 0).toFixed(1)}</td>
                             <td class="pondere-cell">${(l.pondere || 0).toFixed(1)}</td>
@@ -1046,10 +1277,11 @@
             const container = document.getElementById('tabContentContainer');
             if (!container) return;
             
-            // Trouver la config de la session
             const session = SESSIONS_TABS.find(s => s.tabId === tabKey);
             if (!session) {
                 container.innerHTML = '<div class="result-card"><p>Aucune session trouvée.</p></div>';
+                document.getElementById('pdfBtn').disabled = true;
+                currentBulletinActif = null;
                 return;
             }
             
@@ -1066,16 +1298,25 @@
                 b.publicationId === publication?.id
             );
             
-            // CAS 1 : Résultats publiés et bulletin disponible
+            // CAS 1 : Résultats publiés
             if (publication && bulletin && bulletin.lignes && bulletin.lignes.length > 0) {
-                const html = genererBulletinHTML(bulletin, session.label);
+                const html = genererBulletinHTML(bulletin, session.label, session.key);
                 if (html) {
                     container.innerHTML = html;
+                    currentBulletinActif = {
+                        bulletin,
+                        sessionLabel: session.label,
+                        sessionKey: session.key
+                    };
+                    document.getElementById('pdfBtn').disabled = false;
                     return;
                 }
             }
             
-            // CAS 2 : Résultats non disponibles
+            // CAS 2 : Non publié
+            currentBulletinActif = null;
+            document.getElementById('pdfBtn').disabled = true;
+            
             const anneeLabel = currentAnneeNom || '2025-2026';
             const dateMaj = new Date().toLocaleDateString('fr-FR');
             
@@ -1095,6 +1336,129 @@
             `;
         }
         
+        // ==================== TÉLÉCHARGEMENT PDF ====================
+        async function telechargerPDF() {
+            if (!currentBulletinActif) {
+                alert('Aucun bulletin actif à télécharger');
+                return;
+            }
+            
+            const overlay = document.getElementById('pdfOverlay');
+            const pdfBtn = document.getElementById('pdfBtn');
+            
+            overlay.classList.add('show');
+            pdfBtn.disabled = true;
+            
+            try {
+                // Cloner le contenu du bulletin pour le mettre dans un wrapper propre
+                const container = document.getElementById('tabContentContainer');
+                const clone = container.cloneNode(true);
+                
+                // Créer un wrapper propre pour le PDF
+                const pdfWrapper = document.createElement('div');
+                pdfWrapper.id = 'pdfWrapper';
+                pdfWrapper.style.cssText = `
+                    position: absolute;
+                    left: -9999px;
+                    top: 0;
+                    width: 800px;
+                    background: white;
+                    padding: 30px;
+                    font-family: 'Segoe UI', sans-serif;
+                `;
+                
+                // Ajouter un en-tête PDF
+                const header = document.createElement('div');
+                header.style.cssText = `
+                    text-align: center;
+                    padding-bottom: 20px;
+                    border-bottom: 3px solid #003366;
+                    margin-bottom: 25px;
+                `;
+                header.innerHTML = `
+                    <h1 style="color:#003366;font-size:22px;font-weight:800;margin:0 0 5px 0;letter-spacing:0.5px;">
+                        FACULTÉ DES SCIENCES AGRONOMIQUES
+                    </h1>
+                    <h2 style="color:#003366;font-size:16px;font-weight:700;margin:0 0 5px 0;">
+                        UNILU - BULLETIN OFFICIEL
+                    </h2>
+                    <p style="color:#6c757d;font-size:12px;margin:0;">
+                        Année académique ${escapeHtml(currentAnneeNom || '-')} — 
+                        Session ${escapeHtml(currentBulletinActif.sessionLabel)}
+                    </p>
+                `;
+                
+                // Ajouter un footer PDF
+                const footer = document.createElement('div');
+                footer.style.cssText = `
+                    text-align: center;
+                    margin-top: 30px;
+                    padding-top: 15px;
+                    border-top: 1px solid #e0e0e0;
+                    font-size: 10px;
+                    color: #888;
+                `;
+                const dateGen = new Date().toLocaleDateString('fr-FR', { 
+                    day: '2-digit', month: 'long', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+                footer.innerHTML = `
+                    <p style="margin:0;">Document généré le ${dateGen}</p>
+                    <p style="margin:5px 0 0 0;">HYBRILINK-TECH - Votre partenaire digital de A à Z</p>
+                `;
+                
+                // Construire le PDF
+                pdfWrapper.appendChild(header);
+                pdfWrapper.appendChild(clone);
+                pdfWrapper.appendChild(footer);
+                
+                // Ajouter au DOM temporairement
+                document.body.appendChild(pdfWrapper);
+                
+                // Nom du fichier
+                const nom = (currentStudent.nom || 'Etudiant').replace(/[^a-zA-Z0-9]/g, '_');
+                const session = currentBulletinActif.sessionLabel.replace(/[^a-zA-Z0-9]/g, '_');
+                const annee = (currentAnneeNom || 'annee').replace(/[^a-zA-Z0-9]/g, '_');
+                const filename = `Bulletin_${nom}_${session}_${annee}.pdf`;
+                
+                // Options PDF
+                const opt = {
+                    margin: [15, 15, 15, 15],
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { 
+                        scale: 2, 
+                        useCORS: true,
+                        letterRendering: true,
+                        backgroundColor: '#ffffff'
+                    },
+                    jsPDF: { 
+                        unit: 'mm', 
+                        format: 'a4', 
+                        orientation: 'portrait' 
+                    },
+                    pagebreak: { mode: ['avoid-all', 'css'] }
+                };
+                
+                // Générer et télécharger
+                await html2pdf().set(opt).from(pdfWrapper).save();
+                
+                // Nettoyer
+                pdfWrapper.remove();
+                
+                overlay.classList.remove('show');
+                pdfBtn.disabled = false;
+                
+                console.log('✅ PDF généré avec succès');
+                
+            } catch(e) {
+                console.error('❌ Erreur génération PDF:', e);
+                alert('Erreur lors de la génération du PDF : ' + e.message);
+                overlay.classList.remove('show');
+                pdfBtn.disabled = false;
+            }
+        }
+        
         // ==================== ONGLETS ====================
         function setupTabs() {
             const tabs = document.querySelectorAll('.tab-btn');
@@ -1107,20 +1471,11 @@
                     const tabId = this.dataset.tab;
                     renderTabContent(tabId);
                     
-                    // Scroll vers l'onglet actif sur mobile
                     setTimeout(() => {
                         this.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                     }, 100);
                 });
             });
-        }
-        
-        // ==================== UTILITAIRE ====================
-        function escapeHtml(text) {
-            if (text === null || text === undefined) return '';
-            const div = document.createElement('div');
-            div.textContent = String(text);
-            return div.innerHTML;
         }
         
         // ==================== INIT ====================
@@ -1137,6 +1492,9 @@
             if (activeTab) {
                 renderTabContent(activeTab.dataset.tab);
             }
+            
+            // Bouton PDF
+            document.getElementById('pdfBtn').addEventListener('click', telechargerPDF);
             
             console.log('📄 Bulletin - Page chargée');
             console.log('👤 Étudiant:', currentStudent?.nom);
