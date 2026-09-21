@@ -191,10 +191,7 @@
             scrollbar-width: thin;
         }
         
-        .tabs-nav::-webkit-scrollbar {
-            height: 3px;
-        }
-        
+        .tabs-nav::-webkit-scrollbar { height: 3px; }
         .tabs-nav::-webkit-scrollbar-thumb {
             background: var(--primary-blue);
             border-radius: 10px;
@@ -235,9 +232,7 @@
             border-radius: 3px 3px 0 0;
         }
         
-        .tab-btn.jury-tab {
-            color: var(--jury-purple);
-        }
+        .tab-btn.jury-tab { color: var(--jury-purple); }
         .tab-btn.jury-tab:hover {
             color: var(--jury-purple);
             background: rgba(106,27,154,0.05);
@@ -246,9 +241,7 @@
             color: var(--jury-purple);
             background: rgba(106,27,154,0.08);
         }
-        .tab-btn.jury-tab.active::after {
-            background: var(--jury-purple);
-        }
+        .tab-btn.jury-tab.active::after { background: var(--jury-purple); }
         
         .tab-btn .tab-icon {
             margin-right: 6px;
@@ -264,9 +257,7 @@
             margin-left: 5px;
         }
         
-        .tab-btn.jury-tab .badge-tab {
-            background: var(--jury-purple);
-        }
+        .tab-btn.jury-tab .badge-tab { background: var(--jury-purple); }
         
         /* ===== CONTENU DES ONGLETS ===== */
         .tab-content {
@@ -283,9 +274,7 @@
             animation: fadeIn 0.4s ease;
         }
         
-        .tab-pane.active {
-            display: block;
-        }
+        .tab-pane.active { display: block; }
         
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -354,6 +343,34 @@
             font-size: 14px;
         }
         
+        /* ===== SECTIONS INTERNES DU BULLETIN (CUMUL) ===== */
+        .section-bulletin {
+            margin-bottom: 15px;
+        }
+        
+        .section-bulletin-titre {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px 10px 0 0;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-bulletin-titre i { color: var(--accent-yellow); margin-right: 8px; }
+        
+        .section-bulletin-titre .section-badge {
+            background: rgba(255,255,255,0.25);
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
         /* ===== TABLE BULLETIN ===== */
         .bulletin-table {
             width: 100%;
@@ -379,9 +396,7 @@
             padding-left: 20px;
         }
         
-        .bulletin-table thead th:last-child {
-            padding-right: 20px;
-        }
+        .bulletin-table thead th:last-child { padding-right: 20px; }
         
         .bulletin-table tbody td {
             padding: 12px 8px;
@@ -397,17 +412,11 @@
             font-weight: 500;
         }
         
-        .bulletin-table tbody td:last-child {
-            padding-right: 20px;
-        }
+        .bulletin-table tbody td:last-child { padding-right: 20px; }
         
-        .bulletin-table tbody tr:last-child td {
-            border-bottom: none;
-        }
+        .bulletin-table tbody tr:last-child td { border-bottom: none; }
         
-        .bulletin-table .categorie-row {
-            background: #f7fafd;
-        }
+        .bulletin-table .categorie-row { background: #f7fafd; }
         
         .bulletin-table .categorie-row td {
             padding: 10px 20px;
@@ -439,12 +448,24 @@
             margin-left: 6px;
             vertical-align: middle;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
         }
         
         .bulletin-table .recours-badge {
             display: inline-block;
             background: var(--jury-purple);
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 8px;
+            margin-left: 6px;
+            vertical-align: middle;
+            text-transform: uppercase;
+        }
+        
+        .bulletin-table .rattrapage-badge {
+            display: inline-block;
+            background: var(--cumul-orange);
             color: white;
             font-size: 9px;
             font-weight: 700;
@@ -473,9 +494,7 @@
             font-size: 0.9rem;
         }
         
-        .bulletin-table .cote-cell.fail {
-            color: var(--danger-red);
-        }
+        .bulletin-table .cote-cell.fail { color: var(--danger-red); }
         
         /* ===== RÉSUMÉ FINAL ===== */
         .bulletin-summary {
@@ -524,13 +543,8 @@
             line-height: 1.1;
         }
         
-        .summary-box .s-value.green {
-            color: var(--success-green);
-        }
-        
-        .summary-box .s-value.red {
-            color: var(--danger-red);
-        }
+        .summary-box .s-value.green { color: var(--success-green); }
+        .summary-box .s-value.red { color: var(--danger-red); }
         
         .decision-jury {
             background: linear-gradient(135deg, #f8fafc, #eef3f9);
@@ -567,25 +581,10 @@
             text-transform: uppercase;
         }
         
-        .decision-badge.admis {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .decision-badge.ajourne {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .decision-badge.rattrapage {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .decision-badge.reserve {
-            background: #cce5ff;
-            color: #004085;
-        }
+        .decision-badge.admis { background: #d4edda; color: #155724; }
+        .decision-badge.ajourne { background: #f8d7da; color: #721c24; }
+        .decision-badge.rattrapage { background: #fff3cd; color: #856404; }
+        .decision-badge.reserve { background: #cce5ff; color: #004085; }
         
         /* ===== BOUTON TÉLÉCHARGER BULLETIN ===== */
         .btn-download-bulletin {
@@ -659,9 +658,7 @@
             margin-bottom: 15px;
         }
         
-        .result-card .status-badge i {
-            margin-right: 8px;
-        }
+        .result-card .status-badge i { margin-right: 8px; }
         
         .result-card h3 {
             color: var(--dark-blue);
@@ -757,9 +754,7 @@
             color: #888;
         }
         
-        .footer-info img {
-            border-radius: 50%;
-        }
+        .footer-info img { border-radius: 50%; }
         
         /* ===== LOADING ===== */
         .loading-spinner {
@@ -774,7 +769,7 @@
         
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        /* ===== PDF EXPORT ZONE ===== */
+        /* ===== PDF EXPORT ZONE (DESIGN OFFICIEL) ===== */
         .pdf-export-zone {
             position: fixed;
             left: -9999px;
@@ -786,7 +781,6 @@
             color: #2c3e50;
         }
         
-        /* ✅ EN-TÊTE OFFICIEL AVEC LOGO */
         .pdf-header-officiel {
             display: flex;
             align-items: center;
@@ -837,7 +831,6 @@
             text-transform: uppercase;
         }
         
-        /* ✅ BLOC INFO ÉTUDIANT */
         .pdf-info-etudiant {
             background: white;
             border: 1.5px solid #003366;
@@ -866,11 +859,20 @@
             width: 90px;
         }
         
-        .pdf-info-etudiant table td.value {
-            font-weight: 500;
+        .pdf-info-etudiant table td.value { font-weight: 500; }
+        
+        .pdf-section-titre {
+            background: #003366;
+            color: white;
+            padding: 8px 12px;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-top: 15px;
+            margin-bottom: 0;
         }
         
-        /* ✅ TABLEAU NOTES */
         .pdf-table-notes {
             width: 100%;
             border-collapse: collapse;
@@ -896,9 +898,7 @@
             padding-left: 12px;
         }
         
-        .pdf-table-notes thead th:last-child {
-            padding-right: 12px;
-        }
+        .pdf-table-notes thead th:last-child { padding-right: 12px; }
         
         .pdf-table-notes tbody td {
             padding: 8px 8px;
@@ -914,13 +914,9 @@
             font-weight: 500;
         }
         
-        .pdf-table-notes tbody td:last-child {
-            padding-right: 12px;
-        }
+        .pdf-table-notes tbody td:last-child { padding-right: 12px; }
         
-        .pdf-table-notes tbody tr.cat-row {
-            background: #f7fafd;
-        }
+        .pdf-table-notes tbody tr.cat-row { background: #f7fafd; }
         
         .pdf-table-notes tbody tr.cat-row td {
             padding: 8px 12px;
@@ -933,7 +929,6 @@
             text-align: left;
         }
         
-        /* ✅ RÉSUMÉ FINAL */
         .pdf-summary-table {
             width: 100%;
             border-collapse: collapse;
@@ -955,9 +950,7 @@
             letter-spacing: 0.3px;
         }
         
-        .pdf-summary-table th:last-child {
-            border-right: none;
-        }
+        .pdf-summary-table th:last-child { border-right: none; }
         
         .pdf-summary-table td {
             padding: 10px 8px;
@@ -969,11 +962,8 @@
             border-top: 1px solid #c9d9e8;
         }
         
-        .pdf-summary-table td:last-child {
-            border-right: none;
-        }
+        .pdf-summary-table td:last-child { border-right: none; }
         
-        /* ✅ DÉCISION DU JURY */
         .pdf-decision-officielle {
             display: flex;
             justify-content: space-between;
@@ -997,27 +987,11 @@
             letter-spacing: 0.5px;
         }
         
-        .pdf-decision-badge.admis {
-            background: #d4edda;
-            color: #155724;
-        }
+        .pdf-decision-badge.admis { background: #d4edda; color: #155724; }
+        .pdf-decision-badge.ajourne { background: #f8d7da; color: #721c24; }
+        .pdf-decision-badge.rattrapage { background: #fff3cd; color: #856404; }
+        .pdf-decision-badge.reserve { background: #cce5ff; color: #004085; }
         
-        .pdf-decision-badge.ajourne {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .pdf-decision-badge.rattrapage {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .pdf-decision-badge.reserve {
-            background: #cce5ff;
-            color: #004085;
-        }
-        
-        /* ✅ PIED DE PAGE */
         .pdf-pied-page {
             margin-top: 40px;
             text-align: right;
@@ -1179,6 +1153,12 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         
+        // ✅ Persistance SIMPLE (compatible iOS)
+        db.enablePersistence().catch((err) => {
+            if (err.code === 'failed-precondition') console.warn('Multi-onglets non supporté');
+            else if (err.code === 'unimplemented') console.warn('Persistance non supportée');
+        });
+        
         // ==================== VARIABLES ====================
         let currentStudent = null;
         let allPromotions = [];
@@ -1188,7 +1168,7 @@
         let currentAnneeId = null;
         let currentAnneeNom = null;
         
-        // ✅ 7 sessions (4 normales + 3 recours)
+        // ✅ 7 sessions
         const SESSIONS_TABS = [
             { key: 'MI_SESSION',    ref: 'MI_SESSION',    label: 'Mi-Session',           icon: 'clock-history',          tabId: 'mi-session',    isRecours: false },
             { key: 'RECOURS_MS',    ref: 'RECOURS_MS',    label: 'Recours Mi-Session',   icon: 'shield-fill-check',      tabId: 'recours-ms',    isRecours: true },
@@ -1228,7 +1208,7 @@
             return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
         }
         
-        // ==================== CHARGEMENT ANNÉE ACTIVE ====================
+        // ==================== ANNÉE ACTIVE ====================
         async function chargerAnneeActive() {
             try {
                 const doc = await db.collection('configurations').doc('anneeActive').get();
@@ -1266,6 +1246,7 @@
             if (!currentStudent || !currentAnneeId) return;
             
             try {
+                // 1. Documents de publication
                 const snapshot = await db.collection('resultatsPublies')
                     .where('promotionId', '==', currentStudent.promotion)
                     .where('anneeAcademiqueId', '==', currentAnneeId)
@@ -1276,6 +1257,7 @@
                     allResultatsPublies.push({ id: doc.id, ...doc.data() });
                 });
                 
+                // 2. Tous mes bulletins
                 const bulletinsSnap = await db.collection('bulletins')
                     .where('etudiantId', '==', currentStudent.id || currentStudent.uid)
                     .where('anneeAcademiqueId', '==', currentAnneeId)
@@ -1286,6 +1268,7 @@
                     allBulletins.push({ id: doc.id, ...doc.data() });
                 });
                 
+                // 3. Mes recours (pour badges compteurs)
                 const recoursSnap = await db.collection('recoursJury')
                     .where('promotionId', '==', currentStudent.promotion)
                     .where('anneeAcademiqueId', '==', currentAnneeId)
@@ -1322,7 +1305,7 @@
             }
         }
         
-        // ==================== GÉNÉRATION DU BULLETIN (AVEC CUMUL) ====================
+        // ==================== GÉNÉRATION DU BULLETIN HTML ====================
         function genererBulletinHTML(bulletin, sessionLabel, sessionKey) {
             if (!bulletin || !bulletin.lignes || bulletin.lignes.length === 0) {
                 return null;
@@ -1335,20 +1318,21 @@
             const sessionsCumulees = bulletin.sessionsCumulees || [];
             const estCumul = sessionsCumulees.length > 1;
             
-            const groupes = {};
+            // ✅ Grouper les cours par session source (pour les cumuls)
+            const parSession = {};
             bulletin.lignes.forEach(l => {
-                const cat = l.categorie || 'NON UE';
-                if (!groupes[cat]) groupes[cat] = [];
-                groupes[cat].push(l);
+                const sess = l.sessionSource || 'SESSION_1';
+                if (!parSession[sess]) parSession[sess] = [];
+                parSession[sess].push(l);
             });
             
+            // Bandeau cumul
             let cumulBannerHTML = '';
             if (estCumul) {
                 const sessionsLabels = sessionsCumulees.map(s => {
                     const map = {
-                        'RATTRAPAGE_1': 'Rattrapage 1',
-                        'SESSION_1': 'Session 1',
-                        'RATTRAPAGE_2': 'Rattrapage 2'
+                        'MI_SESSION': 'Mi-Session',
+                        'SESSION_1': 'Session 1'
                     };
                     return map[s] || s;
                 }).join(' + ');
@@ -1364,6 +1348,7 @@
                 `;
             }
             
+            // En-tête étudiant
             let html = `
                 ${cumulBannerHTML}
                 <div class="bulletin-info-etudiant">
@@ -1375,12 +1360,93 @@
                 </div>
             `;
             
+            // Tableau principal
             html += `
                 <div class="bulletin-container">
                     <div class="bulletin-header">
                         <h3>BULLETIN OFFICIEL</h3>
                         <div class="subtitle">Session : ${escapeHtml(sessionLabel)}</div>
                     </div>
+            `;
+            
+            // ✅ Si cumul : afficher par section (MS puis S1)
+            if (estCumul) {
+                // Déterminer l'ordre : MS d'abord, puis S1
+                const sessionsOrdered = ['MI_SESSION', 'SESSION_1'];
+                
+                sessionsOrdered.forEach(sess => {
+                    const lignes = parSession[sess] || [];
+                    if (lignes.length === 0) return;
+                    
+                    const sessionLabelSection = sess === 'MI_SESSION' ? 'Mi-Session' : 'Session 1';
+                    
+                    // Grouper par catégorie
+                    const groupes = {};
+                    lignes.forEach(l => {
+                        const cat = l.categorie || 'NON UE';
+                        if (!groupes[cat]) groupes[cat] = [];
+                        groupes[cat].push(l);
+                    });
+                    
+                    html += `
+                        <div class="section-bulletin">
+                            <div class="section-bulletin-titre">
+                                <span><i class="bi bi-calendar-check-fill"></i> Session ${escapeHtml(sessionLabelSection)}</span>
+                                <span class="section-badge">${lignes.length} cours</span>
+                            </div>
+                            <table class="bulletin-table">
+                                <thead>
+                                    <tr>
+                                        <th>COURS</th>
+                                        <th>CRÉD.</th>
+                                        <th>/20</th>
+                                        <th>POND.</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    Object.keys(groupes).forEach(cat => {
+                        html += `
+                            <tr class="categorie-row">
+                                <td colspan="4">${escapeHtml(cat)}</td>
+                            </tr>
+                        `;
+                        groupes[cat].forEach(l => {
+                            const coteClass = l.coteFinale < 10 ? 'fail' : '';
+                            let recoursBadge = '';
+                            if (l.estRecours) recoursBadge = `<span class="recours-badge">JURY</span>`;
+                            
+                            html += `
+                                <tr>
+                                    <td class="cours-nom">
+                                        ${escapeHtml(l.coursNom)}
+                                        ${recoursBadge}
+                                    </td>
+                                    <td class="credit-cell">${l.credits || 0}</td>
+                                    <td class="cote-cell ${coteClass}">${(l.coteFinale || 0).toFixed(1)}</td>
+                                    <td class="pondere-cell">${(l.pondere || 0).toFixed(1)}</td>
+                                </tr>
+                            `;
+                        });
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                });
+            } else {
+                // ✅ Pas de cumul : afficher normalement
+                const groupes = {};
+                bulletin.lignes.forEach(l => {
+                    const cat = l.categorie || 'NON UE';
+                    if (!groupes[cat]) groupes[cat] = [];
+                    groupes[cat].push(l);
+                });
+                
+                html += `
                     <table class="bulletin-table">
                         <thead>
                             <tr>
@@ -1391,51 +1457,45 @@
                             </tr>
                         </thead>
                         <tbody>
-            `;
-            
-            const categories = Object.keys(groupes);
-            
-            categories.forEach(cat => {
-                html += `
-                    <tr class="categorie-row">
-                        <td colspan="4">${escapeHtml(cat)}</td>
-                    </tr>
                 `;
                 
-                groupes[cat].forEach(l => {
-                    const coteClass = l.coteFinale < 10 ? 'fail' : '';
-                    
-                    let sessionSourceBadge = '';
-                    if (estCumul && l.sessionSourceLabel) {
-                        sessionSourceBadge = `<span class="session-source-badge">${escapeHtml(l.sessionSourceLabel)}</span>`;
-                    }
-                    
-                    let recoursBadge = '';
-                    if (l.estRecours) {
-                        recoursBadge = `<span class="recours-badge">JURY</span>`;
-                    }
-                    
+                Object.keys(groupes).forEach(cat => {
                     html += `
-                        <tr>
-                            <td class="cours-nom">
-                                ${escapeHtml(l.coursNom)}
-                                ${sessionSourceBadge}
-                                ${recoursBadge}
-                            </td>
-                            <td class="credit-cell">${l.credits || 0}</td>
-                            <td class="cote-cell ${coteClass}">${(l.coteFinale || 0).toFixed(1)}</td>
-                            <td class="pondere-cell">${(l.pondere || 0).toFixed(1)}</td>
+                        <tr class="categorie-row">
+                            <td colspan="4">${escapeHtml(cat)}</td>
                         </tr>
                     `;
+                    groupes[cat].forEach(l => {
+                        const coteClass = l.coteFinale < 10 ? 'fail' : '';
+                        let recoursBadge = '';
+                        if (l.estRecours) recoursBadge = `<span class="recours-badge">JURY</span>`;
+                        let sessionBadge = '';
+                        if (l.sessionSourceLabel) sessionBadge = `<span class="session-source-badge">${escapeHtml(l.sessionSourceLabel)}</span>`;
+                        
+                        html += `
+                            <tr>
+                                <td class="cours-nom">
+                                    ${escapeHtml(l.coursNom)}
+                                    ${sessionBadge}
+                                    ${recoursBadge}
+                                </td>
+                                <td class="credit-cell">${l.credits || 0}</td>
+                                <td class="cote-cell ${coteClass}">${(l.coteFinale || 0).toFixed(1)}</td>
+                                <td class="pondere-cell">${(l.pondere || 0).toFixed(1)}</td>
+                            </tr>
+                        `;
+                    });
                 });
-            });
-            
-            html += `
+                
+                html += `
                         </tbody>
                     </table>
-                </div>
-            `;
+                `;
+            }
             
+            html += `</div>`; // Fin bulletin-container
+            
+            // Résumé
             const decisionClass = 
                 bulletin.decisionJury === 'ADMIS' ? 'admis' :
                 bulletin.decisionJury === 'RATTRAPAGE' ? 'rattrapage' :
@@ -1484,6 +1544,7 @@
                 </div>
             `;
             
+            // Bouton télécharger
             html += `
                 <button class="btn-download-bulletin" onclick="telechargerBulletin('${sessionKey}', this)">
                     <i class="bi bi-file-earmark-pdf-fill"></i> Télécharger le bulletin (PDF)
@@ -1493,7 +1554,7 @@
             return html;
         }
         
-        // ==================== TÉLÉCHARGER LE BULLETIN (PDF OFFICIEL) ====================
+        // ==================== TÉLÉCHARGER PDF ====================
         window.telechargerBulletin = async function(sessionKey, btnElement) {
             const session = SESSIONS_TABS.find(s => s.key === sessionKey || s.tabId === sessionKey);
             if (!session) {
@@ -1587,17 +1648,21 @@
             }
         };
         
-        // ==================== HTML POUR EXPORT PDF (DESIGN OFFICIEL) ====================
+        // ==================== HTML POUR PDF (DESIGN OFFICIEL) ====================
         function genererHTMLPourPDF(bulletin, sessionLabel) {
             const nom = bulletin.etudiantNom || currentStudent.nom || 'Étudiant';
             const matricule = bulletin.etudiantMatricule || currentStudent.matricule || 'N/A';
             const promoNom = getPromotionNom(currentStudent.promotion);
             
-            const groupes = {};
+            const sessionsCumulees = bulletin.sessionsCumulees || [];
+            const estCumul = sessionsCumulees.length > 1;
+            
+            // Grouper par session source
+            const parSession = {};
             bulletin.lignes.forEach(l => {
-                const cat = l.categorie || 'NON UE';
-                if (!groupes[cat]) groupes[cat] = [];
-                groupes[cat].push(l);
+                const sess = l.sessionSource || 'SESSION_1';
+                if (!parSession[sess]) parSession[sess] = [];
+                parSession[sess].push(l);
             });
             
             const decisionClass = 
@@ -1613,7 +1678,7 @@
             const dateFormatee = `${jour}/${mois}/${annee}`;
             
             let html = `
-                <!-- ✅ EN-TÊTE OFFICIEL AVEC LOGO FSA -->
+                <!-- EN-TÊTE OFFICIEL -->
                 <div class="pdf-header-officiel">
                     <img src="t.png" alt="Logo FSA" class="pdf-logo-fsa" onerror="this.style.display='none'">
                     <div class="pdf-entete-texte">
@@ -1623,7 +1688,7 @@
                     </div>
                 </div>
                 
-                <!-- ✅ INFO ÉTUDIANT -->
+                <!-- INFO ÉTUDIANT -->
                 <div class="pdf-info-etudiant">
                     <table>
                         <tr>
@@ -1640,44 +1705,121 @@
                         </tr>
                     </table>
                 </div>
-                
-                <!-- ✅ TABLEAU DES NOTES -->
-                <table class="pdf-table-notes">
-                    <thead>
-                        <tr>
-                            <th>COURS</th>
-                            <th>CRÉD.</th>
-                            <th>/20</th>
-                            <th>POND.</th>
-                        </tr>
-                    </thead>
-                    <tbody>
             `;
             
-            Object.keys(groupes).forEach(cat => {
-                html += `
-                    <tr class="cat-row">
-                        <td colspan="4">${escapeHtml(cat)}</td>
-                    </tr>
-                `;
-                groupes[cat].forEach(l => {
-                    const coteColor = l.coteFinale < 10 ? '#dc3545' : '#2e7d32';
+            // ✅ Si cumul : afficher par section
+            if (estCumul) {
+                const sessionsOrdered = ['MI_SESSION', 'SESSION_1'];
+                
+                sessionsOrdered.forEach(sess => {
+                    const lignes = parSession[sess] || [];
+                    if (lignes.length === 0) return;
+                    
+                    const sessionLabelSection = sess === 'MI_SESSION' ? 'Mi-Session' : 'Session 1';
+                    
                     html += `
-                        <tr>
-                            <td>${escapeHtml(l.coursNom)}</td>
-                            <td style="font-weight:700;color:#003366;">${l.credits || 0}</td>
-                            <td style="font-weight:800;color:${coteColor};">${(l.coteFinale || 0).toFixed(1)}</td>
-                            <td style="font-weight:800;color:#003366;">${(l.pondere || 0).toFixed(1)}</td>
-                        </tr>
+                        <div class="pdf-section-titre">
+                            Session ${escapeHtml(sessionLabelSection)} — ${lignes.length} cours
+                        </div>
+                        <table class="pdf-table-notes">
+                            <thead>
+                                <tr>
+                                    <th>COURS</th>
+                                    <th>CRÉD.</th>
+                                    <th>/20</th>
+                                    <th>POND.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    // Grouper par catégorie
+                    const groupes = {};
+                    lignes.forEach(l => {
+                        const cat = l.categorie || 'NON UE';
+                        if (!groupes[cat]) groupes[cat] = [];
+                        groupes[cat].push(l);
+                    });
+                    
+                    Object.keys(groupes).forEach(cat => {
+                        html += `
+                            <tr class="cat-row">
+                                <td colspan="4">${escapeHtml(cat)}</td>
+                            </tr>
+                        `;
+                        groupes[cat].forEach(l => {
+                            const coteColor = l.coteFinale < 10 ? '#dc3545' : '#2e7d32';
+                            let badge = '';
+                            if (l.estRecours) badge = ` <span style="font-size:10px;background:#6a1b9a;color:white;padding:2px 6px;border-radius:6px;">JURY</span>`;
+                            
+                            html += `
+                                <tr>
+                                    <td>${escapeHtml(l.coursNom)}${badge}</td>
+                                    <td style="font-weight:700;color:#003366;">${l.credits || 0}</td>
+                                    <td style="font-weight:800;color:${coteColor};">${(l.coteFinale || 0).toFixed(1)}</td>
+                                    <td style="font-weight:800;color:#003366;">${(l.pondere || 0).toFixed(1)}</td>
+                                </tr>
+                            `;
+                        });
+                    });
+                    
+                    html += `
+                            </tbody>
+                        </table>
                     `;
                 });
-            });
-            
-            html += `
-                    </tbody>
-                </table>
+            } else {
+                // ✅ Pas de cumul
+                const groupes = {};
+                bulletin.lignes.forEach(l => {
+                    const cat = l.categorie || 'NON UE';
+                    if (!groupes[cat]) groupes[cat] = [];
+                    groupes[cat].push(l);
+                });
                 
-                <!-- ✅ RÉSUMÉ FINAL -->
+                html += `
+                    <table class="pdf-table-notes">
+                        <thead>
+                            <tr>
+                                <th>COURS</th>
+                                <th>CRÉD.</th>
+                                <th>/20</th>
+                                <th>POND.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                Object.keys(groupes).forEach(cat => {
+                    html += `
+                        <tr class="cat-row">
+                            <td colspan="4">${escapeHtml(cat)}</td>
+                        </tr>
+                    `;
+                    groupes[cat].forEach(l => {
+                        const coteColor = l.coteFinale < 10 ? '#dc3545' : '#2e7d32';
+                        let badge = '';
+                        if (l.estRecours) badge = ` <span style="font-size:10px;background:#6a1b9a;color:white;padding:2px 6px;border-radius:6px;">JURY</span>`;
+                        
+                        html += `
+                            <tr>
+                                <td>${escapeHtml(l.coursNom)}${badge}</td>
+                                <td style="font-weight:700;color:#003366;">${l.credits || 0}</td>
+                                <td style="font-weight:800;color:${coteColor};">${(l.coteFinale || 0).toFixed(1)}</td>
+                                <td style="font-weight:800;color:#003366;">${(l.pondere || 0).toFixed(1)}</td>
+                            </tr>
+                        `;
+                    });
+                });
+                
+                html += `
+                        </tbody>
+                    </table>
+                `;
+            }
+            
+            // Résumé
+            html += `
                 <table class="pdf-summary-table">
                     <thead>
                         <tr>
@@ -1699,13 +1841,11 @@
                     </tbody>
                 </table>
                 
-                <!-- ✅ DÉCISION DU JURY -->
                 <div class="pdf-decision-officielle">
                     <span class="pdf-d-label">Décision du Jury :</span>
                     <span class="pdf-decision-badge ${decisionClass}">${escapeHtml(bulletin.decisionJury || 'EN ATTENTE')}</span>
                 </div>
                 
-                <!-- ✅ PIED DE PAGE -->
                 <div class="pdf-pied-page">
                     Fait à Lubumbashi, le ${dateFormatee}
                 </div>
