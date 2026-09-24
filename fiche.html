@@ -1,278 +1,666 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOM_PAGE - Faculté Agronomique</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary-blue: #003366; --dark-blue: #002244; --accent-yellow: #ffb347; }
-        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        
-        .navbar-custom { background: var(--primary-blue); box-shadow: 0 4px 15px rgba(0,0,0,0.2); padding: 12px 0; }
-        .profile-photo { width: 45px; height: 45px; border-radius: 50%; background: var(--accent-yellow); display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .profile-photo i { font-size: 28px; color: var(--primary-blue); }
-        .navbar-right { display: flex; align-items: center; gap: 15px; }
-        
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
-        .btn-back { background: var(--primary-blue); color: white; border: none; padding: 8px 20px; border-radius: 25px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-back:hover { background: var(--dark-blue); transform: translateY(-2px); }
-        
-        .content-card { background: white; border-radius: 20px; padding: 40px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        .coming-soon-icon { font-size: 80px; color: var(--primary-blue); opacity: 0.5; margin-bottom: 20px; }
-        .footer-info { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #888; }
-        .toast-notification { position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; }
-        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .toast { animation: slideInRight 0.3s ease-out; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>Fiches — Faculté des Sciences Agronomiques</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--blue:#0b3d91;--dark:#062a6b;--gold:#c9a227;--bg:#eef1f6}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(circle at 20% 0%, #ffffff 0%, transparent 40%),
+  radial-gradient(circle at 80% 100%, #ffffff 0%, transparent 40%),
+  linear-gradient(180deg,#eef1f6 0%, #dde4ee 100%);
+  font-family:Georgia,"Times New Roman",serif;color:#1e1e1e;min-height:100vh}
+
+.navbar-custom{
+  background:linear-gradient(135deg,var(--blue) 0%,var(--dark) 100%);
+  padding:12px 0;
+  box-shadow:0 4px 20px rgba(0,0,0,.25), inset 0 -2px 0 var(--gold);
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.brand{color:#fff;text-decoration:none;font-family:"Segoe UI",sans-serif;font-weight:700;letter-spacing:.5px}
+.brand i{color:var(--gold);margin-right:6px}
+.profile{
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,#fff5db,#e6c866);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--dark);
+  box-shadow:0 0 0 2px rgba(255,255,255,.4), 0 4px 10px rgba(0,0,0,.3);
+}
+
+.page{max-width:880px;margin:32px auto;padding:0 16px}
+.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.head h2{
+  color:var(--blue);font-size:26px;margin:0;letter-spacing:.5px;
+  border-left:5px solid var(--gold);padding-left:14px;
+}
+.back{
+  border:0;border-radius:26px;
+  background:linear-gradient(135deg,var(--blue),var(--dark));
+  color:#fff;padding:10px 20px;font-family:"Segoe UI",sans-serif;
+  box-shadow:0 4px 12px rgba(11,61,145,.35);transition:.2s;
+}
+.back:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(11,61,145,.5)}
+
+.card-doc{
+  background:linear-gradient(180deg,#ffffff 0%,#fafbfd 100%);
+  border-radius:20px;
+  box-shadow:0 10px 40px rgba(6,42,107,.12), 0 1px 0 rgba(255,255,255,.6) inset;
+  overflow:hidden;border:1px solid rgba(11,61,145,.08);
+}
+.card-title{
+  padding:22px 24px;border-bottom:1px solid rgba(11,61,145,.08);
+  color:var(--blue);font-weight:700;font-size:21px;letter-spacing:.3px;
+  background:linear-gradient(180deg,rgba(11,61,145,.04),transparent);
+  display:flex;align-items:center;gap:10px;
+}
+.card-title i{color:var(--gold)}
+.student-badge{
+  font-family:"Segoe UI",sans-serif;font-size:12.5px;color:#5a6b85;
+  padding:12px 24px;background:linear-gradient(180deg,#f8fafd,#f2f5fa);
+  border-bottom:1px solid rgba(11,61,145,.06);
+}
+
+.doc-btn{
+  width:100%;border:0;background:transparent;text-align:left;
+  padding:20px 24px;display:flex;gap:18px;align-items:flex-start;
+  border-bottom:1px solid rgba(11,61,145,.06);
+  transition:all .22s cubic-bezier(.2,.7,.3,1);cursor:pointer;position:relative;
+}
+.doc-btn:last-child{border-bottom:0}
+.doc-btn::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:linear-gradient(180deg,var(--gold),var(--blue));
+  transform:scaleY(0);transform-origin:center;transition:transform .25s;
+}
+.doc-btn:hover{background:linear-gradient(90deg,rgba(11,61,145,.05),transparent)}
+.doc-btn:hover::before{transform:scaleY(1)}
+.doc-icon{
+  color:var(--blue);font-size:30px;line-height:1;
+  width:52px;height:52px;flex:0 0 52px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(11,61,145,.08),rgba(201,162,39,.12));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 0 0 0 1px rgba(11,61,145,.1);transition:.25s;
+}
+.doc-btn:hover .doc-icon{
+  background:linear-gradient(135deg,var(--blue),var(--dark));
+  color:#fff;transform:rotate(-4deg) scale(1.05);
+}
+.doc-name{font-size:21px;line-height:1.35;color:#2a3446;font-weight:500;padding-top:6px}
+
+.viewer{display:none;position:fixed;inset:0;background:radial-gradient(circle at 50% 30%,#3a3d42,#26282c);z-index:5000;overflow:auto}
+.viewer.show{display:block}
+.viewerbar{
+  position:sticky;top:0;z-index:2;
+  background:linear-gradient(180deg,#1a1c20,#0f1114);
+  color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;
+  font-family:"Segoe UI",sans-serif;
+  box-shadow:0 2px 12px rgba(0,0,0,.5);border-bottom:1px solid rgba(201,162,39,.3);
+}
+.viewerbar strong{letter-spacing:.4px;font-weight:600}
+.viewerbar button{
+  border:0;border-radius:8px;padding:9px 12px;margin-left:6px;
+  font-family:"Segoe UI",sans-serif;font-weight:600;cursor:pointer;transition:.18s;
+}
+.close{background:linear-gradient(180deg,#e14a57,#b5283a);color:#fff}
+.close:hover{filter:brightness(1.15)}
+.action{background:linear-gradient(180deg,#ffffff,#e9eef6);color:#1a2433;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.action:hover{filter:brightness(1.05);transform:translateY(-1px)}
+.canvas-wrap{padding:28px 12px 50px;display:flex;justify-content:center}
+.paper{
+  background:#fff;box-shadow:
+    0 2px 4px rgba(0,0,0,.4),
+    0 20px 60px rgba(0,0,0,.55),
+    0 0 0 1px rgba(255,255,255,.05);
+  width:min(210mm,96vw);height:auto;
+}
+canvas{display:block;width:100%;height:auto}
+@media(max-width:600px){
+  .doc-name{font-size:18px}
+  .page{margin-top:20px}
+  .head h2{font-size:21px}
+  .viewerbar strong{font-size:13px}
+  .viewerbar button{padding:7px 9px;font-size:12px}
+}
+
+@media print{
+  body *{ visibility: hidden !important; }
+  #viewer,#viewer *{ visibility: visible !important; }
+  #viewer{position:absolute !important;inset:0 !important;background:#fff !important;overflow:visible !important}
+  .viewerbar{display:none !important}
+  .canvas-wrap{padding:0 !important;display:block !important}
+  .paper{width:210mm !important;box-shadow:none !important;margin:0 auto !important}
+  canvas{width:100% !important;height:auto !important;display:block !important}
+  @page{size:A4 portrait;margin:0}
+}
+</style>
 </head>
 <body>
-    <nav class="navbar navbar-custom">
-        <div class="container">
-            <a class="navbar-brand text-white" href="etudiant.html"><i class="bi bi-tree-fill"></i> FACULTÉ AGRONOMIQUE - UNILU</a>
-            <div class="navbar-right">
-                <div class="profile-photo" id="profileBtn"><i class="bi bi-person-circle"></i></div>
-                <button class="btn btn-outline-light btn-sm" id="logoutBtn"><i class="bi bi-box-arrow-right"></i></button>
-            </div>
-        </div>
-    </nav>
-    
-    <div class="container mt-4">
-        <div class="page-header">
-            <h4><i class="bi bi-INFO_ICON me-2" style="color: var(--primary-blue);"></i>TITRE_PAGE</h4>
-            <button class="btn-back" onclick="window.location.href='etudiant.html'"><i class="bi bi-house-door-fill"></i> Accueil</button>
-        </div>
-        
-        <div class="content-card">
-            <div class="coming-soon-icon"><i class="bi bi-clock-history"></i></div>
-            <h3>Fonctionnalité en développement</h3>
-            <p class="text-muted">Cette section sera bientôt disponible.<br>Merci de votre compréhension.</p>
-        </div>
-        
-        <div class="footer-info">
-            <i class="bi bi-shield-check"></i> HYBRILINK-TECH - Votre partenaire digital<br>
-            <img src="t.png" width="40px" alt="HYBRILINK" onerror="this.style.display='none'">
-        </div>
-    </div>
+<nav class="navbar-custom">
+ <div class="container d-flex justify-content-between align-items-center">
+  <a class="brand" href="etudiant.html"><i class="bi bi-tree-fill"></i> FACULTÉ AGRONOMIQUE — UNILU</a>
+  <div class="d-flex align-items-center gap-2">
+    <div class="profile"><i class="bi bi-person-fill fs-4"></i></div>
+    <button class="btn btn-outline-light btn-sm" id="logout"><i class="bi bi-box-arrow-right"></i></button>
+  </div>
+ </div>
+</nav>
 
-    <script>
-        const session = localStorage.getItem('session_etudiant');
-        if (!session) window.location.href = 'login-etudiant.html';
-        
-        document.getElementById('logoutBtn').onclick = () => {
-            localStorage.removeItem('session_etudiant');
-            window.location.href = 'login-etudiant.html';
-        };
-        
-        document.getElementById('profileBtn').onclick = () => {
-            const sessionData = JSON.parse(session);
-            alert(`Profil\nNom: ${sessionData.nom}\nMatricule: ${sessionData.matricule}`);
-        };
-    </script>
+<main class="page">
+ <div class="head">
+   <h2><i class="bi bi-calendar3 me-2"></i>Fiches</h2>
+   <button class="back" onclick="location.href='etudiant.html'"><i class="bi bi-house-door-fill"></i> Accueil</button>
+ </div>
+
+ <section class="card-doc">
+  <div class="card-title"><i class="bi bi-folder2-open"></i>Documents académiques</div>
+  <div class="student-badge" id="studentInfo">Chargement des informations de l'étudiant…</div>
+
+  <button class="doc-btn" data-doc="attestation">
+    <span class="doc-icon"><i class="bi bi-award"></i></span>
+    <span class="doc-name">Attestation de<br>recherche</span>
+  </button>
+  <button class="doc-btn" data-doc="acceptation">
+    <span class="doc-icon"><i class="bi bi-check2-square"></i></span>
+    <span class="doc-name">Note<br>d'acceptation de<br>stage</span>
+  </button>
+  <button class="doc-btn" data-doc="recommandation">
+    <span class="doc-icon"><i class="bi bi-envelope-paper"></i></span>
+    <span class="doc-name">Recommandation de<br>stage</span>
+  </button>
+  <button class="doc-btn" data-doc="recours">
+    <span class="doc-icon"><i class="bi bi-file-earmark-text"></i></span>
+    <span class="doc-name">Recours</span>
+  </button>
+ </section>
+</main>
+
+<div class="viewer" id="viewer">
+ <div class="viewerbar">
+  <strong id="viewerTitle">Document</strong>
+  <div>
+    <button class="action" id="print"><i class="bi bi-printer"></i> Imprimer</button>
+    <button class="action" id="download"><i class="bi bi-file-earmark-pdf"></i> PDF</button>
+    <button class="close" id="close"><i class="bi bi-x-lg"></i></button>
+  </div>
+ </div>
+ <div class="canvas-wrap"><div class="paper"><canvas id="docCanvas" width="2480" height="3508"></canvas></div></div>
+</div>
 
 <script>
-// Script d'installation PWA
-(function() {
-  'use strict';
-  
-  let deferredPrompt;
-  const installBanner = document.createElement('div');
-  installBanner.className = 'pwa-install-banner';
-  installBanner.innerHTML = `
-    <div class="install-banner-content">
-      <div class="install-banner-icon">
-        <i class="bi bi-download"></i>
-      </div>
-      <div class="install-banner-text">
-        <strong>Installer l'application</strong>
-        <small>Ajoutez Faculté Agronomique à votre écran d'accueil</small>
-      </div>
-      <button class="install-btn" id="installAppBtn">Installer</button>
-      <button class="close-banner" id="closeInstallBanner">&times;</button>
-    </div>
-  `;
-  
-  // Styles pour la bannière d'installation
-  const style = document.createElement('style');
-  style.textContent = `
-    .pwa-install-banner {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(135deg, #003366, #002244);
-      color: white;
-      padding: 15px 20px;
-      z-index: 10000;
-      transform: translateY(100%);
-      transition: transform 0.3s ease;
-      box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
-    }
-    .pwa-install-banner.show {
-      transform: translateY(0);
-    }
-    .install-banner-content {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      flex-wrap: wrap;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    .install-banner-icon {
-      background: #ffb347;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      color: #003366;
-    }
-    .install-banner-text {
-      flex: 1;
-    }
-    .install-banner-text strong {
-      display: block;
-      font-size: 16px;
-    }
-    .install-banner-text small {
-      font-size: 12px;
-      opacity: 0.8;
-    }
-    .install-btn {
-      background: #ffb347;
-      color: #003366;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 25px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .install-btn:hover {
-      transform: scale(1.05);
-      background: #ff9800;
-    }
-    .close-banner {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-      padding: 0 5px;
-      opacity: 0.7;
-    }
-    .close-banner:hover {
-      opacity: 1;
-    }
-    @media (max-width: 768px) {
-      .install-banner-content {
-        flex-direction: column;
-        text-align: center;
-      }
-      .install-banner-icon {
-        margin: 0 auto;
-      }
-    }
-  `;
-  document.head.appendChild(style);
-  
-  // Vérifier si l'application est déjà installée
-  const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches;
-  const isInstalled = localStorage.getItem('pwa-installed');
-  
-  if (!isAppInstalled && !isInstalled) {
-    setTimeout(() => {
-      document.body.appendChild(installBanner);
-      setTimeout(() => installBanner.classList.add('show'), 100);
-    }, 2000);
+const firebaseConfig={
+ apiKey:"AIzaSyBb82N2-5ns7qKjQBAj5UvDW87s2PZ27F0",
+ authDomain:"fsa-unilu.firebaseapp.com",
+ projectId:"fsa-unilu",
+ storageBucket:"fsa-unilu.firebasestorage.app",
+ messagingSenderId:"36551990738",
+ appId:"1:36551990738:web:e91fdcb53f8aab5d1b7c0b"
+};
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+const sessionKey="session_etudiant";
+let session=null, student={}, promoName="", currentDoc="";
+
+function safe(v){return v==null?"":String(v)}
+function first(...vals){return vals.find(v=>v!==undefined&&v!==null&&String(v).trim()!=="")||""}
+
+async function loadStudent(){
+ const raw=localStorage.getItem(sessionKey);
+ if(!raw){location.href="login-etudiant.html";return}
+ try{session=JSON.parse(raw)}catch(e){location.href="login-etudiant.html";return}
+ const id=first(session.id,session.etudiantId,session.uid,session.matricule);
+ if(id){
+  try{
+   const snap=await db.collection("etudiants").doc(id).get();
+   if(snap.exists) student={...session,...snap.data()};
+   else student={...session};
+  }catch(e){student={...session}}
+ }else student={...session};
+
+ const promoId=first(student.promotionId,student.promotion,student.classe,student.className);
+ if(promoId){
+  try{
+   const ps=await db.collection("promotions").doc(promoId).get();
+   if(ps.exists) promoName=first(ps.data().nom,ps.data().name,promoId);
+  }catch(e){}
+ }
+ document.getElementById("studentInfo").textContent=
+   `${first(student.nomComplet,student.nom,session.nom)} — ${first(student.matricule,session.matricule)} — ${promoName||first(student.promotion,student.classe,"")}`;
+}
+
+function data(){
+ const nom=first(student.nomComplet,student.nom,student.fullName,session?.nom,"");
+ const matricule=first(student.matricule,session?.matricule,"");
+ const promotion=first(promoName,student.promotion,student.classe,student.niveau,"");
+ const option=first(student.option,student.filiere,student.departement,student.department,"");
+ const departement=first(student.departement,student.department,student.faculte,option,"Faculté des Sciences Agronomiques");
+ let annee=first(window.AnneeManager?.getAnneeActive?.(),student.anneeAcademique,student.annee,session?.annee,"2025-2026");
+ const date=new Date().toLocaleDateString("fr-FR");
+ return {nom,matricule,promotion,option,departement,annee,date};
+}
+
+/* ====== PALETTE ====== */
+const C={
+  blue:"#0b3d91", dark:"#062a6b", gold:"#c9a227", goldSoft:"#e6c866",
+  text:"#1e1e1e", gray:"#5a6b85", line:"#d8dde6", paper:"#fdfcf7"
+};
+const S=1240,H=1754,SCALE=2;
+
+function ctx(){
+ const c=document.getElementById("docCanvas").getContext("2d");
+ c.setTransform(1,0,0,1,0,0);
+ c.scale(SCALE,SCALE);
+ c.imageSmoothingEnabled=true;
+ c.imageSmoothingQuality="high";
+ return c;
+}
+
+/* ====== PRIMITIVES ====== */
+function text(c,t,x,y,size=12,bold=false,align="left",color=C.text){
+ c.font=`${bold?"700 ":"400 "}${size}px Georgia, "Times New Roman", serif`;
+ c.fillStyle=color;c.textAlign=align;c.textBaseline="alphabetic";c.fillText(t,x,y);
+}
+function wrap(c,t,x,y,max,size=12,bold=false,lh=18,color=C.text){
+ c.font=`${bold?"700 ":"400 "}${size}px Georgia, "Times New Roman", serif`;
+ c.fillStyle=color;
+ const words=t.split(/\s+/);let line="";
+ for(const w of words){
+   const test=line?line+" "+w:w;
+   if(c.measureText(test).width>max&&line){text(c,line,x,y,size,bold,"left",color);y+=lh;line=w}
+   else line=test;
+ }
+ if(line){text(c,line,x,y,size,bold,"left",color);y+=lh}
+ return y;
+}
+
+/* ====== TEXTURES ====== */
+function paperTexture(c){
+  c.fillStyle=C.paper;c.fillRect(0,0,S,H);
+  for(let i=0;i<900;i++){
+    const x=Math.random()*S,y=Math.random()*H;
+    c.fillStyle=`rgba(${180+Math.random()*40|0},${170+Math.random()*40|0},${140+Math.random()*40|0},0.035)`;
+    c.fillRect(x,y,1,1);
   }
-  
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    if (!isAppInstalled && !isInstalled) {
-      if (!document.body.contains(installBanner)) {
-        document.body.appendChild(installBanner);
+  const grad=c.createRadialGradient(S/2,H/2,S*0.25,S/2,H/2,S*0.85);
+  grad.addColorStop(0,"rgba(0,0,0,0)");
+  grad.addColorStop(1,"rgba(60,50,30,0.06)");
+  c.fillStyle=grad;c.fillRect(0,0,S,H);
+
+  c.strokeStyle="rgba(11,61,145,0.35)";c.lineWidth=1.5;
+  c.strokeRect(14,14,S-28,H-28);
+  c.strokeStyle="rgba(201,162,39,0.55)";c.lineWidth=2;
+  c.strokeRect(22,22,S-44,H-44);
+}
+function watermark(c){
+  c.save();
+  c.translate(S/2,H/2);c.rotate(-Math.PI/9);
+  c.font="700 88px Georgia, serif";
+  c.fillStyle="rgba(11,61,145,0.045)";
+  c.textAlign="center";c.textBaseline="middle";
+  c.fillText("FACULTÉ DES SCIENCES",0,-50);
+  c.fillText("AGRONOMIQUES",0,50);
+  c.font="400 34px Georgia, serif";
+  c.fillStyle="rgba(201,162,39,0.10)";
+  c.fillText("UNIVERSITÉ DE LUBUMBASHI",0,130);
+  c.restore();
+}
+/* ⚠️ SCEAU SUPPRIMÉ (fonction retirée) */
+
+function dottedLine(c,x1,x2,y){
+  c.save();
+  c.setLineDash([3,4]);
+  c.strokeStyle="rgba(90,107,133,0.55)";c.lineWidth=1;
+  c.beginPath();c.moveTo(x1,y);c.lineTo(x2,y);c.stroke();
+  c.restore();
+}
+
+/* ====== LOGO ====== */
+const LOGO=new Image();
+let logoReady=false;
+LOGO.onload=()=>{logoReady=true; if(currentDoc) render(currentDoc);};
+LOGO.src="fsa.png";
+
+/* ====== QR CODE ====== */
+/* On génère un QR code "hors-écran" via qrcodejs, puis on le dessine sur le canvas. */
+function generateQR(text,size=180){
+  return new Promise(resolve=>{
+    const holder=document.createElement("div");
+    holder.style.position="absolute";
+    holder.style.left="-9999px";
+    document.body.appendChild(holder);
+    new QRCode(holder,{
+      text:text,
+      width:size,
+      height:size,
+      colorDark:"#062a6b",
+      colorLight:"#ffffff",
+      correctLevel:QRCode.CorrectLevel.M
+    });
+    // qrcodejs dessine soit un canvas, soit une img
+    setTimeout(()=>{
+      const el=holder.querySelector("canvas")||holder.querySelector("img");
+      if(!el){ holder.remove(); resolve(null); return; }
+      if(el.tagName==="CANVAS"){
+        holder.remove();
+        resolve(el);
+      }else{
+        // c'est une <img>, on la convertit en canvas
+        const cnv=document.createElement("canvas");
+        cnv.width=size;cnv.height=size;
+        const cx=cnv.getContext("2d");
+        const img=new Image();
+        img.onload=()=>{ cx.drawImage(img,0,0,size,size); holder.remove(); resolve(cnv); };
+        img.onerror=()=>{ holder.remove(); resolve(null); };
+        img.src=el.src;
       }
-      setTimeout(() => installBanner.classList.add('show'), 100);
-    }
+    },80);
   });
-  
-  window.addEventListener('appinstalled', () => {
-    deferredPrompt = null;
-    localStorage.setItem('pwa-installed', 'true');
-    if (installBanner) installBanner.classList.remove('show');
-    console.log('✅ Application installée avec succès');
-  });
-  
-  document.getElementById('installAppBtn')?.addEventListener('click', async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        console.log('✅ Utilisateur a accepté l\'installation');
-        localStorage.setItem('pwa-installed', 'true');
-      }
-      deferredPrompt = null;
-      installBanner.classList.remove('show');
-    } else {
-      // Instructions manuelles
-      alert('Pour installer l\'application:\n\n• Sur Android: Menu > "Ajouter à l\'écran d\'accueil"\n• Sur iOS: Partager > "Sur l\'écran d\'accueil"');
-      localStorage.setItem('pwa-installed', 'true');
-      installBanner.classList.remove('show');
-    }
-  });
-  
-  document.getElementById('closeInstallBanner')?.addEventListener('click', () => {
-    installBanner.classList.remove('show');
-    setTimeout(() => installBanner.remove(), 300);
-  });
-  
-  // Enregistrement du Service Worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => {
-        console.log('✅ Service Worker enregistré:', reg);
-        
-        // Vérifier les mises à jour
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('🔄 Nouvelle version disponible');
-              showToast('Une nouvelle version est disponible. Rafraîchissez la page.', 'info');
-            }
-          });
-        });
-      })
-      .catch(err => console.log('❌ Erreur Service Worker:', err));
+}
+let qrCanvas=null;      // cache du QR code rendu pour le document courant
+let qrKey="";           // clé de cache (étudiant + doc)
+
+async function ensureQR(d){
+  const key=`${currentDoc}|${d.matricule}|${d.nom}`;
+  if(qrCanvas && qrKey===key) return qrCanvas;
+  const payload=`FSA-UNILU|${currentDoc}|${d.nom}|${d.matricule}|${d.annee}`;
+  qrCanvas=await generateQR(payload,180);
+  qrKey=key;
+  return qrCanvas;
+}
+
+/* ====== EN-TÊTE (fidèle à l'original) ====== */
+function header(c,title){
+  text(c,"FACULTÉ DES SCIENCES AGRONOMIQUES",205,42,14,true,"center",C.dark);
+  text(c,"DE L'UNIVERSITÉ DE LUBUMBASHI",205,62,14,true,"center",C.dark);
+  text(c,"Lubumbashi, Haut-Katanga, RDC",205,82,9,false,"center",C.gray);
+
+if(logoReady){
+  try{
+    const x=560, y=28, w=120, h=90;
+    const cx = x + w/2;              // centre X
+    const cy = y + h/2;              // centre Y
+    const r  = Math.max(w,h)/2;      // rayon
+
+    // 1) Découpe circulaire + dessin du logo
+    c.save();
+    c.beginPath();
+    c.arc(cx, cy, r, 0, Math.PI*2);
+    c.closePath();
+    c.clip();
+    c.drawImage(LOGO, x, y, w, h);
+    c.restore();
+
+    // 2) Contour doré élégant autour du cercle
+    c.save();
+    c.beginPath();
+    c.arc(cx, cy, r, 0, Math.PI*2);
+    c.strokeStyle = "#c9a227";   // or
+    c.lineWidth = 3;
+    c.stroke();
+    c.restore();
+  }catch(e){}
+}
+  c.lineWidth=4;c.strokeStyle=C.blue;
+  c.beginPath();
+  c.moveTo(18,103);c.lineTo(515,103);
+  c.moveTo(725,103);c.lineTo(1222,103);
+  c.stroke();
+
+  text(c,title,S/2,145,27,true,"center",C.dark);
+
+  const tw=c.measureText(title).width;
+  c.strokeStyle=C.gold;c.lineWidth=1.5;
+  c.beginPath();c.moveTo(S/2-tw/2-10,151);c.lineTo(S/2+tw/2+10,151);c.stroke();
+}
+
+/* ====== PIED DE PAGE (remonté + QR code) ====== */
+function footer(c,d){
+  // Ligne de séparation (remontée pour rester dans la page)
+  c.strokeStyle=C.blue;c.lineWidth=2;
+  c.beginPath();c.moveTo(30,H-180);c.lineTo(S-30,H-180);c.stroke();
+  c.strokeStyle=C.gold;c.lineWidth=1;
+  c.beginPath();c.moveTo(30,H-177);c.lineTo(S-30,H-177);c.stroke();
+
+  /* ----- Secrétaire Général Académique (gauche) ----- */
+  c.fillStyle=C.dark;
+  c.textAlign="center";
+  c.font="400 12px Georgia, serif";
+  c.fillText("Le Secrétaire Général Académique",300,H-150);
+
+  c.strokeStyle="rgba(90,107,133,0.4)";c.lineWidth=1;
+  c.beginPath();c.moveTo(160,H-105);c.lineTo(440,H-105);c.stroke();
+  c.font="italic 11px Georgia, serif";
+  c.fillStyle=C.gray;
+  c.fillText("(Signature et sceau)",300,H-88);
+
+  /* ----- Doyen (droite) ----- */
+  c.fillStyle=C.dark;
+  c.font="400 12px Georgia, serif";
+  c.fillText("Le Doyen de la Faculté",940,H-150);
+
+  c.strokeStyle="rgba(90,107,133,0.4)";c.lineWidth=1;
+  c.beginPath();c.moveTo(800,H-105);c.lineTo(1080,H-105);c.stroke();
+  c.font="700 13px Georgia, serif";
+  c.fillStyle=C.dark;
+  c.fillText("Michel MPUNDU",940,H-88);
+
+  /* ----- QR code (centre) ----- */
+  const qrX=S/2-40, qrY=H-165, qrSize=80;
+  if(qrCanvas){
+    try{ c.drawImage(qrCanvas,qrX,qrY,qrSize,qrSize); }catch(e){}
   }
-  
-  // Initialiser les notifications
-  async function initNotifications() {
-    const notifPermission = localStorage.getItem('notif-permission');
-    if (notifPermission !== 'granted' && notifPermission !== 'denied') {
-      setTimeout(async () => {
-        const result = await notificationManager?.requestPermission();
-        if (result) {
-          await notificationManager?.subscribeUser();
-          localStorage.setItem('notif-permission', 'granted');
-        } else {
-          localStorage.setItem('notif-permission', 'denied');
-        }
-      }, 5000);
-    }
-  }
-  
-  // Charger notificationManager si disponible
-  if (typeof notificationManager !== 'undefined') {
-    notificationManager.init().then(() => initNotifications());
-  }
-})();</script>
+  // cadre fin autour du QR
+  c.strokeStyle="rgba(11,61,145,0.35)";c.lineWidth=1;
+  c.strokeRect(qrX,qrY,qrSize,qrSize);
+  // légende sous le QR
+  c.fillStyle=C.gray;
+  c.font="400 8px Georgia, serif";
+  c.textAlign="center";
+  c.fillText("Scannez pour vérifier",S/2,H-70);
+
+  /* ----- Mention légale (très bas mais dans la page) ----- */
+  c.font="400 8px Georgia, serif";
+  c.fillStyle=C.gray;
+  c.textAlign="center";
+  c.fillText("DÉCRET N°06/0106 DU 12 JUIN 2006",S/2,H-30);
+}
+
+/* ====== DOCUMENTS (positions originales) ====== */
+async function drawAttestation(){
+ const c=ctx(),d=data();
+ await ensureQR(d);
+ paperTexture(c);watermark(c);
+ header(c,"ATTESTATION DE RECHERCHE");
+
+ let y=205;
+ text(c,`N. ST/........./${d.annee}`,30,y,11,true,"left",C.dark);
+
+ y+=55;
+ y=wrap(c,"Je soussigné(e) Michel MPUNDU, Doyen de la Faculté des Sciences Agronomiques de l'Université de Lubumbashi, en sigle UNILU, atteste par la présente que :",30,y,1180,11,false,20);
+ y+=12;
+ y=wrap(c,`L’étudiant(e) ${d.nom} Matricule ${d.matricule} inscrit(e) en ${d.promotion} option ${d.option} pour l’année académique ${d.annee}`,30,y,1180,11,true,20);
+ y=wrap(c,"L’étudiant(e) est dûment inscrit(e) et est autorisé(e) à effectuer ses recherches dans le cadre de son travail académique.",30,y+3,1180,11,false,20);
+ y+=15;
+ y=wrap(c,"La présente attestation lui est délivrée en vue de lui permettre d’avoir accès à vos services et à vos installations pour obtenir les informations et/ou faire la collecte de données nécessaires à la rédaction de son travail de fin d’étude.",30,y,1180,11,false,20);
+
+ y+=50;
+ text(c,`Lubumbashi, le ${d.date}`,1190,y,11,false,"right",C.dark);
+ y+=30;
+ text(c,"Le Doyen de la Faculté",1080,y,11,false,"center",C.dark);
+ y+=55;
+ text(c,"Michel MPUNDU",1080,y,12,true,"center",C.dark);
+ footer(c,d);
+}
+
+async function drawRecommandation(){
+ const c=ctx(),d=data();
+ await ensureQR(d);
+ paperTexture(c);watermark(c);
+ header(c,"RECOMMANDATION DE STAGE");
+
+ let y=205;
+ text(c,`N. ST/........./${d.annee}`,30,y,11,true,"left",C.dark);
+ y+=55;
+ text(c,"Monsieur, Madame,",30,y,11,false,"left",C.dark);
+ y+=28;
+ y=wrap(c,`La Faculté des Sciences Agronomiques de l’Université de Lubumbashi a l’honneur de vous recommander l’étudiant(e) ${d.nom} Matricule ${d.matricule} inscrit(e) en ${d.promotion} option ${d.option} durant l’année académique ${d.annee}.`,30,y,1180,11,false,20);
+ y+=8;
+ y=wrap(c,"L’étudiant(e) désire effectuer son stage académique au sein de votre établissement à partir du 01 Septembre au 25 Septembre 2026. Ce stage vise à concilier la formation théorique de l’étudiant(e) avec les réalités dans le milieu professionnel.",30,y,1180,11,false,20);
+ y+=8;
+ y=wrap(c,"Nous vous saurions gré de nous retourner la Note d’acceptation jointe à cette recommandation pour nous rassurer de l’affectation de l’étudiant(e) et vous prions de confier ce stagiaire entre les mains d’un encadreur qui voudra bien, à l’issue du stage, de remplir la fiche en annexe et la retourner au Décanat de la Faculté des Sciences Agronomiques, sous pli fermé.",30,y,1180,11,false,20);
+ y+=8;
+ y=wrap(c,"En vous remerciant d’avance pour tout ce que vous voudriez bien faire en faveur de l’étudiant(e), la Faculté des Sciences Agronomiques vous prie d’agréer, Monsieur, Madame, l’expression de sa considération distinguée et ses vifs remerciements.",30,y,1180,11,false,20);
+ y+=45;
+ text(c,`Lubumbashi, le ${d.date}`,1190,y,11,false,"right",C.dark);
+ y+=30;
+ text(c,"Le Doyen de la Faculté",1080,y,11,false,"center",C.dark);
+ y+=55;
+ text(c,"Michel MPUNDU",1080,y,12,true,"center",C.dark);
+ footer(c,d);
+}
+
+async function drawAcceptation(){
+ const c=ctx(),d=data();
+ await ensureQR(d);
+ paperTexture(c);watermark(c);
+ header(c,"NOTE D’ACCEPTATION DE STAGE");
+
+ let y=205;
+ text(c,`N. ST/........./${d.annee}`,30,y,11,true,"left",C.dark);
+ y+=48;
+ y=wrap(c,`L’étudiant(e) ${d.nom} Matricule ${d.matricule} inscrit(e) en ${d.promotion} option ${d.option} Année académique ${d.annee}`,30,y,1180,11,true,20);
+ y+=28;
+ text(c,"A compléter par l’entreprise",30,y,12,true,"left",C.dark);
+ y+=28;
+ y=wrap(c,"Est accepté(e) à effectuer son stage d’étude au sein de notre entreprise",30,y,1180,11,false,20);
+ y+=18;
+ text(c,"du ........ / ........ / 20....     au ........ / ........ / 20....",30,y,11,false,"left",C.dark);
+ y+=30;
+
+ ["Société :","Adresse :","Téléphone :","E-mail du Responsable :","Nom du Chef d’entreprise (Ou de son Délégué) :"].forEach(label=>{
+   text(c,label,40,y,10,true,"left",C.dark);
+   dottedLine(c,330,1160,y+2);
+   y+=28;
+ });
+ y+=8;
+ text(c,"Signature du Chef d’entreprise (Ou de son Délégué)",40,y,10,true,"left",C.dark);
+ text(c,"Visa du Coordonnateur de stage",780,y,10,true,"left",C.dark);
+ y+=55;
+ text(c,"Le Doyen de la Faculté",1060,y,10,false,"center",C.dark);
+ y+=30;
+ text(c,"Michel MPUNDU",1060,y,12,true,"center",C.dark);
+ y+=65;
+ text(c,"N.B. :",40,y,10,true,"left",C.dark);
+ y+=22;
+ y=wrap(c,"1. Aucune photocopie ne sera acceptée.",50,y,1120,9,false,16);
+ y=wrap(c,"2. Cette note d’acceptation est à retourner à la Faculté des Sciences Agronomiques.",50,y,1120,9,false,16);
+ y=wrap(c,"3. Le retrait du carnet de stage est conditionné par le retour de la note d’acceptation.",50,y,1120,9,false,16);
+ footer(c,d);
+}
+
+async function drawRecours(){
+ const c=ctx(),d=data();
+ await ensureQR(d);
+ paperTexture(c);watermark(c);
+ header(c,"FORMULAIRE DE RECOURS");
+
+ let y=190;
+ c.strokeStyle=C.line;c.lineWidth=1;c.strokeRect(30,y,1180,285);
+ text(c,"I. IDENTITÉ DE L’ÉTUDIANT",48,y+35,12,true,"left",C.dark);
+
+ const rows=[["NOM",d.nom],["MATRICULE",d.matricule],["PROMOTION",d.promotion],["DÉPARTEMENT",d.departement]];
+ let ry=y+75;
+ rows.forEach(([a,b])=>{
+   text(c,a,50,ry,10,true,"left",C.dark);
+   text(c,b,580,ry,10,false,"left",C.text);
+   dottedLine(c,45,1195,ry+12);
+   ry+=48;
+ });
+
+ y=515;
+ text(c,"II. OBJECTIF DU RECOURS",45,y,12,true,"left",C.dark);
+ y+=35;
+ const lines=[
+   "A. J’ai constaté une erreur dans les calculs du pourcentage : ........................................ au lieu de ................................",
+   "B. J’ai constaté une erreur dans la sommation des cotes : ........................................ au lieu de ................................",
+   "C. Je crois qu’une erreur de transcription des cotes s’est glissée dans le cours",
+   "   de : ........................................................ /20 au lieu de ........................................................ /20",
+   "D. Autres :"
+ ];
+ lines.forEach(t=>{text(c,t,50,y,10,false,"left",C.text);y+=28});
+ for(let i=0;i<3;i++){dottedLine(c,50,1190,y);y+=28}
+ y+=10;
+ text(c,"Signature de l’étudiant",50,y,11,true,"left",C.dark);
+ text(c,"Date",1030,y,11,true,"left",C.dark);
+ y+=50;
+ text(c,"NB : Le jury ne prendra en compte que les grilles et les copies d’examen lui",45,y,10,true,"left",C.dark);
+ y+=18;
+ text(c,"déposées avant la délibération.",45,y,10,true,"left",C.dark);
+ y+=35;
+ c.strokeRect(30,y,1180,205);
+ text(c,"RÉSULTAT DU JURY",45,y+30,11,true,"left",C.dark);
+ dottedLine(c,50,1190,y+75);
+ dottedLine(c,50,1190,y+130);
+ y+=180;
+ text(c,"Signature du jury",50,y,11,true,"left",C.dark);
+ text(c,"Date",1030,y,11,true,"left",C.dark);
+ footer(c,d);
+}
+
+/* ====== RENDER ====== */
+async function render(kind){
+ currentDoc=kind;
+ const titles={
+   attestation:"Attestation de recherche",
+   acceptation:"Note d’acceptation de stage",
+   recommandation:"Recommandation de stage",
+   recours:"Formulaire de recours"
+ };
+ document.getElementById("viewerTitle").textContent=titles[kind];
+ const fns={attestation:drawAttestation,acceptation:drawAcceptation,recommandation:drawRecommandation,recours:drawRecours};
+ await fns[kind]();
+ document.getElementById("viewer").classList.add("show");
+}
+
+document.querySelectorAll(".doc-btn").forEach(b=>b.addEventListener("click",()=>render(b.dataset.doc)));
+document.getElementById("close").onclick=()=>document.getElementById("viewer").classList.remove("show");
+
+/* ====== IMPRESSION ====== */
+document.getElementById("print").onclick=()=>{
+  const canvas=document.getElementById("docCanvas");
+  const dataUrl=canvas.toDataURL("image/png");
+  const w=window.open("","_blank","width=900,height=1200");
+  if(!w){ window.print(); return; }
+  w.document.write(`
+    <html><head><title>Impression</title>
+    <style>
+      @page{size:A4 portrait;margin:0}
+      html,body{margin:0;padding:0;background:#fff}
+      img{width:210mm;height:297mm;display:block;margin:0 auto;page-break-after:avoid}
+    </style></head>
+    <body><img src="${dataUrl}" onload="window.focus();window.print();setTimeout(()=>window.close(),400);"></body>
+    </html>`);
+  w.document.close();
+};
+
+/* ====== PDF ====== */
+document.getElementById("download").onclick=()=>{
+ const {jsPDF}=window.jspdf;
+ const pdf=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+ pdf.addImage(document.getElementById("docCanvas").toDataURL("image/jpeg",.96),"JPEG",0,0,210,297);
+ const names={attestation:"attestation_recherche",acceptation:"note_acceptation_stage",recommandation:"recommandation_stage",recours:"formulaire_recours"};
+ pdf.save(names[currentDoc]+".pdf");
+};
+
+document.getElementById("logout").onclick=()=>{localStorage.removeItem(sessionKey);location.href="login-etudiant.html"};
+loadStudent();
+</script>
 </body>
 </html>
