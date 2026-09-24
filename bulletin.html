@@ -134,8 +134,8 @@
         }
         
         .student-badge .avatar {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             background: var(--accent-yellow);
             display: flex;
@@ -144,10 +144,20 @@
             font-weight: bold;
             color: var(--primary-blue);
             font-size: 1.1rem;
+            overflow: hidden;
+            border: 2px solid var(--primary-blue);
+            flex-shrink: 0;
+        }
+        
+        .student-badge .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         .student-badge .info {
             flex: 1;
+            min-width: 0;
         }
         
         .student-badge .info .name {
@@ -259,6 +269,48 @@
         
         .tab-btn.jury-tab .badge-tab { background: var(--jury-purple); }
         
+        .tab-btn .badge-lock {
+            background: #6c757d;
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 5px;
+        }
+        
+        /* ✅ Badge rouge "1" pour résultats disponibles */
+        .tab-btn .badge-new {
+            background: var(--danger-red);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 50%;
+            margin-left: 6px;
+            min-width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse-new 1.5s infinite;
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+        }
+        
+        @keyframes pulse-new {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 6px rgba(220, 53, 69, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+            }
+        }
+        
         /* ===== CONTENU DES ONGLETS ===== */
         .tab-content {
             background: #e8ecf1;
@@ -310,6 +362,72 @@
             color: #6c757d;
             font-size: 0.75rem;
             margin-top: 4px;
+        }
+        
+        /* ===== EN-TÊTE ÉTUDIANT AVEC PHOTO ===== */
+        .bulletin-info-etudiant {
+            background: linear-gradient(135deg, #f8fafc, #eef3f9);
+            border-left: 4px solid var(--accent-yellow);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .bulletin-info-etudiant .photo-etudiant {
+            width: 90px;
+            height: 110px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--primary-blue);
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0,51,102,0.2);
+        }
+        
+        .bulletin-info-etudiant .photo-etudiant img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .bulletin-info-etudiant .photo-etudiant i {
+            font-size: 40px;
+            color: var(--accent-yellow);
+        }
+        
+        .bulletin-info-etudiant .b-infos {
+            flex: 1;
+            min-width: 180px;
+        }
+        
+        .bulletin-info-etudiant .b-nom {
+            font-weight: 800;
+            color: var(--dark-blue);
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+        
+        .bulletin-info-etudiant .b-detail {
+            font-size: 0.78rem;
+            color: #6c757d;
+            line-height: 1.5;
+        }
+        
+        .bulletin-info-etudiant .b-annee {
+            background: var(--accent-yellow);
+            color: var(--dark-blue);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            align-self: flex-start;
         }
         
         /* ===== BANDEAU CUMUL ===== */
@@ -453,19 +571,6 @@
         .bulletin-table .recours-badge {
             display: inline-block;
             background: var(--jury-purple);
-            color: white;
-            font-size: 9px;
-            font-weight: 700;
-            padding: 2px 7px;
-            border-radius: 8px;
-            margin-left: 6px;
-            vertical-align: middle;
-            text-transform: uppercase;
-        }
-        
-        .bulletin-table .rattrapage-badge {
-            display: inline-block;
-            background: var(--cumul-orange);
             color: white;
             font-size: 9px;
             font-weight: 700;
@@ -710,38 +815,138 @@
             color: var(--primary-blue);
         }
         
-        /* ===== EN-TÊTE BULLETIN (ÉTUDIANT) ===== */
-        .bulletin-info-etudiant {
-            background: linear-gradient(135deg, #f8fafc, #eef3f9);
-            border-left: 4px solid var(--accent-yellow);
+        /* ===== CARTE "BLOQUÉ - FICHES MANQUANTES" ===== */
+        .result-card.bloque {
+            background: linear-gradient(135deg, #fff8e1, #ffecb3);
+            border: 2px solid #ff9800;
+        }
+        
+        .result-card.bloque .icon-big {
+            color: #e65100;
+            opacity: 0.4;
+        }
+        
+        .result-card.bloque h3 {
+            color: #e65100;
+        }
+        
+        .result-card.bloque .status-badge {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .bloque-fiches-list {
+            background: white;
             border-radius: 12px;
-            padding: 14px 18px;
-            margin-bottom: 12px;
+            padding: 15px 20px;
+            margin: 15px auto;
+            max-width: 500px;
+            text-align: left;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .bloque-fiches-list h6 {
+            color: #e65100;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .bloque-fiche-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: #fff3e0;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+        }
+        
+        .bloque-fiche-item i {
+            color: #e65100;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        
+        .bloque-fiche-item.paye {
+            background: #e8f5e9;
+        }
+        
+        .bloque-fiche-item.paye i {
+            color: #2e7d32;
+        }
+        
+        .bloque-fiche-item .fiche-nom {
+            flex: 1;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .bloque-fiche-item .fiche-montant {
+            font-weight: 700;
+            color: #e65100;
+            font-size: 0.8rem;
+        }
+        
+        .bloque-fiche-item.paye .fiche-montant {
+            color: #2e7d32;
+        }
+        
+        .bloque-fiche-item .fiche-status {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+        
+        .bloque-fiche-item .fiche-status.ok {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+        
+        .bloque-fiche-item .fiche-status.manquant {
+            background: #ffccbc;
+            color: #bf360c;
+        }
+        
+        .bloque-progress {
+            margin: 15px auto;
+            max-width: 500px;
+        }
+        
+        .bloque-progress .progress-label {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .bulletin-info-etudiant .b-nom {
-            font-weight: 800;
-            color: var(--dark-blue);
-            font-size: 0.95rem;
-        }
-        
-        .bulletin-info-etudiant .b-detail {
             font-size: 0.75rem;
-            color: #6c757d;
+            color: #e65100;
+            font-weight: 700;
+            margin-bottom: 5px;
         }
         
-        .bulletin-info-etudiant .b-annee {
-            background: var(--accent-yellow);
-            color: var(--dark-blue);
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 0.72rem;
-            font-weight: 800;
+        .bloque-progress .progress-bar-container {
+            height: 10px;
+            background: #ffe0b2;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .bloque-progress .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9800, #ffb74d);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        
+        .bloque-message {
+            font-size: 0.8rem;
+            color: #bf360c;
+            margin-top: 15px;
+            font-style: italic;
+            line-height: 1.4;
         }
         
         /* ===== FOOTER ===== */
@@ -776,7 +981,7 @@
             top: 0;
             width: 210mm;
             background: white;
-            padding: 20mm 15mm;
+            padding: 15mm 15mm;
             font-family: 'Segoe UI', Arial, sans-serif;
             color: #2c3e50;
         }
@@ -784,15 +989,15 @@
         .pdf-header-officiel {
             display: flex;
             align-items: center;
-            gap: 20px;
-            padding-bottom: 15px;
+            gap: 15px;
+            padding-bottom: 12px;
             border-bottom: 3px solid #003366;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .pdf-logo-fsa {
-            width: 80px;
-            height: 80px;
+            width: 75px;
+            height: 75px;
             object-fit: contain;
             flex-shrink: 0;
         }
@@ -804,7 +1009,7 @@
         
         .pdf-entete-texte .pdf-universite {
             color: #003366;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 800;
             letter-spacing: 1px;
             margin: 0 0 3px 0;
@@ -813,80 +1018,115 @@
         
         .pdf-entete-texte .pdf-faculte {
             color: #003366;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
-            margin: 0 0 8px 0;
+            margin: 0 0 6px 0;
             text-transform: uppercase;
         }
         
         .pdf-entete-texte .pdf-titre-doc {
             color: #003366;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 800;
             letter-spacing: 0.5px;
             margin: 0;
-            padding: 6px 0;
+            padding: 5px 0;
             border-top: 1.5px solid #003366;
             border-bottom: 1.5px solid #003366;
             text-transform: uppercase;
         }
         
+        /* ✅ Info étudiant avec photo sur PDF */
         .pdf-info-etudiant {
             background: white;
             border: 1.5px solid #003366;
             border-radius: 4px;
-            padding: 12px 18px;
-            margin-bottom: 20px;
+            padding: 10px 14px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
         }
         
-        .pdf-info-etudiant table {
+        .pdf-photo-etudiant {
+            width: 80px;
+            height: 100px;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #f0f2f5;
+            border: 1.5px solid #003366;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .pdf-photo-etudiant img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .pdf-photo-etudiant .photo-placeholder {
+            font-size: 11px;
+            color: #003366;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.3;
+        }
+        
+        .pdf-infos-content {
+            flex: 1;
+        }
+        
+        .pdf-infos-content table {
             width: 100%;
             border-collapse: collapse;
             margin: 0;
         }
         
-        .pdf-info-etudiant table td {
-            padding: 4px 0;
-            font-size: 12px;
+        .pdf-infos-content table td {
+            padding: 3px 0;
+            font-size: 11.5px;
             color: #2c3e50;
             vertical-align: top;
             border: none;
         }
         
-        .pdf-info-etudiant table td.label {
+        .pdf-infos-content table td.label {
             font-weight: 700;
             color: #003366;
             width: 90px;
         }
         
-        .pdf-info-etudiant table td.value { font-weight: 500; }
+        .pdf-infos-content table td.value { font-weight: 500; }
         
         .pdf-section-titre {
             background: #003366;
             color: white;
-            padding: 8px 12px;
+            padding: 7px 12px;
             font-weight: 700;
-            font-size: 12px;
+            font-size: 11.5px;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            margin-top: 15px;
+            margin-top: 12px;
             margin-bottom: 0;
         }
         
         .pdf-table-notes {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
-            font-size: 11.5px;
+            margin-bottom: 15px;
+            font-size: 11px;
         }
         
         .pdf-table-notes thead th {
             background: #e8f0f8;
             color: #003366;
-            padding: 10px 8px;
+            padding: 8px 6px;
             text-align: right;
             font-weight: 800;
-            font-size: 11px;
+            font-size: 10.5px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border-top: 2px solid #003366;
@@ -901,7 +1141,7 @@
         .pdf-table-notes thead th:last-child { padding-right: 12px; }
         
         .pdf-table-notes tbody td {
-            padding: 8px 8px;
+            padding: 6px 6px;
             border-bottom: 1px solid #eef2f6;
             text-align: right;
             color: #2c3e50;
@@ -919,10 +1159,10 @@
         .pdf-table-notes tbody tr.cat-row { background: #f7fafd; }
         
         .pdf-table-notes tbody tr.cat-row td {
-            padding: 8px 12px;
+            padding: 6px 12px;
             font-weight: 800;
             color: #003366;
-            font-size: 11px;
+            font-size: 10.5px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border-left: 3px solid #003366;
@@ -932,7 +1172,7 @@
         .pdf-summary-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             border: 1.5px solid #003366;
             border-radius: 4px;
             overflow: hidden;
@@ -941,8 +1181,8 @@
         .pdf-summary-table th {
             background: #e8f0f8;
             color: #003366;
-            padding: 8px;
-            font-size: 10.5px;
+            padding: 7px;
+            font-size: 10px;
             font-weight: 800;
             text-transform: uppercase;
             text-align: center;
@@ -953,8 +1193,8 @@
         .pdf-summary-table th:last-child { border-right: none; }
         
         .pdf-summary-table td {
-            padding: 10px 8px;
-            font-size: 15px;
+            padding: 9px 7px;
+            font-size: 14px;
             font-weight: 800;
             color: #003366;
             text-align: center;
@@ -968,21 +1208,21 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
-            padding: 10px 0;
+            margin-bottom: 20px;
+            padding: 8px 0;
         }
         
         .pdf-decision-officielle .pdf-d-label {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 800;
             color: #003366;
         }
         
         .pdf-decision-badge {
-            padding: 8px 24px;
+            padding: 7px 22px;
             border-radius: 4px;
             font-weight: 800;
-            font-size: 14px;
+            font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -993,9 +1233,9 @@
         .pdf-decision-badge.reserve { background: #cce5ff; color: #004085; }
         
         .pdf-pied-page {
-            margin-top: 40px;
+            margin-top: 30px;
             text-align: right;
-            font-size: 12px;
+            font-size: 11px;
             font-style: italic;
             color: #003366;
             font-weight: 600;
@@ -1003,10 +1243,10 @@
         
         .pdf-footer {
             text-align: center;
-            margin-top: 20px;
-            padding-top: 10px;
+            margin-top: 15px;
+            padding-top: 8px;
             border-top: 1px solid #e0e0e0;
-            font-size: 9px;
+            font-size: 8.5px;
             color: #999;
         }
         
@@ -1032,6 +1272,8 @@
             .student-badge { padding: 10px 15px; }
             .student-badge .session-info { font-size: 0.65rem; padding: 3px 10px; }
             .btn-download-bulletin { padding: 12px 20px; font-size: 14px; }
+            .bloque-fiches-list { padding: 12px 15px; }
+            .bulletin-info-etudiant .photo-etudiant { width: 70px; height: 85px; }
         }
         
         @media (max-width: 480px) {
@@ -1046,6 +1288,9 @@
             .bulletin-table .cote-cell,
             .bulletin-table .pondere-cell { font-size: 0.75rem; }
             .summary-grid { grid-template-columns: repeat(2, 1fr); }
+            .bulletin-info-etudiant .photo-etudiant { width: 60px; height: 75px; }
+            .bulletin-info-etudiant .b-nom { font-size: 0.85rem; }
+            .bulletin-info-etudiant .b-detail { font-size: 0.7rem; }
         }
     </style>
 </head>
@@ -1058,7 +1303,7 @@
             </a>
             <div class="navbar-right">
                 <div class="profile-photo" id="profileBtn">
-                    <img src="t.png" alt="Photo" onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'bi bi-person-fill\' style=\'color:#003366;font-size:24px;\'></i>'">
+                    <img id="navbarPhoto" src="fsa.png" alt="Photo" onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'bi bi-person-fill\' style=\'color:#003366;font-size:24px;\'></i>'">
                 </div>
                 <button class="btn btn-outline-light btn-sm" onclick="window.location.href='etudiant.html'">
                     <i class="bi bi-house-fill"></i>
@@ -1079,9 +1324,12 @@
             </button>
         </div>
         
-        <!-- Infos étudiant -->
+        <!-- Infos étudiant avec photo -->
         <div class="student-badge" id="studentBadge">
-            <div class="avatar" id="studentAvatar">E</div>
+            <div class="avatar" id="studentAvatar">
+                <span id="studentInitials">E</span>
+                <img id="studentAvatarImg" src="" alt="" style="display:none;">
+            </div>
             <div class="info">
                 <div class="name" id="studentName">Chargement...</div>
                 <div class="details" id="studentDetails">Matricule: ... | Promotion: ...</div>
@@ -1153,7 +1401,6 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         
-        // ✅ Persistance SIMPLE (compatible iOS)
         db.enablePersistence().catch((err) => {
             if (err.code === 'failed-precondition') console.warn('Multi-onglets non supporté');
             else if (err.code === 'unimplemented') console.warn('Persistance non supportée');
@@ -1161,6 +1408,8 @@
         
         // ==================== VARIABLES ====================
         let currentStudent = null;
+        let currentEtudiantData = null;
+        let photoEtudiantUrl = null;
         let allPromotions = [];
         let allResultatsPublies = [];
         let allBulletins = [];
@@ -1168,15 +1417,24 @@
         let currentAnneeId = null;
         let currentAnneeNom = null;
         
+        let promoConfigs = {};
+        let allFiches = [];
+        
+        let fichesPayeesIds = new Set();
+        let fichesPayeesDetails = [];
+        
+        // ✅ Clé localStorage pour mémoriser les sessions déjà consultées
+        const STORAGE_KEY_SESSIONS_VUES = 'bulletin_sessions_vues';
+        
         // ✅ 7 sessions
         const SESSIONS_TABS = [
-            { key: 'MI_SESSION',    ref: 'MI_SESSION',    label: 'Mi-Session',           icon: 'clock-history',          tabId: 'mi-session',    isRecours: false },
-            { key: 'RECOURS_MS',    ref: 'RECOURS_MS',    label: 'Recours Mi-Session',   icon: 'shield-fill-check',      tabId: 'recours-ms',    isRecours: true },
-            { key: 'RATTRAPAGE_1',  ref: 'RATTRAPAGE_1',  label: 'Rattrapage 1',         icon: 'arrow-counterclockwise', tabId: 'rattrapage-1',  isRecours: false },
-            { key: 'SESSION_1',     ref: 'SESSION_1',     label: 'Session 1',            icon: 'calendar-check',         tabId: 'session-1',     isRecours: false },
-            { key: 'RECOURS_S1',    ref: 'RECOURS_S1',    label: 'Recours Session 1',    icon: 'shield-fill-check',      tabId: 'recours-s1',    isRecours: true },
-            { key: 'RATTRAPAGE_2',  ref: 'RATTRAPAGE_2',  label: 'Rattrapage 2',         icon: 'arrow-counterclockwise', tabId: 'rattrapage-2',  isRecours: false },
-            { key: 'RECOURS_RATT',  ref: 'RECOURS_RATT',  label: 'Recours Rattrapage',   icon: 'shield-fill-check',      tabId: 'recours-ratt',  isRecours: true }
+            { key: 'MI_SESSION',    ref: 'MI_SESSION',    label: 'Mi-Session',           icon: 'clock-history',          tabId: 'mi-session',    isRecours: false, semestreRequis: 'premier' },
+            { key: 'RECOURS_MS',    ref: 'RECOURS_MS',    label: 'Recours Mi-Session',   icon: 'shield-fill-check',      tabId: 'recours-ms',    isRecours: true,  semestreRequis: 'premier' },
+            { key: 'RATTRAPAGE_1',  ref: 'RATTRAPAGE_1',  label: 'Rattrapage 1',         icon: 'arrow-counterclockwise', tabId: 'rattrapage-1',  isRecours: false, semestreRequis: 'premier' },
+            { key: 'SESSION_1',     ref: 'SESSION_1',     label: 'Session 1',            icon: 'calendar-check',         tabId: 'session-1',     isRecours: false, semestreRequis: 'cumul' },
+            { key: 'RECOURS_S1',    ref: 'RECOURS_S1',    label: 'Recours Session 1',    icon: 'shield-fill-check',      tabId: 'recours-s1',    isRecours: true,  semestreRequis: 'cumul' },
+            { key: 'RATTRAPAGE_2',  ref: 'RATTRAPAGE_2',  label: 'Rattrapage 2',         icon: 'arrow-counterclockwise', tabId: 'rattrapage-2',  isRecours: false, semestreRequis: 'cumul' },
+            { key: 'RECOURS_RATT',  ref: 'RECOURS_RATT',  label: 'Recours Rattrapage',   icon: 'shield-fill-check',      tabId: 'recours-ratt',  isRecours: true,  semestreRequis: 'cumul' }
         ];
         
         // ==================== SESSION ====================
@@ -1241,12 +1499,225 @@
             return promo ? promo.nom : promotionId;
         }
         
+        // ==================== ✅ CHARGEMENT DES DONNÉES ÉTUDIANT (AVEC PHOTO) ====================
+        async function chargerEtudiantData() {
+            if (!currentStudent) return null;
+            
+            const etudiantId = currentStudent.id || currentStudent.uid;
+            
+            try {
+                const doc = await db.collection('etudiants').doc(etudiantId).get();
+                if (doc.exists) {
+                    currentEtudiantData = { id: doc.id, ...doc.data() };
+                    
+                    const photoUrl = currentEtudiantData.photoURL || 
+                                     currentEtudiantData.photoProfil || 
+                                     currentEtudiantData.photo ||
+                                     currentEtudiantData.image ||
+                                     null;
+                    
+                    if (photoUrl && String(photoUrl).trim() !== '') {
+                        photoEtudiantUrl = photoUrl;
+                        console.log('✅ Photo étudiant chargée:', photoUrl.substring(0, 50) + '...');
+                    } else {
+                        photoEtudiantUrl = null;
+                        console.log('ℹ️ Aucune photo trouvée pour cet étudiant');
+                    }
+                    
+                    return currentEtudiantData;
+                }
+            } catch(e) {
+                console.error('Erreur chargement étudiant:', e);
+            }
+            return null;
+        }
+        
+        // ==================== ✅ CHARGEMENT DE LA CONFIGURATION DES SEMESTRES ====================
+        async function chargerConfigurationPromotion() {
+            if (!currentStudent || !currentStudent.promotion || !currentAnneeId) {
+                promoConfigs = {};
+                return;
+            }
+            
+            try {
+                const configDoc = await db.collection('configurations').doc('promotionsSemestres').get();
+                if (!configDoc.exists) {
+                    promoConfigs = {};
+                    console.log('⚠️ Aucune configuration de semestres trouvée');
+                    return;
+                }
+                
+                const data = configDoc.data() || {};
+                
+                if (data[currentAnneeId] && data[currentAnneeId][currentStudent.promotion]) {
+                    promoConfigs = data[currentAnneeId][currentStudent.promotion];
+                    console.log('✅ Configuration trouvée (multi-années):', promoConfigs);
+                    return;
+                }
+                
+                if (data[currentStudent.promotion] && 
+                    (Array.isArray(data[currentStudent.promotion].premier) || 
+                     Array.isArray(data[currentStudent.promotion].deuxieme))) {
+                    promoConfigs = data[currentStudent.promotion];
+                    console.log('✅ Configuration trouvée (ancien format):', promoConfigs);
+                    return;
+                }
+                
+                promoConfigs = {};
+                console.log('⚠️ Aucune configuration pour cette promotion/année');
+                
+            } catch(e) {
+                console.error('Erreur chargement configuration:', e);
+                promoConfigs = {};
+            }
+        }
+        
+        // ==================== ✅ CHARGEMENT DES FICHES ====================
+        async function chargerFiches() {
+            try {
+                const snapshot = await db.collection('fiches').get();
+                allFiches = [];
+                snapshot.forEach(doc => {
+                    const ficheData = { id: doc.id, ...doc.data() };
+                    if (ficheData.anneeAcademiqueId && currentAnneeId && 
+                        ficheData.anneeAcademiqueId !== currentAnneeId) {
+                        return;
+                    }
+                    allFiches.push(ficheData);
+                });
+                console.log(`📄 ${allFiches.length} fiche(s) chargée(s)`);
+            } catch(e) {
+                console.error('Erreur chargement fiches:', e);
+                allFiches = [];
+            }
+        }
+        
+        // ==================== ✅ CHARGEMENT DES PAIEMENTS DE L'ÉTUDIANT ====================
+        async function chargerPaiementsEtudiant() {
+            if (!currentStudent || !currentAnneeId) {
+                fichesPayeesIds = new Set();
+                fichesPayeesDetails = [];
+                return;
+            }
+            
+            const etudiantId = currentStudent.id || currentStudent.uid;
+            
+            try {
+                const transactionsSnap = await db.collection('transactions')
+                    .where('etudiantId', '==', etudiantId)
+                    .where('anneeAcademiqueId', '==', currentAnneeId)
+                    .get();
+                
+                const payeesSet = new Set();
+                const payeesDetails = [];
+                
+                transactionsSnap.forEach(doc => {
+                    const data = doc.data();
+                    (data.fiches || []).forEach(f => {
+                        if (f && f.id && !payeesSet.has(f.id)) {
+                            payeesSet.add(f.id);
+                            payeesDetails.push({
+                                id: f.id,
+                                nom: f.nom || '',
+                                montant: f.montant || 0,
+                                datePaiement: data.datePaiement || data.dateCreation || null
+                            });
+                        }
+                    });
+                });
+                
+                fichesPayeesIds = payeesSet;
+                fichesPayeesDetails = payeesDetails;
+                
+                console.log(`💰 ${fichesPayeesIds.size} fiche(s) payée(s) par l'étudiant`);
+                
+            } catch(e) {
+                console.error('Erreur chargement paiements:', e);
+                fichesPayeesIds = new Set();
+                fichesPayeesDetails = [];
+            }
+        }
+        
+        // ==================== ✅ VÉRIFICATION DES FICHES REQUISES ====================
+        function verifierFichesRequises(semestreRequis) {
+            const configPremier = promoConfigs.premier || [];
+            const configDeuxieme = promoConfigs.deuxieme || [];
+            
+            if (configPremier.length === 0 && configDeuxieme.length === 0) {
+                return {
+                    ok: false,
+                    pasDeConfig: true,
+                    fichesRequises: [],
+                    fichesManquantes: [],
+                    fichesPayees: [],
+                    pourcentage: 0
+                };
+            }
+            
+            let fichesRequisesIds = [];
+            
+            if (semestreRequis === 'premier') {
+                fichesRequisesIds = [...configPremier];
+            } else if (semestreRequis === 'cumul') {
+                fichesRequisesIds = [...configPremier, ...configDeuxieme];
+                
+                if (configDeuxieme.length === 0) {
+                    return {
+                        ok: false,
+                        pasDeConfig: true,
+                        fichesRequises: [],
+                        fichesManquantes: [],
+                        fichesPayees: [],
+                        pourcentage: 0
+                    };
+                }
+            }
+            
+            if (fichesRequisesIds.length === 0) {
+                return {
+                    ok: true,
+                    pasDeConfig: false,
+                    fichesRequises: [],
+                    fichesManquantes: [],
+                    fichesPayees: [],
+                    pourcentage: 100
+                };
+            }
+            
+            const fichesRequisesUniques = [...new Set(fichesRequisesIds)];
+            
+            const fichesRequises = fichesRequisesUniques.map(id => {
+                const fiche = allFiches.find(f => f.id === id);
+                const estPayee = fichesPayeesIds.has(id);
+                return {
+                    id,
+                    nom: fiche ? fiche.nom : 'Fiche inconnue',
+                    montant: fiche ? (fiche.montant || 0) : 0,
+                    estPayee
+                };
+            });
+            
+            const fichesPayees = fichesRequises.filter(f => f.estPayee);
+            const fichesManquantes = fichesRequises.filter(f => !f.estPayee);
+            const pourcentage = Math.round((fichesPayees.length / fichesRequises.length) * 100);
+            
+            return {
+                ok: fichesManquantes.length === 0,
+                pasDeConfig: false,
+                fichesRequises,
+                fichesManquantes,
+                fichesPayees,
+                pourcentage
+            };
+        }
+        
         // ==================== CHARGEMENT DES RÉSULTATS ====================
         async function chargerResultatsPublies() {
             if (!currentStudent || !currentAnneeId) return;
             
             try {
-                // 1. Documents de publication
+                const etudiantId = currentStudent.id || currentStudent.uid;
+                
                 const snapshot = await db.collection('resultatsPublies')
                     .where('promotionId', '==', currentStudent.promotion)
                     .where('anneeAcademiqueId', '==', currentAnneeId)
@@ -1257,9 +1728,8 @@
                     allResultatsPublies.push({ id: doc.id, ...doc.data() });
                 });
                 
-                // 2. Tous mes bulletins
                 const bulletinsSnap = await db.collection('bulletins')
-                    .where('etudiantId', '==', currentStudent.id || currentStudent.uid)
+                    .where('etudiantId', '==', etudiantId)
                     .where('anneeAcademiqueId', '==', currentAnneeId)
                     .get();
                 
@@ -1268,7 +1738,6 @@
                     allBulletins.push({ id: doc.id, ...doc.data() });
                 });
                 
-                // 3. Mes recours (pour badges compteurs)
                 const recoursSnap = await db.collection('recoursJury')
                     .where('promotionId', '==', currentStudent.promotion)
                     .where('anneeAcademiqueId', '==', currentAnneeId)
@@ -1277,7 +1746,7 @@
                 allRecours = [];
                 recoursSnap.forEach(doc => {
                     const data = doc.data();
-                    const maCote = data.cotesModifiees?.[currentStudent.id || currentStudent.uid];
+                    const maCote = data.cotesModifiees?.[etudiantId];
                     if (maCote) {
                         allRecours.push({ id: doc.id, ...data, maCote });
                     }
@@ -1289,20 +1758,199 @@
             }
         }
         
+        // ==================== ✅ GESTION DES SESSIONS VUES (localStorage) ====================
+        function getSessionsVues() {
+            try {
+                const data = JSON.parse(localStorage.getItem(STORAGE_KEY_SESSIONS_VUES) || '{}');
+                const etudiantId = currentStudent?.id || currentStudent?.uid || 'unknown';
+                const cle = `${etudiantId}_${currentAnneeId || 'no-annee'}`;
+                return data[cle] || [];
+            } catch(e) {
+                console.error('Erreur lecture sessions vues:', e);
+                return [];
+            }
+        }
+        
+        function marquerSessionVue(sessionKey) {
+            try {
+                const data = JSON.parse(localStorage.getItem(STORAGE_KEY_SESSIONS_VUES) || '{}');
+                const etudiantId = currentStudent?.id || currentStudent?.uid || 'unknown';
+                const cle = `${etudiantId}_${currentAnneeId || 'no-annee'}`;
+                
+                if (!data[cle]) data[cle] = [];
+                if (!data[cle].includes(sessionKey)) {
+                    data[cle].push(sessionKey);
+                    localStorage.setItem(STORAGE_KEY_SESSIONS_VUES, JSON.stringify(data));
+                    console.log(`✅ Session ${sessionKey} marquée comme vue (définitivement)`);
+                }
+            } catch(e) {
+                console.error('Erreur marquage session vue:', e);
+            }
+        }
+        
         // ==================== AFFICHAGE ÉTUDIANT ====================
         async function loadStudentInfo() {
             await Promise.all([chargerPromotions(), chargerAnneeActive()]);
             
+            await chargerEtudiantData();
+            
             const nameEl = document.getElementById('studentName');
             const detailsEl = document.getElementById('studentDetails');
-            const avatarEl = document.getElementById('studentAvatar');
+            const initialsEl = document.getElementById('studentInitials');
+            const avatarImgEl = document.getElementById('studentAvatarImg');
             
             if (currentStudent) {
-                const nom = currentStudent.nom || currentStudent.nomComplet || 'Étudiant';
+                const nom = currentEtudiantData?.nom || 
+                           currentStudent.nom || 
+                           currentStudent.nomComplet || 
+                           'Étudiant';
+                
+                const matricule = currentEtudiantData?.matricule || 
+                                 currentStudent.matricule || 
+                                 'N/A';
+                
                 nameEl.textContent = nom;
-                detailsEl.textContent = `Matricule: ${currentStudent.matricule || 'N/A'} | Promotion: ${getPromotionNom(currentStudent.promotion)}`;
-                avatarEl.textContent = getInitials(nom);
+                detailsEl.textContent = `Matricule: ${matricule} | Promotion: ${getPromotionNom(currentStudent.promotion)}`;
+                
+                if (photoEtudiantUrl) {
+                    if (initialsEl) initialsEl.style.display = 'none';
+                    if (avatarImgEl) {
+                        avatarImgEl.src = photoEtudiantUrl;
+                        avatarImgEl.style.display = 'block';
+                        avatarImgEl.style.width = '100%';
+                        avatarImgEl.style.height = '100%';
+                        avatarImgEl.style.objectFit = 'cover';
+                        avatarImgEl.style.borderRadius = '50%';
+                    }
+                    
+                    const navbarPhoto = document.getElementById('navbarPhoto');
+                    if (navbarPhoto) {
+                        navbarPhoto.src = photoEtudiantUrl;
+                        navbarPhoto.style.display = 'block';
+                    }
+                } else {
+                    if (initialsEl) {
+                        initialsEl.textContent = getInitials(nom);
+                        initialsEl.style.display = 'block';
+                    }
+                    if (avatarImgEl) avatarImgEl.style.display = 'none';
+                }
             }
+        }
+        
+        // ==================== ✅ CARTE DE BLOCAGE ====================
+        function genererCarteBlocage(session, verification) {
+            if (verification.pasDeConfig) {
+                return `
+                    <div class="result-card bloque">
+                        <div class="icon-big">
+                            <i class="bi bi-slash-circle-fill"></i>
+                        </div>
+                        <div class="status-badge">
+                            <i class="bi bi-exclamation-triangle-fill"></i> CONFIGURATION REQUISE
+                        </div>
+                        <h3>Résultats non disponibles</h3>
+                        <p>
+                            La configuration des fiches pour votre promotion 
+                            n'a pas encore été définie par l'administration.
+                        </p>
+                        <div class="deliberation-badge" style="background:#e65100;color:white;">
+                            <i class="bi bi-gear-fill"></i> 
+                            EN ATTENTE DE CONFIGURATION
+                        </div>
+                        <div class="info-line">
+                            <span><i class="bi bi-tag"></i> Session: ${escapeHtml(session.label)}</span>
+                            <span><i class="bi bi-clock"></i> Contactez l'administration</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            let fichesHtml = '';
+            verification.fichesRequises.forEach(fiche => {
+                const statusClass = fiche.estPayee ? 'paye' : '';
+                const statusIcon = fiche.estPayee ? 'check-circle-fill' : 'x-circle-fill';
+                const statusText = fiche.estPayee ? 'PAYÉ' : 'MANQUANT';
+                const statusCss = fiche.estPayee ? 'ok' : 'manquant';
+                
+                fichesHtml += `
+                    <div class="bloque-fiche-item ${statusClass}">
+                        <i class="bi bi-${statusIcon}"></i>
+                        <span class="fiche-nom">${escapeHtml(fiche.nom)}</span>
+                        <span class="fiche-montant">${(fiche.montant || 0).toLocaleString()} FC</span>
+                        <span class="fiche-status ${statusCss}">${statusText}</span>
+                    </div>
+                `;
+            });
+            
+            const titreBlocage = verification.fichesManquantes.length === 1 
+                ? '1 fiche manquante' 
+                : `${verification.fichesManquantes.length} fiches manquantes`;
+            
+            return `
+                <div class="result-card bloque">
+                    <div class="icon-big">
+                        <i class="bi bi-lock-fill"></i>
+                    </div>
+                    <div class="status-badge">
+                        <i class="bi bi-exclamation-triangle-fill"></i> ACCÈS BLOQUÉ
+                    </div>
+                    <h3>Résultats verrouillés</h3>
+                    <p>
+                        Vous devez être en ordre avec toutes les fiches 
+                        configurées pour accéder à ce bulletin.
+                    </p>
+                    
+                    <div class="bloque-progress">
+                        <div class="progress-label">
+                            <span>Progression</span>
+                            <span>${verification.pourcentage}%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" style="width: ${verification.pourcentage}%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bloque-fiches-list">
+                        <h6><i class="bi bi-list-check"></i> ${titreBlocage} — Session ${escapeHtml(session.label)}</h6>
+                        ${fichesHtml}
+                    </div>
+                    
+                    <div class="bloque-message">
+                        <i class="bi bi-info-circle-fill"></i>
+                        Veuillez régulariser votre situation auprès du service de comptabilité 
+                        pour débloquer l'accès à ce bulletin.
+                    </div>
+                    
+                    <div class="info-line">
+                        <span><i class="bi bi-tag"></i> Session: ${escapeHtml(session.label)}</span>
+                        <span><i class="bi bi-shield-lock"></i> Accès sécurisé</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ==================== ✅ GÉNÉRATION DE L'EN-TÊTE ÉTUDIANT AVEC PHOTO ====================
+        function genererEnteteEtudiantHTML(nom, matricule, promoNom) {
+            const photoHtml = photoEtudiantUrl 
+                ? `<img src="${escapeHtml(photoEtudiantUrl)}" alt="Photo étudiant" crossorigin="anonymous">`
+                : `<i class="bi bi-person-fill"></i>`;
+            
+            return `
+                <div class="bulletin-info-etudiant">
+                    <div class="photo-etudiant">
+                        ${photoHtml}
+                    </div>
+                    <div class="b-infos">
+                        <div class="b-nom"><i class="bi bi-person-badge-fill me-1"></i> ${escapeHtml(nom)}</div>
+                        <div class="b-detail">
+                            Matricule: <strong>${escapeHtml(matricule)}</strong><br>
+                            Promotion: <strong>${escapeHtml(promoNom)}</strong>
+                        </div>
+                    </div>
+                    <span class="b-annee"><i class="bi bi-calendar-check-fill me-1"></i>${escapeHtml(currentAnneeNom || '-')}</span>
+                </div>
+            `;
         }
         
         // ==================== GÉNÉRATION DU BULLETIN HTML ====================
@@ -1311,14 +1959,21 @@
                 return null;
             }
             
-            const nom = bulletin.etudiantNom || currentStudent.nom || 'Étudiant';
-            const matricule = bulletin.etudiantMatricule || currentStudent.matricule || 'N/A';
+            const nom = bulletin.etudiantNom || 
+                       currentEtudiantData?.nom || 
+                       currentStudent.nom || 
+                       'Étudiant';
+            
+            const matricule = bulletin.etudiantMatricule || 
+                             currentEtudiantData?.matricule || 
+                             currentStudent.matricule || 
+                             'N/A';
+            
             const promoNom = getPromotionNom(currentStudent.promotion);
             
             const sessionsCumulees = bulletin.sessionsCumulees || [];
             const estCumul = sessionsCumulees.length > 1;
             
-            // ✅ Grouper les cours par session source (pour les cumuls)
             const parSession = {};
             bulletin.lignes.forEach(l => {
                 const sess = l.sessionSource || 'SESSION_1';
@@ -1326,7 +1981,6 @@
                 parSession[sess].push(l);
             });
             
-            // Bandeau cumul
             let cumulBannerHTML = '';
             if (estCumul) {
                 const sessionsLabels = sessionsCumulees.map(s => {
@@ -1348,19 +2002,8 @@
                 `;
             }
             
-            // En-tête étudiant
-            let html = `
-                ${cumulBannerHTML}
-                <div class="bulletin-info-etudiant">
-                    <div>
-                        <div class="b-nom"><i class="bi bi-person-badge-fill me-1"></i> ${escapeHtml(nom)}</div>
-                        <div class="b-detail">Matricule: <strong>${escapeHtml(matricule)}</strong> | Promotion: <strong>${escapeHtml(promoNom)}</strong></div>
-                    </div>
-                    <span class="b-annee"><i class="bi bi-calendar-check-fill me-1"></i>${escapeHtml(currentAnneeNom || '-')}</span>
-                </div>
-            `;
+            let html = cumulBannerHTML + genererEnteteEtudiantHTML(nom, matricule, promoNom);
             
-            // Tableau principal
             html += `
                 <div class="bulletin-container">
                     <div class="bulletin-header">
@@ -1369,9 +2012,7 @@
                     </div>
             `;
             
-            // ✅ Si cumul : afficher par section (MS puis S1)
             if (estCumul) {
-                // Déterminer l'ordre : MS d'abord, puis S1
                 const sessionsOrdered = ['MI_SESSION', 'SESSION_1'];
                 
                 sessionsOrdered.forEach(sess => {
@@ -1380,7 +2021,6 @@
                     
                     const sessionLabelSection = sess === 'MI_SESSION' ? 'Mi-Session' : 'Session 1';
                     
-                    // Grouper par catégorie
                     const groupes = {};
                     lignes.forEach(l => {
                         const cat = l.categorie || 'NON UE';
@@ -1438,7 +2078,6 @@
                     `;
                 });
             } else {
-                // ✅ Pas de cumul : afficher normalement
                 const groupes = {};
                 bulletin.lignes.forEach(l => {
                     const cat = l.categorie || 'NON UE';
@@ -1493,9 +2132,8 @@
                 `;
             }
             
-            html += `</div>`; // Fin bulletin-container
+            html += `</div>`;
             
-            // Résumé
             const decisionClass = 
                 bulletin.decisionJury === 'ADMIS' ? 'admis' :
                 bulletin.decisionJury === 'RATTRAPAGE' ? 'rattrapage' :
@@ -1544,7 +2182,6 @@
                 </div>
             `;
             
-            // Bouton télécharger
             html += `
                 <button class="btn-download-bulletin" onclick="telechargerBulletin('${sessionKey}', this)">
                     <i class="bi bi-file-earmark-pdf-fill"></i> Télécharger le bulletin (PDF)
@@ -1552,6 +2189,44 @@
             `;
             
             return html;
+        }
+        
+        // ==================== ✅ CONVERSION IMAGE EN BASE64 ====================
+        async function convertirImageEnBase64(url) {
+            if (!url) return null;
+            
+            if (url.startsWith('data:image')) {
+                return url;
+            }
+            
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                img.onload = function() {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.naturalWidth;
+                        canvas.height = img.naturalHeight;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                        resolve(dataUrl);
+                    } catch(e) {
+                        console.warn('Erreur conversion image:', e);
+                        resolve(null);
+                    }
+                };
+                
+                img.onerror = function() {
+                    console.warn('Impossible de charger l\'image:', url);
+                    resolve(null);
+                };
+                
+                setTimeout(() => resolve(null), 5000);
+                
+                img.src = url;
+            });
         }
         
         // ==================== TÉLÉCHARGER PDF ====================
@@ -1580,14 +2255,26 @@
             if (btnElement) {
                 btnElement.disabled = true;
                 btnElement.classList.add('loading');
-                btnElement.innerHTML = '<span class="spinner-dl"></span> Génération du PDF...';
+                btnElement.innerHTML = '<span class="spinner-dl"></span> Préparation...';
             }
             
             try {
-                const exportZone = document.getElementById('pdfExportZone');
-                exportZone.innerHTML = genererHTMLPourPDF(bulletin, session.label);
+                let photoBase64 = null;
+                if (photoEtudiantUrl) {
+                    if (btnElement) {
+                        btnElement.innerHTML = '<span class="spinner-dl"></span> Chargement photo...';
+                    }
+                    photoBase64 = await convertirImageEnBase64(photoEtudiantUrl);
+                }
                 
-                await new Promise(r => setTimeout(r, 300));
+                if (btnElement) {
+                    btnElement.innerHTML = '<span class="spinner-dl"></span> Génération du PDF...';
+                }
+                
+                const exportZone = document.getElementById('pdfExportZone');
+                exportZone.innerHTML = genererHTMLPourPDF(bulletin, session.label, photoBase64);
+                
+                await new Promise(r => setTimeout(r, 400));
                 
                 const canvas = await html2canvas(exportZone, {
                     scale: 2,
@@ -1648,16 +2335,23 @@
             }
         };
         
-        // ==================== HTML POUR PDF (DESIGN OFFICIEL) ====================
-        function genererHTMLPourPDF(bulletin, sessionLabel) {
-            const nom = bulletin.etudiantNom || currentStudent.nom || 'Étudiant';
-            const matricule = bulletin.etudiantMatricule || currentStudent.matricule || 'N/A';
+        // ==================== ✅ HTML POUR PDF (AVEC PHOTO) ====================
+        function genererHTMLPourPDF(bulletin, sessionLabel, photoBase64) {
+            const nom = bulletin.etudiantNom || 
+                       currentEtudiantData?.nom || 
+                       currentStudent.nom || 
+                       'Étudiant';
+            
+            const matricule = bulletin.etudiantMatricule || 
+                             currentEtudiantData?.matricule || 
+                             currentStudent.matricule || 
+                             'N/A';
+            
             const promoNom = getPromotionNom(currentStudent.promotion);
             
             const sessionsCumulees = bulletin.sessionsCumulees || [];
             const estCumul = sessionsCumulees.length > 1;
             
-            // Grouper par session source
             const parSession = {};
             bulletin.lignes.forEach(l => {
                 const sess = l.sessionSource || 'SESSION_1';
@@ -1677,10 +2371,13 @@
             const annee = maintenant.getFullYear();
             const dateFormatee = `${jour}/${mois}/${annee}`;
             
+            const photoHtml = photoBase64 
+                ? `<img src="${photoBase64}" alt="Photo étudiant">`
+                : `<div class="photo-placeholder"><i class="bi bi-person-fill" style="font-size:32px;color:#003366;"></i><br>PHOTO<br>ÉTUDIANT</div>`;
+            
             let html = `
-                <!-- EN-TÊTE OFFICIEL -->
                 <div class="pdf-header-officiel">
-                    <img src="t.png" alt="Logo FSA" class="pdf-logo-fsa" onerror="this.style.display='none'">
+                    <img src="fsa.png" alt="Logo FSA" class="pdf-logo-fsa" onerror="this.style.display='none'">
                     <div class="pdf-entete-texte">
                         <div class="pdf-universite">UNIVERSITÉ DE LUBUMBASHI</div>
                         <div class="pdf-faculte">FACULTÉ DES SCIENCES AGRONOMIQUES</div>
@@ -1688,26 +2385,33 @@
                     </div>
                 </div>
                 
-                <!-- INFO ÉTUDIANT -->
                 <div class="pdf-info-etudiant">
-                    <table>
-                        <tr>
-                            <td class="label">Étudiant :</td>
-                            <td class="value"><strong>${escapeHtml(nom)}</strong></td>
-                            <td class="label" style="text-align:right;">Promotion :</td>
-                            <td class="value" style="text-align:right;"><strong>${escapeHtml(promoNom)}</strong></td>
-                        </tr>
-                        <tr>
-                            <td class="label">Matricule :</td>
-                            <td class="value"><strong>${escapeHtml(matricule)}</strong></td>
-                            <td class="label" style="text-align:right;">Année Académique :</td>
-                            <td class="value" style="text-align:right;"><strong>${escapeHtml(currentAnneeNom || '-')}</strong></td>
-                        </tr>
-                    </table>
+                    <div class="pdf-photo-etudiant">
+                        ${photoHtml}
+                    </div>
+                    <div class="pdf-infos-content">
+                        <table>
+                            <tr>
+                                <td class="label">Étudiant :</td>
+                                <td class="value"><strong>${escapeHtml(nom)}</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="label">Matricule :</td>
+                                <td class="value"><strong>${escapeHtml(matricule)}</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="label">Promotion :</td>
+                                <td class="value"><strong>${escapeHtml(promoNom)}</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="label">Année :</td>
+                                <td class="value"><strong>${escapeHtml(currentAnneeNom || '-')}</strong></td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             `;
             
-            // ✅ Si cumul : afficher par section
             if (estCumul) {
                 const sessionsOrdered = ['MI_SESSION', 'SESSION_1'];
                 
@@ -1733,7 +2437,6 @@
                             <tbody>
                     `;
                     
-                    // Grouper par catégorie
                     const groupes = {};
                     lignes.forEach(l => {
                         const cat = l.categorie || 'NON UE';
@@ -1750,7 +2453,7 @@
                         groupes[cat].forEach(l => {
                             const coteColor = l.coteFinale < 10 ? '#dc3545' : '#2e7d32';
                             let badge = '';
-                            if (l.estRecours) badge = ` <span style="font-size:10px;background:#6a1b9a;color:white;padding:2px 6px;border-radius:6px;">JURY</span>`;
+                            if (l.estRecours) badge = ` <span style="font-size:9px;background:#6a1b9a;color:white;padding:2px 6px;border-radius:6px;">JURY</span>`;
                             
                             html += `
                                 <tr>
@@ -1769,7 +2472,6 @@
                     `;
                 });
             } else {
-                // ✅ Pas de cumul
                 const groupes = {};
                 bulletin.lignes.forEach(l => {
                     const cat = l.categorie || 'NON UE';
@@ -1799,7 +2501,7 @@
                     groupes[cat].forEach(l => {
                         const coteColor = l.coteFinale < 10 ? '#dc3545' : '#2e7d32';
                         let badge = '';
-                        if (l.estRecours) badge = ` <span style="font-size:10px;background:#6a1b9a;color:white;padding:2px 6px;border-radius:6px;">JURY</span>`;
+                        if (l.estRecours) badge = ` <span style="font-size:9px;background:#6a1b9a;color:white;padding:2px 6px;border-radius:6px;">JURY</span>`;
                         
                         html += `
                             <tr>
@@ -1818,7 +2520,6 @@
                 `;
             }
             
-            // Résumé
             html += `
                 <table class="pdf-summary-table">
                     <thead>
@@ -1869,6 +2570,15 @@
                 return;
             }
             
+            // ÉTAPE 1 : Vérifier les fiches
+            const verification = verifierFichesRequises(session.semestreRequis);
+            
+            if (!verification.ok) {
+                container.innerHTML = genererCarteBlocage(session, verification);
+                return;
+            }
+            
+            // ÉTAPE 2 : Vérifier la publication
             const publication = allResultatsPublies.find(r => 
                 r.session === session.key && r.published === true
             );
@@ -1888,6 +2598,7 @@
                 return;
             }
             
+            // ÉTAPE 3 : Afficher le bulletin
             const html = genererBulletinHTML(bulletin, session.label, session.key);
             if (html) {
                 container.innerHTML = html;
@@ -1941,7 +2652,23 @@
                     this.classList.add('active');
                     
                     const tabId = this.dataset.tab;
+                    const session = SESSIONS_TABS.find(s => s.tabId === tabId);
+                    
                     renderTabContent(tabId);
+                    
+                    // ✅ Marquer la session comme vue DÉFINITIVEMENT
+                    if (session) {
+                        marquerSessionVue(session.key);
+                    }
+                    
+                    // ✅ Retirer le badge "1" avec animation
+                    const badgeNew = this.querySelector('.badge-new');
+                    if (badgeNew) {
+                        badgeNew.style.transition = 'opacity 0.3s, transform 0.3s';
+                        badgeNew.style.opacity = '0';
+                        badgeNew.style.transform = 'scale(0)';
+                        setTimeout(() => badgeNew.remove(), 300);
+                    }
                     
                     setTimeout(() => {
                         this.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
@@ -1965,6 +2692,64 @@
             });
         }
         
+        function ajouterBadgesBlocage() {
+            SESSIONS_TABS.forEach(session => {
+                const verification = verifierFichesRequises(session.semestreRequis);
+                if (!verification.ok) {
+                    const tab = document.querySelector(`.tab-btn[data-tab="${session.tabId}"]`);
+                    if (tab && !tab.querySelector('.badge-lock')) {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge-lock';
+                        badge.innerHTML = '<i class="bi bi-lock-fill"></i>';
+                        badge.title = 'Fiches manquantes';
+                        tab.appendChild(badge);
+                    }
+                }
+            });
+        }
+        
+        // ✅ Ajouter un badge rouge "1" sur les sessions où un résultat est disponible
+        // (mais pas encore consulté par l'étudiant)
+        function ajouterBadgesDisponibles() {
+            const sessionsVues = getSessionsVues();
+            
+            SESSIONS_TABS.forEach(session => {
+                const tab = document.querySelector(`.tab-btn[data-tab="${session.tabId}"]`);
+                if (!tab) return;
+                
+                // ❌ Ne pas afficher si l'étudiant a déjà consulté cette session
+                if (sessionsVues.includes(session.key)) return;
+                
+                // ❌ Ne pas afficher si la session est bloquée (fiches manquantes)
+                const verification = verifierFichesRequises(session.semestreRequis);
+                if (!verification.ok) return;
+                
+                // Vérifier si une publication existe pour cette session
+                const publication = allResultatsPublies.find(r => 
+                    r.session === session.key && r.published === true
+                );
+                
+                if (!publication) return;
+                
+                // Vérifier si un bulletin existe pour cette publication
+                const bulletin = allBulletins.find(b => 
+                    b.publicationId === publication.id ||
+                    (b.session === session.key && b.publicationId === publication.id)
+                );
+                
+                if (!bulletin || !bulletin.lignes || bulletin.lignes.length === 0) return;
+                
+                // ✅ Ajouter le badge "1" rouge
+                if (!tab.querySelector('.badge-new')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge-new';
+                    badge.textContent = '1';
+                    badge.title = 'Nouveau bulletin disponible';
+                    tab.appendChild(badge);
+                }
+            });
+        }
+        
         // ==================== UTILITAIRE ====================
         function escapeHtml(text) {
             if (text === null || text === undefined) return '';
@@ -1977,21 +2762,43 @@
         async function init() {
             if (!checkSession()) return;
             
+            console.log('📄 Bulletin - Initialisation...');
+            
+            // 1. Charger les infos de base (AVEC PHOTO)
             await loadStudentInfo();
+            
+            // 2. Charger les données nécessaires
+            await Promise.all([
+                chargerFiches(),
+                chargerConfigurationPromotion()
+            ]);
+            
+            // 3. Charger les paiements de l'étudiant
+            await chargerPaiementsEtudiant();
+            
+            // 4. Charger les résultats publiés
             await chargerResultatsPublies();
             
+            // 5. Setup UI
             setupTabs();
             ajouterBadgesRecours();
+            ajouterBadgesBlocage();
+            ajouterBadgesDisponibles();
             
+            // 6. Afficher le premier onglet
             const activeTab = document.querySelector('.tab-btn.active');
             if (activeTab) {
                 renderTabContent(activeTab.dataset.tab);
             }
             
-            console.log('📄 Bulletin - Page chargée');
-            console.log('👤 Étudiant:', currentStudent?.nom);
+            console.log('✅ Bulletin - Page chargée');
+            console.log('👤 Étudiant:', currentEtudiantData?.nom || currentStudent?.nom);
+            console.log('📸 Photo:', photoEtudiantUrl ? 'OUI' : 'NON');
             console.log('📅 Année active:', currentAnneeNom);
-            console.log(`⚖️ ${allRecours.length} recours me concernent`);
+            console.log('📋 Config semestres:', promoConfigs);
+            console.log('💰 Fiches payées:', fichesPayeesIds.size);
+            console.log(`⚖️ ${allRecours.length} recours`);
+            console.log('👁️ Sessions vues:', getSessionsVues());
         }
         
         init();
